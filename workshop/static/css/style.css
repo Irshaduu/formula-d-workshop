@@ -1,76 +1,130 @@
-/* CALM WORKSHOP THEME */
+/* CALM WORKSHOP THEME WITH DARK MODE SUPPORT */
 
-:root {
-    --bs-primary: #0d6efd;
-    /* Standard Blue, trusted */
-    --bs-secondary: #6c757d;
-    /* Calm Gray */
-    --bs-body-bg: #f4f6f8;
-    /* Very light gray/blue tint */
-    --bs-border-color: #e9ecef;
-}
+/* Note: Color variables are defined in base.html */
+/* This file uses those variables for consistency */
 
 body {
-    background-color: var(--bs-body-bg);
+    background-color: var(--color-bg);
 }
 
 /* CARDS */
 .card {
     border-radius: 12px;
     transition: transform 0.2s ease, box-shadow 0.2s ease;
+    background-color: var(--color-card);
+    border-color: var(--color-border-light);
 }
 
 .hover-up:hover {
     transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08) !important;
+    box-shadow: 0 10px 20px var(--color-shadow) !important;
 }
 
 /* INPUTS & FORMS */
 .form-control,
 .form-select {
     border-radius: 8px;
-    border: 1px solid #ced4da;
+    border: 1px solid var(--color-border-light);
     padding: 0.6rem 0.8rem;
-    /* Larger touch target */
+    background-color: var(--color-card);
+    color: var(--color-text);
 }
 
 .form-control:focus,
 .form-select:focus {
-    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
-    /* Softer glow */
-    border-color: #86b7fe;
+    box-shadow: 0 0 0 3px rgba(91, 158, 255, 0.15);
+    border-color: var(--color-primary);
+    background-color: var(--color-card);
+    color: var(--color-text);
 }
 
 /* HIDE NUMERIC SPINNERS (CLEAN BOXES) */
-/* Chrome, Safari, Edge, Opera */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
     -webkit-appearance: none;
     margin: 0;
 }
 
-/* Firefox */
 input[type=number] {
     -moz-appearance: textfield;
 }
 
-/* AUTOCOMPLETE SUGGESTIONS */
-.list-group-item-action {
-    cursor: pointer;
+/* DATALIST DROPDOWN STYLING */
+.form-control::placeholder {
+    color: var(--color-text-muted);
+    opacity: 0.6;
 }
 
-/* Ensure suggestions float above everything */
-#brand-suggestions,
-#model-suggestions,
-.spare-suggestions {
-    position: absolute;
-    width: 100%;
-    max-height: 200px;
-    overflow-y: auto;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-    background: white;
-    border-radius: 0 0 8px 8px;
+/* BUTTONS */
+.btn-primary {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.btn-primary:hover {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+    opacity: 0.9;
+}
+
+.btn-outline-primary {
+    color: var(--color-primary);
+    border-color: var(--color-border);
+}
+
+.btn-outline-primary:hover {
+    background-color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+
+.btn-outline-secondary {
+    color: var(--color-text-muted);
+    border-color: var(--color-border);
+}
+
+.btn-outline-secondary:hover {
+    background-color: var(--color-hover);
+    border-color: var(--color-border);
+    color: var(--color-text);
+}
+
+/* TEXT COLORS */
+.text-muted {
+    color: var(--color-text-muted) !important;
+}
+
+.text-dark {
+    color: var(--color-text) !important;
+}
+
+.text-secondary {
+    color: var(--color-text-muted) !important;
+}
+
+/* BORDERS */
+.border {
+    border-color: var(--color-border) !important;
+}
+
+.border-light {
+    border-color: var(--color-border-light) !important;
+}
+
+/* BADGES */
+.badge {
+    background-color: var(--color-hover);
+    color: var(--color-text);
+}
+
+/* LIST GROUPS */
+.list-group-item {
+    background-color: var(--color-card);
+    border-color: var(--color-border-light);
+    color: var(--color-text);
+}
+
+.list-group-item:hover {
+    background-color: var(--color-hover);
 }
 
 /* MOBILE OPTIMIZATIONS */

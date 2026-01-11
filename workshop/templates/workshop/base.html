@@ -17,20 +17,54 @@
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 
     <style>
-        /* CORE BASE STYLES (Inlined for immediate structure) */
+        /* ========================================== */
+        /* CSS VARIABLES FOR LIGHT/DARK MODE */
+        /* ========================================== */
+        :root {
+            /* Light Mode Colors (Default) */
+            --color-bg: #f4f6f8;
+            --color-card: #ffffff;
+            --color-text: #212529;
+            --color-text-muted: #6c757d;
+            --color-primary: #0d6efd;
+            --color-primary-light: #ecf4ff;
+            --color-border: #dfe6ed;
+            --color-border-light: #e9ecef;
+            --color-hover: #e9ecef;
+            --color-shadow: rgba(0, 0, 0, 0.1);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                /* Dark Mode Colors (Eye-Comfortable) */
+                --color-bg: #1a1d23;
+                --color-card: #242830;
+                --color-text: #e4e6eb;
+                --color-text-muted: #9ca3af;
+                --color-primary: #5b9eff;
+                --color-primary-light: #1e3a5f;
+                --color-border: #3a3f4b;
+                --color-border-light: #2d3139;
+                --color-hover: #2d3139;
+                --color-shadow: rgba(0, 0, 0, 0.3);
+            }
+        }
+
+        /* ========================================== */
+        /* CORE BASE STYLES */
+        /* ========================================== */
         body {
-            background-color: #f4f6f8;
-            /* Calm light gray */
+            background-color: var(--color-bg);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            color: #212529;
+            color: var(--color-text);
             padding-bottom: 120px;
             /* Space for mobile keyboard */
         }
 
-        /* NAVBAR STYLES - STRICTLY FIXED */
+        /* NAVBAR STYLES */
         .navbar-custom {
-            background-color: #ffffff;
-            border-bottom: 1px solid #dfe6ed;
+            background-color: var(--color-card);
+            border-bottom: 1px solid var(--color-border);
             padding: 0.5rem 0;
             height: 60px;
         }
@@ -38,16 +72,14 @@
         .navbar-container {
             width: 100%;
             max-width: 800px;
-            /* Keep it focused */
             margin: 0 auto;
             display: flex;
             justify-content: space-around;
-            /* Equal spacing for 3 buttons */
             align-items: center;
         }
 
         .nav-link-custom {
-            color: #495057;
+            color: var(--color-text-muted);
             font-weight: 500;
             text-decoration: none;
             padding: 0.5rem 1.5rem;
@@ -57,27 +89,41 @@
 
         .nav-link-custom:hover,
         .nav-link-custom:focus {
-            background-color: #e9ecef;
-            color: #0d6efd;
+            background-color: var(--color-hover);
+            color: var(--color-primary);
         }
 
         .nav-link-custom.active {
-            color: #0d6efd;
+            color: var(--color-primary);
             font-weight: 600;
-            background-color: #ecf4ff;
+            background-color: var(--color-primary-light);
         }
 
         /* STUDY DROPDOWN */
         .dropdown-menu-custom {
             border: none;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 4px 12px var(--color-shadow);
             border-radius: 12px;
             margin-top: 10px;
+            background-color: var(--color-card);
         }
 
         .dropdown-item {
             padding: 10px 20px;
             font-size: 1rem;
+            color: var(--color-text);
+        }
+
+        .dropdown-item:hover {
+            background-color: var(--color-hover);
+        }
+
+        .dropdown-header {
+            color: var(--color-text-muted);
+        }
+
+        .dropdown-divider {
+            border-color: var(--color-border-light);
         }
 
         /* CONTENT WRAPPER */
@@ -85,7 +131,6 @@
             padding: 1.5rem 1rem;
             max-width: 800px;
             margin: 60px auto 0;
-            /* Top margin for fixed navbar */
         }
     </style>
 
