@@ -1,0 +1,234 @@
+{% extends 'workshop/base.html' %}
+
+{% block title %}
+{% if is_edit %}Edit Job Card{% else %}New Job Card{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-18">
+
+        <h4 class="mb-4 text-secondary">
+            {% if is_edit %}
+            Editing Job: {{ jobcard.registration_number }}
+            {% else %}
+            New Job Card
+            {% endif %}
+        </h4>
+
+        <form method="post" id="jobcardForm" autocomplete="off">
+            {% csrf_token %}
+
+            <!-- ========================================== -->
+            <!-- SECTION 1: VEHICLE & DATES -->
+            <!-- ========================================== -->
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-header bg-white py-3">
+                    <h6 class="mb-0 text-primary fw-bold">Vehicle Details</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <!-- Dates -->
+                        <div class="col-6 col-md-3">
+                            <label class="form-label small text-muted">Admitted Date</label>
+                            {{ form.admitted_date }}
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label small text-muted">Discharged Date</label>
+                            {{ form.discharged_date }}
+                        </div>
+
+                        <!-- Spacer for Desktop -->
+                        <div class="col-md-6 d-none d-md-block"></div>
+
+                        <!-- Reg & Customer -->
+                        <div class="col-12 col-md-4">
+                            <label class="form-label small text-muted">Registration Number</label>
+                            {{ form.registration_number }}
+                        </div>
+
+                        <!-- Auto-Complete Fields -->
+                        <div class="col-6 col-md-4">
+                            <label class="form-label small text-muted">Car Brand</label>
+                            {{ form.brand_name }}
+                            <!-- Suggestions Container -->
+                            <div id="brand-suggestions" class="list-group position-absolute w-auto"
+                                style="z-index: 1000;"></div>
+                        </div>
+                        <div class="col-6 col-md-4">
+                            <label class="form-label small text-muted">Car Model</label>
+                            {{ form.model_name }}
+                            <div id="model-suggestions" class="list-group position-absolute w-auto"
+                                style="z-index: 1000;"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ========================================== -->
+            <!-- SECTION 2: CUSTOMER INFO -->
+            <!-- ========================================== -->
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small text-muted">Customer Name</label>
+                            {{ form.customer_name }}
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small text-muted">Contact Number</label>
+                            {{ form.customer_contact }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ========================================== -->
+            <!-- SECTION 3: CONCERNS (Dynamic Formset) -->
+            <!-- ========================================== -->
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 text-primary fw-bold">Customer Concerns</h6>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="add-concern-btn">
+                        + Add Concern
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    {{ concern_formset.management_form }}
+                    <div id="concern-list" class="list-group list-group-flush">
+                        {% for c_form in concern_formset %}
+                        <div class="list-group-item concern-row">
+                            {{ c_form.id }}
+                            {{ c_form.concern_text }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- SECTION 4: SPARE PARTS (Dynamic Formset) -->
+            <!-- ========================================== -->
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 text-primary fw-bold">Spare Parts & Labour</h6>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="add-spare-btn">
+                        + Add Spare
+                    </button>
+                </div>
+
+                <!-- Desktop Header -->
+                <div class="card-body p-0">
+                    <div class="d-none d-md-flex bg-light p-2 fw-bold small text-muted border-bottom">
+                        <div class="col-5">Part Name</div>
+                        <div class="col-2 text-center">Qty</div>
+                        <div class="col-2 text-end">Price</div>
+                        <div class="col-1 text-end">Lab.</div>
+                        <div class="col-2 text-end">Total</div>
+                    </div>
+
+                    {{ spare_formset.management_form }}
+                    <div id="spare-list">
+                        {% for s_form in spare_formset %}
+                        <div class="spare-row border-bottom p-2">
+                            {{ s_form.id }}
+                            <div class="row g-2 align-items-center">
+                                <!-- Mobile: Part Name takes full width on top -->
+                                <div class="col-12 col-md-5">
+                                    {{ s_form.spare_part_name }}
+                                    <div class="spare-suggestions list-group position-absolute w-auto"
+                                        style="z-index: 1000;"></div>
+                                </div>
+
+                                <!-- Inputs Row -->
+                                <div class="col-3 col-md-2">
+                                    {{ s_form.quantity }}
+                                </div>
+                                <div class="col-3 col-md-2">
+                                    {{ s_form.unit_price }}
+                                </div>
+                                <div class="col-3 col-md-1">
+                                    {{ s_form.labour_charge }}
+                                </div>
+                                <div class="col-3 col-md-2">
+                                    {{ s_form.total_price }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- SUBMIT -->
+            <div class="d-grid gap-2 mb-5">
+                <button type="submit" class="btn btn-primary btn-lg py-3 fw-bold">
+                    {% if is_edit %}Update Job Card{% else %}Save Job Card{% endif %}
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<!-- EMPTY FORM TEMPLATES (Hidden, used by JS) -->
+<div id="empty-concern-form" class="d-none">
+    <div class="list-group-item concern-row">
+        {{ concern_formset.empty_form.id }}
+        {{ concern_formset.empty_form.concern_text }}
+    </div>
+</div>
+
+<div id="empty-spare-form" class="d-none">
+    <div class="spare-row border-bottom p-2">
+        {{ spare_formset.empty_form.id }}
+        <div class="row g-2 align-items-center">
+            <div class="col-12 col-md-5">
+                {{ spare_formset.empty_form.spare_part_name }}
+                <div class="spare-suggestions list-group position-absolute w-auto" style="z-index: 1000;"></div>
+            </div>
+            <div class="col-3 col-md-2">
+                {{ spare_formset.empty_form.quantity }}
+            </div>
+            <div class="col-3 col-md-2">
+                {{ spare_formset.empty_form.unit_price }}
+            </div>
+            <div class="col-3 col-md-1">
+                {{ spare_formset.empty_form.labour_charge }}
+            </div>
+            <div class="col-3 col-md-2">
+                {{ spare_formset.empty_form.total_price }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // FUNCTION: Clear inputs with value "0" or "0.00"
+        function clearZeroInputs() {
+            const inputs = document.querySelectorAll('input[type="number"], input[type="text"]');
+            inputs.forEach(input => {
+                // Check if value is exactly 0 or 0.00 (and not empty)
+                if (input.value === '0' || input.value === '0.00' || input.value === '0.0') {
+                    input.value = '';
+                }
+            });
+        }
+
+        // Run on load
+        clearZeroInputs();
+
+        // Also hook into the "Add" buttons to clear zeros in new rows
+        const addBtns = document.querySelectorAll('#add-spare-btn, #add-concern-btn');
+        addBtns.forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Small delay to allow element to be added to DOM
+                setTimeout(clearZeroInputs, 50);
+            });
+        });
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}Delete Model | Formula D{% endblock %}
+
+{% block content %}
+
+<h5>Delete Model</h5>
+
+<p>
+    Are you sure you want to delete
+    <strong>{{ model.brand.name }} {{ model.name }}</strong>?
+</p>
+
+<form method="post">
+    {% csrf_token %}
+    <button class="btn btn-danger">Yes, Delete</button>
+    <a href="{% url 'model_list' %}" class="btn btn-secondary">Cancel</a>
+</form>
+
+{% endblock %}

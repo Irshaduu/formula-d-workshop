@@ -1,0 +1,86 @@
+/* CALM WORKSHOP THEME */
+
+:root {
+    --bs-primary: #0d6efd;
+    /* Standard Blue, trusted */
+    --bs-secondary: #6c757d;
+    /* Calm Gray */
+    --bs-body-bg: #f4f6f8;
+    /* Very light gray/blue tint */
+    --bs-border-color: #e9ecef;
+}
+
+body {
+    background-color: var(--bs-body-bg);
+}
+
+/* CARDS */
+.card {
+    border-radius: 12px;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.hover-up:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.08) !important;
+}
+
+/* INPUTS & FORMS */
+.form-control,
+.form-select {
+    border-radius: 8px;
+    border: 1px solid #ced4da;
+    padding: 0.6rem 0.8rem;
+    /* Larger touch target */
+}
+
+.form-control:focus,
+.form-select:focus {
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
+    /* Softer glow */
+    border-color: #86b7fe;
+}
+
+/* HIDE NUMERIC SPINNERS (CLEAN BOXES) */
+/* Chrome, Safari, Edge, Opera */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* Firefox */
+input[type=number] {
+    -moz-appearance: textfield;
+}
+
+/* AUTOCOMPLETE SUGGESTIONS */
+.list-group-item-action {
+    cursor: pointer;
+}
+
+/* Ensure suggestions float above everything */
+#brand-suggestions,
+#model-suggestions,
+.spare-suggestions {
+    position: absolute;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    background: white;
+    border-radius: 0 0 8px 8px;
+}
+
+/* MOBILE OPTIMIZATIONS */
+@media (max-width: 768px) {
+    .btn-lg {
+        font-size: 1.1rem;
+        padding: 0.8rem;
+    }
+
+    .main-content {
+        padding-top: 1rem;
+    }
+}
