@@ -51,15 +51,10 @@
                         <div class="col-6 col-md-4">
                             <label class="form-label small text-muted">Car Brand</label>
                             {{ form.brand_name }}
-                            <!-- Suggestions Container -->
-                            <div id="brand-suggestions" class="list-group position-absolute w-auto"
-                                style="z-index: 1000;"></div>
                         </div>
                         <div class="col-6 col-md-4">
                             <label class="form-label small text-muted">Car Model</label>
                             {{ form.model_name }}
-                            <div id="model-suggestions" class="list-group position-absolute w-auto"
-                                style="z-index: 1000;"></div>
                         </div>
                     </div>
                 </div>
@@ -138,8 +133,6 @@
                                 <!-- Mobile: Part Name takes full width on top -->
                                 <div class="col-12 col-md-5">
                                     {{ s_form.spare_part_name }}
-                                    <div class="spare-suggestions list-group position-absolute w-auto"
-                                        style="z-index: 1000;"></div>
                                 </div>
 
                                 <!-- Inputs Row -->
@@ -170,6 +163,34 @@
             </div>
 
         </form>
+
+        <!-- ========================================== -->
+        <!-- DATALISTS FOR AUTOCOMPLETE -->
+        <!-- ========================================== -->
+        <datalist id="datalist-brands">
+            {% for brand in brands %}
+            <option value="{{ brand.name }}">
+                {% endfor %}
+        </datalist>
+
+        <datalist id="datalist-models">
+            {% for model in models %}
+            <option value="{{ model.name }}">
+                {% endfor %}
+        </datalist>
+
+        <datalist id="datalist-spares">
+            {% for spare in spares %}
+            <option value="{{ spare.name }}">
+                {% endfor %}
+        </datalist>
+
+        <datalist id="datalist-concerns">
+            {% for concern in concerns %}
+            <option value="{{ concern.concern }}">
+                {% endfor %}
+        </datalist>
+
     </div>
 </div>
 
@@ -187,7 +208,6 @@
         <div class="row g-2 align-items-center">
             <div class="col-12 col-md-5">
                 {{ spare_formset.empty_form.spare_part_name }}
-                <div class="spare-suggestions list-group position-absolute w-auto" style="z-index: 1000;"></div>
             </div>
             <div class="col-3 col-md-2">
                 {{ spare_formset.empty_form.quantity }}
@@ -207,28 +227,65 @@
 
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // FUNCTION: Clear inputs with value "0" or "0.00"
+
+        // ==========================================
+        // DYNAMIC ROW ADDITION
+        // ==========================================
+
+        function addFormRow(prefix, containerId, emptyFormId) {
+            const totalFormsInput = document.getElementById(`id_${prefix}-TOTAL_FORMS`);
+            const currentFormCount = parseInt(totalFormsInput.value);
+
+            // Clone the empty form template
+            const emptyFormTemplate = document.getElementById(emptyFormId);
+            const newRow = emptyFormTemplate.firstElementChild.cloneNode(true);
+
+            // Replace __prefix__ with the actual form index
+            newRow.innerHTML = newRow.innerHTML.replace(/__prefix__/g, currentFormCount);
+
+            // Append to the container
+            document.getElementById(containerId).appendChild(newRow);
+
+            // Increment the total forms count
+            totalFormsInput.value = currentFormCount + 1;
+
+            // Clear any zero values in the new row
+            setTimeout(clearZeroInputs, 50);
+        }
+
+        // Add Concern Button
+        const addConcernBtn = document.getElementById('add-concern-btn');
+        if (addConcernBtn) {
+            addConcernBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                addFormRow('concerns', 'concern-list', 'empty-concern-form');
+            });
+        }
+
+        // Add Spare Button
+        const addSpareBtn = document.getElementById('add-spare-btn');
+        if (addSpareBtn) {
+            addSpareBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                addFormRow('spares', 'spare-list', 'empty-spare-form');
+            });
+        }
+
+        // ==========================================
+        // UTILITY: CLEAR ZERO VALUES
+        // ==========================================
+
         function clearZeroInputs() {
             const inputs = document.querySelectorAll('input[type="number"], input[type="text"]');
             inputs.forEach(input => {
-                // Check if value is exactly 0 or 0.00 (and not empty)
                 if (input.value === '0' || input.value === '0.00' || input.value === '0.0') {
                     input.value = '';
                 }
             });
         }
 
-        // Run on load
+        // Run on page load
         clearZeroInputs();
-
-        // Also hook into the "Add" buttons to clear zeros in new rows
-        const addBtns = document.querySelectorAll('#add-spare-btn, #add-concern-btn');
-        addBtns.forEach(btn => {
-            btn.addEventListener('click', () => {
-                // Small delay to allow element to be added to DOM
-                setTimeout(clearZeroInputs, 50);
-            });
-        });
     });
 </script>
 {% endblock %}

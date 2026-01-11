@@ -105,11 +105,13 @@ class JobCardForm(BootstrapFormMixin, forms.ModelForm):
             # Autocomplete targets - JS will hook into these IDs/Classes
             'brand_name': forms.TextInput(attrs={
                 'autocomplete': 'off',
-                'class': 'autocomplete-brand' 
+                'class': 'autocomplete-brand',
+                'list': 'datalist-brands'
             }),
             'model_name': forms.TextInput(attrs={
                 'autocomplete': 'off',
-                'class': 'autocomplete-model'
+                'class': 'autocomplete-model',
+                'list': 'datalist-models'
             }),
             'registration_number': forms.TextInput(attrs={
                 'style': 'text-transform: uppercase;',
@@ -134,11 +136,10 @@ JobCardConcernFormSet = inlineformset_factory(
     extra=1,           # Start with 1 empty row
     can_delete=False,   # "empty rows ignored", no remove button as requested
     widgets={
-        'concern_text': forms.Textarea(attrs={
+        'concern_text': forms.TextInput(attrs={
             'class': 'form-control',
-            'rows': 1,
             'placeholder': 'Start typing concern...',
-            'style': 'resize: none;'
+            'list': 'datalist-concerns'
         })
     }
 )
@@ -153,9 +154,10 @@ JobCardSpareFormSet = inlineformset_factory(
     can_delete=False,
     widgets={
         'spare_part_name': forms.TextInput(attrs={
-            'class': 'form-control autocomplete-spare', # Target for Autocomplete JS
+            'class': 'form-control autocomplete-spare',
             'autocomplete': 'off',
-            'placeholder': 'Part Name'
+            'placeholder': 'Part Name',
+            'list': 'datalist-spares'
         }),
         'quantity': forms.NumberInput(attrs={
             'class': 'form-control text-center', 

@@ -41,11 +41,21 @@ def home(request):
         concern_formset = JobCardConcernFormSet()
         spare_formset = JobCardSpareFormSet()
 
+    # Fetch master data for datalists
+    brands = CarBrand.objects.all()
+    models = CarModel.objects.all()
+    spares = SparePart.objects.all()
+    concerns = ConcernSolution.objects.all()
+
     return render(request, 'workshop/jobcard/jobcard_form.html', {
         'form': form,
         'concern_formset': concern_formset,
         'spare_formset': spare_formset,
-        'is_edit': False
+        'is_edit': False,
+        'brands': brands,
+        'models': models,
+        'spares': spares,
+        'concerns': concerns,
     })
 
 
@@ -80,12 +90,22 @@ def jobcard_edit(request, pk):
         concern_formset = JobCardConcernFormSet(instance=jobcard)
         spare_formset = JobCardSpareFormSet(instance=jobcard)
 
+    # Fetch master data for datalists
+    brands = CarBrand.objects.all()
+    models = CarModel.objects.all()
+    spares = SparePart.objects.all()
+    concerns = ConcernSolution.objects.all()
+
     context = {
         'form': form,
         'concern_formset': concern_formset,
         'spare_formset': spare_formset,
         'jobcard': jobcard,
-        'is_edit': True
+        'is_edit': True,
+        'brands': brands,
+        'models': models,
+        'spares': spares,
+        'concerns': concerns,
     }
     return render(request, 'workshop/jobcard/jobcard_form.html', context)
 
