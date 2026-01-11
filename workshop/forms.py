@@ -133,7 +133,7 @@ JobCardConcernFormSet = inlineformset_factory(
     JobCard,
     JobCardConcern,
     fields=['concern_text'],
-    extra=1,           # Start with 1 empty row
+    extra=0,           # No empty rows by default - user clicks "Add" button
     can_delete=False,   # "empty rows ignored", no remove button as requested
     widgets={
         'concern_text': forms.TextInput(attrs={
