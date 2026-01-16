@@ -123,13 +123,13 @@ class JobCardSpareItem(models.Model):
     """
     job_card = models.ForeignKey(JobCard, on_delete=models.CASCADE, related_name='spares')
 
-    spare_part_name = models.CharField(max_length=150)
+    spare_part_name = models.CharField(max_length=100, blank=True, null=True)
     
     # Changed to DecimalField to allow fractional quantities (e.g. 3.5 liters oil)
-    quantity = models.DecimalField(max_digits=10, decimal_places=2, default=1, blank=True, null=True)
+    quantity = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)  # Removed default=1
     
-    unit_price = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True, null=True)
-    total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True, null=True)
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
 
     def __str__(self):
         return f"{self.spare_part_name} ({self.quantity})"
@@ -141,7 +141,7 @@ class JobCardLabourItem(models.Model):
     """
     job_card = models.ForeignKey(JobCard, on_delete=models.CASCADE, related_name='labours')
     job_description = models.CharField(max_length=150)
-    amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, blank=True, null=True)
+    amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)  # Removed default=0
 
     def __str__(self):
         return self.job_description

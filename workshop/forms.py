@@ -156,7 +156,7 @@ JobCardConcernFormSet = inlineformset_factory(
 JobCardSpareFormSet = inlineformset_factory(
     JobCard,
     JobCardSpareItem,
-    fields=['spare_part_name', 'quantity', 'unit_price', 'total_price'],
+    fields=['spare_part_name', 'quantity', 'total_price'],  # Removed unit_price
     extra=0,
     can_delete=True,    # Allow deletion for proper formset validation
     validate_min=False, # Don't require minimum number of forms
@@ -167,16 +167,11 @@ JobCardSpareFormSet = inlineformset_factory(
             'placeholder': 'Part Name',
             'list': 'datalist-spares'
         }),
-        'quantity': forms.NumberInput(attrs={
-            'class': 'form-control text-center', 
-            'step': '0.1', # Allow decimals
+        'quantity': forms.TextInput(attrs={  # Changed to TextInput for easy manual entry
+            'class': 'form-control text-center',
             'placeholder': 'Qty'
         }),
-        'unit_price': forms.NumberInput(attrs={
-            'class': 'form-control text-end',
-            'placeholder': 'Price'
-        }),
-        'total_price': forms.NumberInput(attrs={
+        'total_price': forms.TextInput(attrs={  # Changed to TextInput to remove spinner arrows
             'class': 'form-control text-end fw-bold',
             'placeholder': 'Total'
         }),
@@ -197,7 +192,7 @@ JobCardLabourFormSet = inlineformset_factory(
             'class': 'form-control',
             'placeholder': 'Job Performed'
         }),
-        'amount': forms.NumberInput(attrs={
+        'amount': forms.TextInput(attrs={  # Changed to TextInput to remove spinner arrows
             'class': 'form-control text-end',
             'placeholder': 'Amount'
         }),
