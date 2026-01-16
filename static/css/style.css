@@ -1,0 +1,107 @@
+/* ========================================== */
+/* SWIPEABLE TABLE STYLES */
+/* Used in Spare Parts and Labour sections */
+/* ========================================== */
+
+.swipe-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    /* Smooth scrolling on iOS */
+}
+
+.swipe-row {
+    display: flex;
+    min-width: max-content;
+    border-bottom: 1px solid var(--color-border-light);
+    padding: 0.75rem 0;
+}
+
+.swipe-row:last-child {
+    border-bottom: none;
+}
+
+.swipe-header {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--color-border);
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.5rem;
+    position: sticky;
+    left: 0;
+    background-color: var(--color-card);
+    z-index: 1;
+}
+
+.swipe-cell {
+    padding: 0 0.5rem;
+    display: flex;
+    align-items: center;
+}
+
+/* Column widths for Spare Parts table */
+.col-part {
+    min-width: 140px;
+    /* Reduced from 180px */
+    flex: 1;
+}
+
+.col-qty {
+    min-width: 70px;
+    /* Reduced from 80px */
+    width: 70px;
+    flex-shrink: 0;
+}
+
+.col-price {
+    min-width: 145px;
+    /* Increased from 120px */
+    width: 145px;
+    flex-shrink: 0;
+}
+
+.col-total {
+    min-width: 155px;
+    /* Increased from 130px */
+    width: 155px;
+    flex-shrink: 0;
+}
+
+/* Column widths for Labour table */
+.col-job {
+    min-width: 150px;
+    /* Reduced from 200px */
+    flex: 1;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+    .swipe-container {
+        /* Add visual hint that table is scrollable */
+        box-shadow: inset -10px 0 10px -10px rgba(0, 0, 0, 0.1);
+    }
+
+    .swipe-row {
+        padding: 0.5rem 0;
+    }
+
+    .col-part {
+        min-width: 160px;
+    }
+
+    .col-job {
+        min-width: 180px;
+    }
+}
+
+/* Input field adjustments within swipe cells */
+.swipe-cell input {
+    width: 100%;
+}
+
+.swipe-cell .form-control {
+    font-size: 0.95rem;
+}
