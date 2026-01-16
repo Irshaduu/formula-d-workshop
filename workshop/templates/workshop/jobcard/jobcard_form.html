@@ -131,6 +131,7 @@
                         {% for c_form in concern_formset %}
                         <div class="list-group-item concern-row">
                             {{ c_form.id }}
+                            <div class="d-none">{{ c_form.DELETE }}</div>
                             {{ c_form.concern_text }}
                         </div>
                         {% endfor %}
@@ -168,6 +169,7 @@
                             {% for s_form in spare_formset %}
                             <div class="swipe-row">
                                 {{ s_form.id }}
+                                <div class="d-none">{{ s_form.DELETE }}</div>
                                 <div class="swipe-cell col-part">
                                     {{ s_form.spare_part_name }}
                                 </div>
@@ -212,6 +214,7 @@
                             {% for l_form in labour_formset %}
                             <div class="swipe-row">
                                 {{ l_form.id }}
+                                <div class="d-none">{{ l_form.DELETE }}</div>
                                 <div class="swipe-cell col-job">
                                     {{ l_form.job_description }}
                                 </div>
@@ -268,6 +271,7 @@
 <div id="empty-concern-form" class="d-none">
     <div class="list-group-item concern-row">
         {{ concern_formset.empty_form.id }}
+        <div class="d-none">{{ concern_formset.empty_form.DELETE }}</div>
         {{ concern_formset.empty_form.concern_text }}
     </div>
 </div>
@@ -275,6 +279,7 @@
 <div id="empty-spare-form" class="d-none">
     <div class="swipe-row">
         {{ spare_formset.empty_form.id }}
+        <div class="d-none">{{ spare_formset.empty_form.DELETE }}</div>
         <div class="swipe-cell col-part">
             {{ spare_formset.empty_form.spare_part_name }}
         </div>
@@ -293,6 +298,7 @@
 <div id="empty-labour-form" class="d-none">
     <div class="swipe-row">
         {{ labour_formset.empty_form.id }}
+        <div class="d-none">{{ labour_formset.empty_form.DELETE }}</div>
         <div class="swipe-cell col-job">
             {{ labour_formset.empty_form.job_description }}
         </div>
@@ -372,6 +378,42 @@
 
         // Run on page load
         clearZeroInputs();
+
+        // ==========================================
+        // AUTO-DELETE EMPTY ROWS ON SUBMIT
+        // ==========================================
+
+        const jobcardForm = document.getElementById('jobcardForm');
+        if (jobcardForm) {
+            jobcardForm.addEventListener('submit', function (e) {
+                // Mark empty concern rows for deletion
+                document.querySelectorAll('#concern-list .concern-row').forEach(row => {
+                    const textInput = row.querySelector('input[type="text"]');
+                    const deleteCheckbox = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
+                    if (textInput && deleteCheckbox && !textInput.value.trim()) {
+                        deleteCheckbox.checked = true;
+                    }
+                });
+
+                // Mark empty spare rows for deletion
+                document.querySelectorAll('#spare-list .swipe-row').forEach(row => {
+                    const partInput = row.querySelector('input[name$="-spare_part_name"]');
+                    const deleteCheckbox = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
+                    if (partInput && deleteCheckbox && !partInput.value.trim()) {
+                        deleteCheckbox.checked = true;
+                    }
+                });
+
+                // Mark empty labour rows for deletion
+                document.querySelectorAll('#labour-list .swipe-row').forEach(row => {
+                    const jobInput = row.querySelector('input[name$="-job_description"]');
+                    const deleteCheckbox = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
+                    if (jobInput && deleteCheckbox && !jobInput.value.trim()) {
+                        deleteCheckbox.checked = true;
+                    }
+                });
+            });
+        }
     });
 </script>
 {% endblock %}

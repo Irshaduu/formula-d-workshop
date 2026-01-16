@@ -69,50 +69,116 @@
 </div>
 
 <style>
-    /* Job Card Styling */
+    /* Job Card Styling - Premium Polish */
     .job-card {
         background-color: var(--color-card);
         border: 1px solid var(--color-border);
-        border-radius: 12px;
-        transition: all 0.2s ease;
+        border-radius: 16px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
     }
 
     .job-card:hover {
-        transform: translateY(-2px);
-        box-shadow: 0 4px 12px var(--color-shadow) !important;
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px var(--color-shadow) !important;
         border-color: var(--color-primary);
+    }
+
+    .job-card .card-body {
+        padding: 1.25rem;
     }
 
     .card-link {
         color: inherit;
+        display: block;
     }
 
+    .card-link:hover {
+        text-decoration: none;
+    }
+
+    /* Brand & Model - Make it stand out */
+    .card-title {
+        font-size: 1.1rem;
+        margin-bottom: 0.5rem !important;
+    }
+
+    /* Customer Name Styling */
     .customer-name {
         color: var(--color-text);
         font-weight: 500;
+        font-size: 0.95rem;
+        display: flex;
+        align-items: center;
     }
 
+    .customer-name i {
+        font-size: 1rem;
+        opacity: 0.7;
+    }
+
+    /* Date Badge */
     .job-date {
         color: var(--color-text-muted);
-    }
-
-    .reg-badge {
-        background-color: var(--color-primary-light);
-        color: var(--color-primary);
-        border: 1px solid var(--color-border);
+        font-weight: 500;
+        background-color: var(--color-hover);
+        padding: 0.25rem 0.5rem;
         border-radius: 6px;
-        display: inline-block;
     }
 
+    /* Registration Badge - Make it Pop */
+    .reg-badge {
+        background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary-light) 100%);
+        color: var(--color-primary);
+        border: 1.5px solid var(--color-primary);
+        border-radius: 8px;
+        display: inline-block;
+        font-weight: 700;
+        padding: 0.4rem 0.75rem !important;
+        font-size: 0.9rem !important;
+        letter-spacing: 1.5px !important;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    /* Delete Icon */
     .delete-icon {
         color: var(--color-text-muted);
-        opacity: 0.25;
+        opacity: 0;
         transition: all 0.2s;
+        font-size: 1.1rem;
+    }
+
+    .job-card:hover .delete-icon {
+        opacity: 0.4;
     }
 
     .delete-icon:hover {
         opacity: 1 !important;
         color: #dc3545 !important;
+        transform: scale(1.1);
+    }
+
+    /* Empty State */
+    .empty-state-icon {
+        font-size: 4rem;
+        color: var(--color-text-muted);
+        opacity: 0.3;
+    }
+
+    /* Mobile Adjustments */
+    @media (max-width: 768px) {
+        .job-card .card-body {
+            padding: 1rem;
+        }
+
+        .card-title {
+            font-size: 1rem;
+        }
+
+        .reg-badge {
+            font-size: 0.85rem !important;
+            padding: 0.35rem 0.6rem !important;
+        }
     }
 </style>
 {% endblock %}

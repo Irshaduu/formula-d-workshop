@@ -139,8 +139,9 @@ JobCardConcernFormSet = inlineformset_factory(
     JobCard,
     JobCardConcern,
     fields=['concern_text'],
-    extra=1,           # Start with 1 empty row
-    can_delete=False,   # "empty rows ignored", no remove button as requested
+    extra=1,            # Start with 1 empty row
+    can_delete=True,    # Allow deletion for proper formset validation
+    validate_min=False, # Don't require minimum number of forms
     widgets={
         'concern_text': forms.TextInput(attrs={
             'class': 'form-control',
@@ -157,7 +158,8 @@ JobCardSpareFormSet = inlineformset_factory(
     JobCardSpareItem,
     fields=['spare_part_name', 'quantity', 'unit_price', 'total_price'],
     extra=0,
-    can_delete=False,
+    can_delete=True,    # Allow deletion for proper formset validation
+    validate_min=False, # Don't require minimum number of forms
     widgets={
         'spare_part_name': forms.TextInput(attrs={
             'class': 'form-control autocomplete-spare',
@@ -188,7 +190,8 @@ JobCardLabourFormSet = inlineformset_factory(
     JobCardLabourItem,
     fields=['job_description', 'amount'],
     extra=0,
-    can_delete=False,
+    can_delete=True,    # Allow deletion for proper formset validation
+    validate_min=False, # Don't require minimum number of forms
     widgets={
         'job_description': forms.TextInput(attrs={
             'class': 'form-control',
