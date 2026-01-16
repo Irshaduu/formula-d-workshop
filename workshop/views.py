@@ -4,11 +4,11 @@ from django.db.models import Q
 
 from .models import (
     CarBrand, CarModel, SparePart, ConcernSolution,
-    JobCard, JobCardConcern, JobCardSpareItem
+    JobCard, JobCardConcern, JobCardSpareItem, JobCardLabourItem
 )
 from .forms import (
     CarBrandForm, CarModelForm, SparePartForm, ConcernSolutionForm,
-    JobCardForm, JobCardConcernFormSet, JobCardSpareFormSet
+    JobCardForm, JobCardConcernFormSet, JobCardSpareFormSet, JobCardLabourFormSet
 )
 
 # =============================================================================
@@ -24,22 +24,31 @@ def home(request):
 
             concern_formset = JobCardConcernFormSet(
                 request.POST,
-                instance=jobcard
+                instance=jobcard,
+                prefix='concerns'
             )
             spare_formset = JobCardSpareFormSet(
                 request.POST,
-                instance=jobcard
+                instance=jobcard,
+                prefix='spares'
+            )
+            labour_formset = JobCardLabourFormSet(
+                request.POST,
+                instance=jobcard,
+                prefix='labours'
             )
 
-            if concern_formset.is_valid() and spare_formset.is_valid():
+            if concern_formset.is_valid() and spare_formset.is_valid() and labour_formset.is_valid():
                 jobcard.save()
                 concern_formset.save()
                 spare_formset.save()
+                labour_formset.save()
                 return redirect('jobcard_list')
     else:
         form = JobCardForm()
-        concern_formset = JobCardConcernFormSet()
-        spare_formset = JobCardSpareFormSet()
+        concern_formset = JobCardConcernFormSet(prefix='concerns')
+        spare_formset = JobCardSpareFormSet(prefix='spares')
+        labour_formset = JobCardLabourFormSet(prefix='labours')
 
     # Fetch master data for datalists
     brands = CarBrand.objects.all()
@@ -51,6 +60,7 @@ def home(request):
         'form': form,
         'concern_formset': concern_formset,
         'spare_formset': spare_formset,
+        'labour_formset': labour_formset,
         'is_edit': False,
         'brands': brands,
         'models': models,
@@ -77,18 +87,21 @@ def jobcard_edit(request, pk):
 
     if request.method == 'POST':
         form = JobCardForm(request.POST, instance=jobcard)
-        concern_formset = JobCardConcernFormSet(request.POST, instance=jobcard)
-        spare_formset = JobCardSpareFormSet(request.POST, instance=jobcard)
+        concern_formset = JobCardConcernFormSet(request.POST, instance=jobcard, prefix='concerns')
+        spare_formset = JobCardSpareFormSet(request.POST, instance=jobcard, prefix='spares')
+        labour_formset = JobCardLabourFormSet(request.POST, instance=jobcard, prefix='labours')
 
-        if form.is_valid() and concern_formset.is_valid() and spare_formset.is_valid():
+        if form.is_valid() and concern_formset.is_valid() and spare_formset.is_valid() and labour_formset.is_valid():
             form.save()
             concern_formset.save()
             spare_formset.save()
+            labour_formset.save()
             return redirect('jobcard_list')
     else:
         form = JobCardForm(instance=jobcard)
-        concern_formset = JobCardConcernFormSet(instance=jobcard)
-        spare_formset = JobCardSpareFormSet(instance=jobcard)
+        concern_formset = JobCardConcernFormSet(instance=jobcard, prefix='concerns')
+        spare_formset = JobCardSpareFormSet(instance=jobcard, prefix='spares')
+        labour_formset = JobCardLabourFormSet(instance=jobcard, prefix='labours')
 
     # Fetch master data for datalists
     brands = CarBrand.objects.all()
@@ -100,6 +113,7 @@ def jobcard_edit(request, pk):
         'form': form,
         'concern_formset': concern_formset,
         'spare_formset': spare_formset,
+        'labour_formset': labour_formset,
         'jobcard': jobcard,
         'is_edit': True,
         'brands': brands,

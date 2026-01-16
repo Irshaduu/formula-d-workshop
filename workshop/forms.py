@@ -8,7 +8,8 @@ from .models import (
     ConcernSolution,
     JobCard,
     JobCardConcern,
-    JobCardSpareItem
+    JobCardSpareItem,
+    JobCardLabourItem
 )
 
 # =============================================================================
@@ -96,6 +97,7 @@ class JobCardForm(BootstrapFormMixin, forms.ModelForm):
             'brand_name',
             'model_name',
             'registration_number',
+            'mileage',
             'customer_name',
             'customer_contact',
         ]
@@ -116,6 +118,10 @@ class JobCardForm(BootstrapFormMixin, forms.ModelForm):
             'registration_number': forms.TextInput(attrs={
                 'style': 'text-transform: uppercase;',
                 'autocapitalize': 'characters'
+            }),
+            'mileage': forms.TextInput(attrs={
+                'placeholder': 'e.g. 50000 or 50k',
+                'inputmode': 'numeric' # Suggests numeric keyboard on mobile but allows text
             }),
             'customer_contact': forms.NumberInput(attrs={
                  # Number input triggers numeric keypad on mobile
@@ -149,8 +155,8 @@ JobCardConcernFormSet = inlineformset_factory(
 JobCardSpareFormSet = inlineformset_factory(
     JobCard,
     JobCardSpareItem,
-    fields=['spare_part_name', 'quantity', 'unit_price', 'labour_charge', 'total_price'],
-    extra=1,
+    fields=['spare_part_name', 'quantity', 'unit_price', 'total_price'],
+    extra=0,
     can_delete=False,
     widgets={
         'spare_part_name': forms.TextInput(attrs={
@@ -168,13 +174,29 @@ JobCardSpareFormSet = inlineformset_factory(
             'class': 'form-control text-end',
             'placeholder': 'Price'
         }),
-        'labour_charge': forms.NumberInput(attrs={
-            'class': 'form-control text-end',
-            'placeholder': 'Labour'
-        }),
         'total_price': forms.NumberInput(attrs={
             'class': 'form-control text-end fw-bold',
             'placeholder': 'Total'
+        }),
+    }
+)
+
+# 3. LABOUR (JOBS)
+# Columns: Job Description | Amount
+JobCardLabourFormSet = inlineformset_factory(
+    JobCard,
+    JobCardLabourItem,
+    fields=['job_description', 'amount'],
+    extra=0,
+    can_delete=False,
+    widgets={
+        'job_description': forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Job Performed'
+        }),
+        'amount': forms.NumberInput(attrs={
+            'class': 'form-control text-end',
+            'placeholder': 'Amount'
         }),
     }
 )

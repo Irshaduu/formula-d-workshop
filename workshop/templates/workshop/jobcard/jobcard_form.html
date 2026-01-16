@@ -19,6 +19,38 @@
         <form method="post" id="jobcardForm" autocomplete="off">
             {% csrf_token %}
 
+            {% if form.errors or concern_formset.errors or spare_formset.errors or labour_formset.errors %}
+            <div class="alert alert-danger">
+                <strong>Please correct the errors below:</strong>
+                <ul>
+                    {% for field in form %}
+                    {% for error in field.errors %}
+                    <li>{{ field.label }}: {{ error }}</li>
+                    {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+
+                    <!-- Formset Errors Generic Check -->
+                    {% if concern_formset.errors %}<li>Check Concerns section for errors.</li>{% endif %}
+                    {% if spare_formset.errors %}<li>Check Spares section for errors.</li>{% endif %}
+                    {% if labour_formset.errors %}
+                    <li>Check Jobs (Labour) section for errors.</li>
+                    <!-- Debugging Labour Errors -->
+                    {% for dict in labour_formset.errors %}
+                    {% for key, value in dict.items %}
+                    <li>Labour Error - {{ key }}: {{ value }}</li>
+                    {% endfor %}
+                    {% endfor %}
+                    {% for error in labour_formset.non_form_errors %}
+                    <li>Labour Generic: {{ error }}</li>
+                    {% endfor %}
+                    {% endif %}
+                </ul>
+            </div>
+            {% endif %}
+
             <!-- ========================================== -->
             <!-- SECTION 1: VEHICLE & DATES -->
             <!-- ========================================== -->
@@ -41,20 +73,23 @@
                         <!-- Spacer for Desktop -->
                         <div class="col-md-6 d-none d-md-block"></div>
 
-                        <!-- Reg & Customer -->
-                        <div class="col-12 col-md-4">
+                        <!-- Vehicle Fields: Reg -> Brand -> Model -> Mileage -->
+                        <div class="col-12 col-md-3">
                             <label class="form-label small text-muted">Registration Number</label>
                             {{ form.registration_number }}
                         </div>
 
-                        <!-- Auto-Complete Fields -->
-                        <div class="col-6 col-md-4">
+                        <div class="col-6 col-md-3">
                             <label class="form-label small text-muted">Car Brand</label>
                             {{ form.brand_name }}
                         </div>
-                        <div class="col-6 col-md-4">
+                        <div class="col-6 col-md-3">
                             <label class="form-label small text-muted">Car Model</label>
                             {{ form.model_name }}
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label small text-muted">Mileage (Km)</label>
+                            {{ form.mileage }}
                         </div>
                     </div>
                 </div>
@@ -106,51 +141,86 @@
             <!-- ========================================== -->
             <!-- SECTION 4: SPARE PARTS (Dynamic Formset) -->
             <!-- ========================================== -->
+            <!-- ========================================== -->
+            <!-- SECTION 4: SPARE PARTS (Swipeable) -->
+            <!-- ========================================== -->
             <div class="card shadow-sm mb-4 border-0">
                 <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
-                    <h6 class="mb-0 text-primary fw-bold">Spare Parts & Labour</h6>
+                    <h6 class="mb-0 text-primary fw-bold">Spare Parts</h6>
                     <button type="button" class="btn btn-sm btn-outline-primary" id="add-spare-btn">
                         + Add Spare
                     </button>
                 </div>
 
-                <!-- Desktop Header -->
                 <div class="card-body p-0">
-                    <div class="d-none d-md-flex bg-light p-2 fw-bold small text-muted border-bottom">
-                        <div class="col-5">Part Name</div>
-                        <div class="col-2 text-center">Qty</div>
-                        <div class="col-2 text-end">Price</div>
-                        <div class="col-1 text-end">Lab.</div>
-                        <div class="col-2 text-end">Total</div>
-                    </div>
+                    <div class="swipe-container">
+                        <!-- HEADER -->
+                        <div class="swipe-row swipe-header">
+                            <div class="swipe-cell col-part">Part Name</div>
+                            <div class="swipe-cell col-qty text-center">Qty</div>
+                            <div class="swipe-cell col-price text-end">Price</div>
+                            <div class="swipe-cell col-total text-end">Total</div>
+                        </div>
 
-                    {{ spare_formset.management_form }}
-                    <div id="spare-list">
-                        {% for s_form in spare_formset %}
-                        <div class="spare-row border-bottom p-2">
-                            {{ s_form.id }}
-                            <div class="row g-2 align-items-center">
-                                <!-- Mobile: Part Name takes full width on top -->
-                                <div class="col-12 col-md-5">
+                        <!-- LIST -->
+                        {{ spare_formset.management_form }}
+                        <div id="spare-list">
+                            {% for s_form in spare_formset %}
+                            <div class="swipe-row">
+                                {{ s_form.id }}
+                                <div class="swipe-cell col-part">
                                     {{ s_form.spare_part_name }}
                                 </div>
-
-                                <!-- Inputs Row -->
-                                <div class="col-3 col-md-2">
+                                <div class="swipe-cell col-qty">
                                     {{ s_form.quantity }}
                                 </div>
-                                <div class="col-3 col-md-2">
+                                <div class="swipe-cell col-price">
                                     {{ s_form.unit_price }}
                                 </div>
-                                <div class="col-3 col-md-1">
-                                    {{ s_form.labour_charge }}
-                                </div>
-                                <div class="col-3 col-md-2">
+                                <div class="swipe-cell col-total">
                                     {{ s_form.total_price }}
                                 </div>
                             </div>
+                            {% endfor %}
                         </div>
-                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- SECTION 5: JOBS / LABOUR (Swipeable) -->
+            <!-- ========================================== -->
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 text-primary fw-bold">Jobs (Labour)</h6>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="add-labour-btn">
+                        + Add Job
+                    </button>
+                </div>
+
+                <div class="card-body p-0">
+                    <div class="swipe-container">
+                        <!-- HEADER -->
+                        <div class="swipe-row swipe-header">
+                            <div class="swipe-cell col-job">Job Performed</div>
+                            <div class="swipe-cell col-price text-end">Amount</div>
+                        </div>
+
+                        <!-- LIST -->
+                        {{ labour_formset.management_form }}
+                        <div id="labour-list">
+                            {% for l_form in labour_formset %}
+                            <div class="swipe-row">
+                                {{ l_form.id }}
+                                <div class="swipe-cell col-job">
+                                    {{ l_form.job_description }}
+                                </div>
+                                <div class="swipe-cell col-price">
+                                    {{ l_form.amount }}
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
                     </div>
                 </div>
             </div>
@@ -203,24 +273,31 @@
 </div>
 
 <div id="empty-spare-form" class="d-none">
-    <div class="spare-row border-bottom p-2">
+    <div class="swipe-row">
         {{ spare_formset.empty_form.id }}
-        <div class="row g-2 align-items-center">
-            <div class="col-12 col-md-5">
-                {{ spare_formset.empty_form.spare_part_name }}
-            </div>
-            <div class="col-3 col-md-2">
-                {{ spare_formset.empty_form.quantity }}
-            </div>
-            <div class="col-3 col-md-2">
-                {{ spare_formset.empty_form.unit_price }}
-            </div>
-            <div class="col-3 col-md-1">
-                {{ spare_formset.empty_form.labour_charge }}
-            </div>
-            <div class="col-3 col-md-2">
-                {{ spare_formset.empty_form.total_price }}
-            </div>
+        <div class="swipe-cell col-part">
+            {{ spare_formset.empty_form.spare_part_name }}
+        </div>
+        <div class="swipe-cell col-qty">
+            {{ spare_formset.empty_form.quantity }}
+        </div>
+        <div class="swipe-cell col-price">
+            {{ spare_formset.empty_form.unit_price }}
+        </div>
+        <div class="swipe-cell col-total">
+            {{ spare_formset.empty_form.total_price }}
+        </div>
+    </div>
+</div>
+
+<div id="empty-labour-form" class="d-none">
+    <div class="swipe-row">
+        {{ labour_formset.empty_form.id }}
+        <div class="swipe-cell col-job">
+            {{ labour_formset.empty_form.job_description }}
+        </div>
+        <div class="swipe-cell col-price">
+            {{ labour_formset.empty_form.amount }}
         </div>
     </div>
 </div>
@@ -268,6 +345,15 @@
             addSpareBtn.addEventListener('click', function (e) {
                 e.preventDefault();
                 addFormRow('spares', 'spare-list', 'empty-spare-form');
+            });
+        }
+
+        // Add Labour Button
+        const addLabourBtn = document.getElementById('add-labour-btn');
+        if (addLabourBtn) {
+            addLabourBtn.addEventListener('click', function (e) {
+                e.preventDefault();
+                addFormRow('labours', 'labour-list', 'empty-labour-form');
             });
         }
 

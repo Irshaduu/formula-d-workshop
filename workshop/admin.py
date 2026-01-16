@@ -6,7 +6,8 @@ from .models import (
     ConcernSolution,
     JobCard,
     JobCardConcern,
-    JobCardSpareItem
+    JobCardSpareItem,
+    JobCardLabourItem
 )
 
 
@@ -57,6 +58,11 @@ class JobCardSpareItemInline(admin.TabularInline):
     extra = 1
 
 
+class JobCardLabourItemInline(admin.TabularInline):
+    model = JobCardLabourItem
+    extra = 1
+
+
 @admin.register(JobCard)
 class JobCardAdmin(admin.ModelAdmin):
     list_display = (
@@ -76,4 +82,4 @@ class JobCardAdmin(admin.ModelAdmin):
     ordering = ('-updated_at',)
     date_hierarchy = 'updated_at'
 
-    inlines = [JobCardConcernInline, JobCardSpareItemInline]
+    inlines = [JobCardConcernInline, JobCardSpareItemInline, JobCardLabourItemInline]
