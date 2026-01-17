@@ -20,6 +20,7 @@ class CarBrandAdmin(admin.ModelAdmin):
     list_display = ('name', 'created_at')
     search_fields = ('name',)
     ordering = ('name',)
+    exclude = ('logo_image',)  # Hide image upload - using default car symbol
 
 
 @admin.register(CarModel)

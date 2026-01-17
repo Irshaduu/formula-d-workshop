@@ -101,6 +101,9 @@ class JobCardForm(BootstrapFormMixin, forms.ModelForm):
             'customer_name',
             'customer_contact',
         ]
+        labels = {
+            'discharged_date': 'Discharge Date',  # Changed from default 'Discharged Date'
+        }
         widgets = {
             'admitted_date': forms.DateInput(attrs={'type': 'date'}),
             'discharged_date': forms.DateInput(attrs={'type': 'date'}),
@@ -190,7 +193,8 @@ JobCardLabourFormSet = inlineformset_factory(
     widgets={
         'job_description': forms.TextInput(attrs={
             'class': 'form-control',
-            'placeholder': 'Job Performed'
+            'placeholder': 'Job Performed',
+            'list': 'datalist-spares'  # Same suggestions as spare parts!
         }),
         'amount': forms.TextInput(attrs={  # Changed to TextInput to remove spinner arrows
             'class': 'form-control text-end',
