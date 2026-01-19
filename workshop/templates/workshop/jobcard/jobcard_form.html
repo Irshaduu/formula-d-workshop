@@ -16,6 +16,59 @@
             {% endif %}
         </h4>
 
+        <!-- ========================================== -->
+        <!-- ACTIVE VEHICLES DASHBOARD (Show on home only) -->
+        <!-- ========================================== -->
+        {% if not is_edit and active_jobcards %}
+        <div class="card shadow-sm mb-4 border-0">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 text-primary fw-bold">
+                    <i class="bi bi-car-front"></i> Vehicles in Workshop ({{ active_jobcards.count }})
+                </h6>
+                <a href="{% url 'delivered_list' %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-check-circle"></i> View Delivered
+                </a>
+            </div>
+            <div class="card-body p-3">
+                <div class="vehicle-scroll">
+                    {% for job in active_jobcards %}
+                    <div class="vehicle-box">
+                        <div class="mb-2">
+                            <strong>{{ job.brand_name }} {{ job.model_name }}</strong>
+                        </div>
+                        <div class="mb-2">
+                            <span class="badge bg-primary">{{ job.registration_number }}</span>
+                        </div>
+                        <div class="mb-1">
+                            <small class="text-muted">
+                                <i class="bi bi-calendar"></i> Admitted: {{ job.admitted_date|date:"d M" }}
+                            </small>
+                        </div>
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <i class="bi bi-calendar-check"></i> Due: {{ job.discharged_date|date:"d M"|default:"Not
+                                set" }}
+                            </small>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'jobcard_edit' job.pk %}" class="btn btn-sm btn-outline-primary flex-fill">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                            <form method="post" action="{% url 'mark_delivered' job.pk %}" class="flex-fill">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-success w-100"
+                                    onclick="return confirm('Mark {{ job.registration_number }} as delivered?');">
+                                    <i class="bi bi-check-lg"></i> Delivered
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
         <form method="post" id="jobcardForm" autocomplete="off">
             {% csrf_token %}
 
@@ -156,7 +209,9 @@
                         <!-- HEADER -->
                         <div class="swipe-row swipe-header">
                             <div class="swipe-cell col-job">Job Performed</div>
+                            {% if user.is_authenticated %}
                             <div class="swipe-cell col-price text-end">Amount</div>
+                            {% endif %}
                         </div>
 
                         <!-- LIST -->
@@ -169,9 +224,11 @@
                                 <div class="swipe-cell col-job">
                                     {{ l_form.job_description }}
                                 </div>
+                                {% if user.is_authenticated %}
                                 <div class="swipe-cell col-price">
                                     {{ l_form.amount }}
                                 </div>
+                                {% endif %}
                             </div>
                             {% endfor %}
                         </div>
@@ -196,7 +253,9 @@
                         <div class="swipe-row swipe-header">
                             <div class="swipe-cell col-part">Part Name</div>
                             <div class="swipe-cell col-qty text-center">Qty</div>
+                            {% if user.is_authenticated %}
                             <div class="swipe-cell col-total text-end">Total</div>
+                            {% endif %}
                         </div>
 
                         <!-- LIST -->
@@ -212,9 +271,11 @@
                                 <div class="swipe-cell col-qty">
                                     {{ s_form.quantity }}
                                 </div>
+                                {% if user.is_authenticated %}
                                 <div class="swipe-cell col-total">
                                     {{ s_form.total_price }}
                                 </div>
+                                {% endif %}
                             </div>
                             {% endfor %}
                         </div>
@@ -280,9 +341,11 @@
         <div class="swipe-cell col-qty">
             {{ spare_formset.empty_form.quantity }}
         </div>
+        {% if user.is_authenticated %}
         <div class="swipe-cell col-total">
             {{ spare_formset.empty_form.total_price }}
         </div>
+        {% endif %}
     </div>
 </div>
 
@@ -293,9 +356,11 @@
         <div class="swipe-cell col-job">
             {{ labour_formset.empty_form.job_description }}
         </div>
+        {% if user.is_authenticated %}
         <div class="swipe-cell col-price">
             {{ labour_formset.empty_form.amount }}
         </div>
+        {% endif %}
     </div>
 </div>
 

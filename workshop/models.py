@@ -82,7 +82,10 @@ class JobCard(models.Model):
     """
     # Dates
     admitted_date = models.DateField()
-    discharged_date = models.DateField(blank=True, null=True)
+    discharged_date = models.DateField(blank=True, null=True, help_text="Planning date - when you plan to deliver")
+    
+    # Delivery Status (separate from planning date)
+    delivered = models.BooleanField(default=False, help_text="Actually delivered (marked via Delivered button)")
 
     # Vehicle Details (Text fields with Autocomplete)
     brand_name = models.CharField(max_length=100)

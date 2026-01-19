@@ -16,6 +16,33 @@ from .forms import (
 # =============================================================================
 
 def home(request):
+    """
+    Dashboard homepage showing all active job cards.
+    Discharge date is a planning field, not a filter.
+    Cars only move to Delivered when "Delivered" button is clicked.
+    """
+    from datetime import date
+    
+    # Get only non-delivered job cards (where delivered=False)
+    # Discharge date is just for planning - doesn't control visibility
+    active_jobcards = JobCard.objects.filter(delivered=False).order_by('admitted_date')
+    
+    # Count delivered today
+    delivered_count = JobCard.objects.filter(
+        delivered=True,
+        updated_at__date=date.today()  # When delivered button was clicked
+    ).count()
+    
+    return render(request, 'workshop/dashboard/dashboard_home.html', {
+        'active_jobcards': active_jobcards,
+        'delivered_count': delivered_count,
+    })
+
+
+def jobcard_create(request):
+    """
+    Create a new job card (moved from home).
+    """
     if request.method == 'POST':
         form = JobCardForm(request.POST)
 
@@ -133,6 +160,43 @@ def jobcard_delete(request, pk):
         jobcard.delete()
         return redirect('jobcard_list')
     return render(request, 'workshop/jobcard/jobcard_confirm_delete.html', {'jobcard': jobcard})
+
+
+# =============================================================================
+# NEW: DELIVERED SECTION (Workshop Dashboard)
+# =============================================================================
+
+def delivered_list(request):
+    """
+    Shows all delivered vehicles (delivered=True).
+    Ordered by when they were marked as delivered (newest first).
+    """
+    delivered_jobcards = JobCard.objects.filter(delivered=True).order_by('-updated_at')
+    return render(request, 'workshop/delivered/delivered_list.html', {'delivered_jobcards': delivered_jobcards})
+
+
+def mark_delivered(request, pk):
+    """
+    Mark a job card as actually delivered.
+    Sets delivered=True (discharge_date remains as planning date).
+    """
+    if request.method == 'POST':
+        jobcard = get_object_or_404(JobCard, pk=pk)
+        jobcard.delivered = True
+        jobcard.save()
+    return redirect('home')
+
+
+def undo_delivered(request, pk):
+    """
+    Undo delivery by setting delivered=False.
+    Discharge date remains unchanged (it's a planning date).
+    """
+    if request.method == 'POST':
+        jobcard = get_object_or_404(JobCard, pk=pk)
+        jobcard.delivered = False
+        jobcard.save()
+    return redirect('delivered_list')
 
 
 # =============================================================================

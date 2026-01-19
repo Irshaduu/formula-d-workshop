@@ -1,0 +1,53 @@
+{% extends "workshop/base.html" %}
+
+{% block title %}Delivered Vehicles{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2>Delivered Vehicles</h2>
+        <a href="{% url 'home' %}" class="btn btn-outline-primary">Back to Workshop</a>
+    </div>
+
+    {% if delivered_jobcards %}
+    <div class="row g-3">
+        {% for jobcard in delivered_jobcards %}
+        <div class="col-12 col-md-6 col-lg-4">
+            <div class="card shadow-sm border-0 hover-up">
+                <div class="card-body">
+                    <h5 class="card-title">{{ jobcard.brand_name }} {{ jobcard.model_name }}</h5>
+                    <p class="mb-2">
+                        <span class="badge reg-badge">{{ jobcard.registration_number }}</span>
+                    </p>
+                    <p class="text-muted small mb-2">
+                        <i class="bi bi-person"></i> {{ jobcard.customer_name|default:"No name" }}
+                    </p>
+                    <p class="text-muted small mb-3">
+                        <i class="bi bi-calendar-check"></i> Delivered: {{ jobcard.discharged_date|date:"d M Y" }}
+                    </p>
+
+                    <div class="d-flex gap-2">
+                        <a href="{% url 'jobcard_edit' jobcard.pk %}" class="btn btn-sm btn-outline-primary flex-fill">
+                            <i class="bi bi-eye"></i> View
+                        </a>
+                        <form method="post" action="{% url 'undo_delivered' jobcard.pk %}" class="flex-fill">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-sm btn-outline-secondary w-100"
+                                onclick="return confirm('Move this car back to active workshop?');">
+                                <i class="bi bi-arrow-counterclockwise"></i> Undo
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-check-circle empty-state-icon"></i>
+        <p class="text-muted mt-3">No delivered vehicles yet</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

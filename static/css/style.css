@@ -105,3 +105,142 @@
 .swipe-cell .form-control {
     font-size: 0.95rem;
 }
+
+/* ========================================== */
+/* WORKSHOP DASHBOARD - VEHICLE BOXES */
+/* ========================================== */
+
+.vehicle-scroll {
+    display: flex;
+    gap: 1rem;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    -webkit-overflow-scrolling: touch;
+    /* Smooth scrolling on iOS */
+}
+
+.vehicle-box {
+    min-width: 250px;
+    max-width: 250px;
+    flex-shrink: 0;
+    border: 2px solid var(--color-border);
+    border-radius: 12px;
+    padding: 1rem;
+    background-color: var(--color-card);
+    transition: all 0.2s ease;
+}
+
+.vehicle-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--color-shadow);
+    border-color: var(--color-primary);
+}
+
+.vehicle-box strong {
+    color: var(--color-text);
+    font-size: 1rem;
+}
+
+/* Mobile: Show scroll hint */
+@media (max-width: 768px) {
+    .vehicle-scroll {
+        box-shadow: inset -10px 0 10px -10px rgba(0, 0, 0, 0.15);
+    }
+
+    .vehicle-box {
+        min-width: 220px;
+        max-width: 220px;
+    }
+}
+
+/* Desktop: Allow wrapping if space available */
+@media (min-width: 1200px) {
+    .vehicle-scroll {
+        flex-wrap: wrap;
+    }
+}
+
+/* Red underline for missing discharge date */
+.discharge-not-set {
+    color: var(--color-text-muted);
+    border-bottom: 2px solid #dc3545;
+    padding-bottom: 2px;
+    font-style: italic;
+}
+
+/* Horizontal vehicle box layout - COMPACT VERSION */
+.vehicle-box-horizontal {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    /* Reduced from 0.75rem 1rem */
+    border: 1px solid var(--color-border);
+    /* Thinner border */
+    border-radius: 6px;
+    /* Slightly smaller radius */
+    background-color: var(--color-card);
+    transition: all 0.2s ease;
+    margin-bottom: 0.5rem;
+    /* Reduced from 0.75rem */
+}
+
+.vehicle-box-horizontal:hover {
+    border-color: var(--color-primary);
+    box-shadow: 0 2px 8px var(--color-shadow);
+}
+
+.vehicle-info-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    /* Tighter gap */
+    flex: 1;
+}
+
+.vehicle-actions-row {
+    display: flex;
+    gap: 0.35rem;
+    /* Reduced from 0.5rem */
+    flex-shrink: 0;
+}
+
+.vehicle-name {
+    min-width: 150px;
+}
+
+@media (max-width: 768px) {
+    .vehicle-box-horizontal {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0.4rem 0.6rem;
+        /* Even more compact on mobile */
+        gap: 0.35rem;
+    }
+
+    .vehicle-info-row {
+        gap: 0.35rem;
+        /* Tighter on mobile */
+        font-size: 0.9rem;
+        /* Slightly smaller text */
+    }
+
+    .vehicle-actions-row {
+        width: 100%;
+        justify-content: flex-end;
+        gap: 0.3rem;
+    }
+
+    /* Make badges smaller on mobile */
+    .vehicle-info-row .badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    /* Compact icon buttons on mobile */
+    .vehicle-actions-row .btn-sm {
+        padding: 0.25rem 0.5rem;
+    }
+}

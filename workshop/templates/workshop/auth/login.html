@@ -1,0 +1,53 @@
+{% extends 'workshop/base.html' %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-6 col-lg-4">
+
+        <div class="card shadow-sm border-0 mt-5">
+            <div class="card-body p-4">
+                <h4 class="text-center mb-4">🔐 Admin Login</h4>
+
+                {% if form.errors %}
+                <div class="alert alert-danger">
+                    <strong>Invalid username or password.</strong>
+                </div>
+                {% endif %}
+
+                <form method="post">
+                    {% csrf_token %}
+
+                    <div class="mb-3">
+                        <label for="id_username" class="form-label">Admin</label>
+                        <input type="text" name="username" class="form-control" id="id_username" required autofocus>
+                    </div>
+
+                    <div class="mb-4">
+                        <label for="id_password" class="form-label">Password</label>
+                        <input type="password" name="password" class="form-control" id="id_password" required>
+                    </div>
+
+                    <input type="hidden" name="next" value="{{ next }}">
+
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary btn-lg">Login</button>
+                    </div>
+                </form>
+
+                <div class="text-center mt-3">
+                    <a href="{% url 'home' %}" class="text-muted small">← Back to Home</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="alert alert-info mt-3" role="alert">
+            <small>
+                <strong>Manage the app</strong>.<br>
+            </small>
+        </div>
+
+    </div>
+</div>
+{% endblock %}

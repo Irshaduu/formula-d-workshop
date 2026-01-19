@@ -57,8 +57,8 @@
             background-color: var(--color-bg);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             color: var(--color-text);
-            padding-bottom: 120px;
-            /* Space for mobile keyboard */
+            padding-bottom: 200px;
+            /* Increased space for dropdowns and mobile keyboard */
         }
 
         /* NAVBAR STYLES */
@@ -108,14 +108,33 @@
             background-color: var(--color-card);
         }
 
-        .dropdown-item {
-            padding: 10px 20px;
-            font-size: 1rem;
-            color: var(--color-text);
+        /* Compact dropdown for action menus */
+        .dropdown-menu {
+            min-width: 120px;
+            /* Narrower dropdown */
+            background-color: var(--color-card);
+            /* Match theme */
+            border: 1px solid var(--color-border);
         }
 
-        .dropdown-item:hover {
+        .dropdown-item {
+            padding: 6px 12px;
+            /* Even more compact */
+            font-size: 0.85rem;
+            /* Smaller text */
+            color: var(--color-text);
+            /* Default text color */
+        }
+
+        .dropdown-item:hover,
+        .dropdown-item:focus {
             background-color: var(--color-hover);
+        }
+
+        /* Keep success color for Delivered button */
+        .dropdown-item.text-success {
+            color: #198754 !important;
+            /* Bootstrap green */
         }
 
         .dropdown-header {
@@ -124,6 +143,8 @@
 
         .dropdown-divider {
             border-color: var(--color-border-light);
+            margin: 0.2rem 0;
+            /* Tighter spacing */
         }
 
         /* CONTENT WRAPPER */
@@ -144,24 +165,31 @@
         <div class="navbar-container">
 
             <!-- 1. HOME -->
-            <a class="nav-link-custom" href="{% url 'home' %}">
+            <a class="nav-link-custom {% if request.path == '/' %}active{% endif %}" href="{% url 'home' %}">
                 Home
             </a>
 
             <!-- 2. JOBS -->
-            <a class="nav-link-custom" href="{% url 'jobcard_list' %}">
+            <a class="nav-link-custom {% if 'jobcard' in request.path and 'delivered' not in request.path %}active{% endif %}"
+                href="{% url 'jobcard_list' %}">
                 Jobs
+            </a>
+
+            <!-- NEW: DELIVERED -->
+            <a class="nav-link-custom {% if 'delivered' in request.path %}active{% endif %}"
+                href="{% url 'delivered_list' %}">
+                Delivered
             </a>
 
             <!-- 3. STUDY (Dropdown) -->
             <div class="dropdown">
-                <a class="nav-link-custom dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown"
-                    aria-expanded="false">
-                    Study
+                <a class="nav-link-custom dropdown-toggle {% if 'study' in request.path or 'brand' in request.path or 'spare' in request.path or 'concern' in request.path or 'model' in request.path %}active{% endif %}"
+                    href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    🔧
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end dropdown-menu-custom">
                     <li>
-                        <h6 class="dropdown-header">Workshops Knowledge</h6>
+                        <h6 class="dropdown-header">Common info:</h6>
                     </li>
                     <li><a class="dropdown-item" href="{% url 'brand_list' %}">Cars & Models</a></li>
                     <li><a class="dropdown-item" href="{% url 'spare_list' %}">Spare Parts</a></li>
@@ -169,6 +197,22 @@
                         <hr class="dropdown-divider">
                     </li>
                     <li><a class="dropdown-item" href="{% url 'concern_list' %}">Concerns & Solutions</a></li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    {% if user.is_authenticated %}
+                    <li>
+                        <form method="post" action="{% url 'logout' %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-item text-danger"
+                                style="border: none; background: none; width: 100%; text-align: left;">
+                                🔓 Logout Admin
+                            </button>
+                        </form>
+                    </li>
+                    {% else %}
+                    <li><a class="dropdown-item text-success" href="{% url 'login' %}">🔐 Admin</a></li>
+                    {% endif %}
                 </ul>
             </div>
 
