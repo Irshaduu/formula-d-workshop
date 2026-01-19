@@ -1,0 +1,69 @@
+{% extends 'workshop/base.html' %}
+{% load static %}
+
+{% block title %}{{ car_info.registration }} - Bills{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3 py-3">
+    <!-- Header -->
+    <div class="mb-3">
+        <a href="{% url 'car_profile_list' %}" class="text-decoration-none" style="color: var(--color-primary);">
+            ← Back to Cars
+        </a>
+    </div>
+
+    <!-- Car Info -->
+    <div class="card mb-3" style="background: var(--color-surface); border: 1px solid var(--color-border);">
+        <div class="card-body">
+            <h4 style="color: var(--color-text);">{{ car_info.brand }} {{ car_info.model }}</h4>
+            <p class="mb-1">
+                <span class="badge bg-primary fs-6">{{ car_info.registration }}</span>
+            </p>
+            <p class="mb-0" style="color: var(--color-text-muted);">
+                Owner: {{ car_info.customer|default:"Not specified" }}
+            </p>
+        </div>
+    </div>
+
+    <!-- Bills List -->
+    <h5 style="color: var(--color-text);" class="mb-3">📄 Bill History ({{ bills|length }})</h5>
+
+    {% for bill in bills %}
+    <div class="card mb-2" style="background: var(--color-surface); border: 1px solid var(--color-border);">
+        <div class="card-body py-2 px-3">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <strong style="color: var(--color-text);">
+                        {{ bill.bill_number|default:"Pending" }}
+                    </strong>
+                    <span class="badge {% if bill.delivered %}bg-success{% else %}bg-warning text-dark{% endif %} ms-2">
+                        {% if bill.delivered %}Delivered{% else %}Active{% endif %}
+                    </span>
+                    <br>
+                    <small style="color: var(--color-text-muted);">
+                        {{ bill.admitted_date|date:"d M Y" }}
+                        {% if bill.concerns.count > 0 %}
+                        · {{ bill.concerns.first.concern_text|truncatewords:5 }}
+                        {% endif %}
+                    </small>
+                </div>
+                <div class="d-flex gap-2">
+                    <a href="{% url 'jobcard_edit' bill.pk %}" class="btn btn-outline-secondary btn-sm">
+                        ✏️ Edit
+                    </a>
+                    {% if user.is_staff %}
+                    <a href="{% url 'invoice_view' bill.pk %}" class="btn btn-primary btn-sm" target="_blank">
+                        📄 Invoice
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="text-center py-4" style="color: var(--color-text-muted);">
+        <p>No bills for this car.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

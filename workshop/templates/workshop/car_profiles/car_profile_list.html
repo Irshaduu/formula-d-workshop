@@ -1,0 +1,73 @@
+{% extends 'workshop/base.html' %}
+{% load static %}
+
+{% block title %}Car Profiles - Formula D{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3 py-3">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <h4 class="mb-0">🚗 Car Profiles</h4>
+        <span class="badge bg-secondary">{{ car_profiles|length }} Cars</span>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-3" style="background: var(--color-surface); border: 1px solid var(--color-border);">
+        <div class="card-body py-2">
+            <form method="get" class="row g-2 align-items-center">
+                <div class="col-5">
+                    <select name="brand" class="form-select form-select-sm">
+                        <option value="">All Brands</option>
+                        {% for b in all_brands %}
+                        <option value="{{ b }}" {% if b == brand_filter %}selected{% endif %}>{{ b }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-5">
+                    <input type="text" name="q" class="form-control form-control-sm" placeholder="Reg / Owner"
+                        value="{{ search_query }}">
+                </div>
+                <div class="col-2">
+                    <button type="submit" class="btn btn-primary btn-sm w-100">🔍</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Car List -->
+    {% if car_profiles %}
+    <div class="row g-2">
+        {% for car in car_profiles %}
+        <div class="col-12">
+            <a href="{% url 'car_profile_detail' car.registration %}" class="card text-decoration-none"
+                style="background: var(--color-surface); border: 1px solid var(--color-border);">
+                <div class="card-body py-2 px-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong style="color: var(--color-text);">{{ car.brand }} {{ car.model }}</strong>
+                            <span class="badge bg-primary ms-2">{{ car.registration }}</span>
+                            <br>
+                            <small style="color: var(--color-text-muted);">
+                                {{ car.customer|default:"No Owner" }} · {{ car.total_visits }} visit{{
+                                car.total_visits|pluralize }}
+                            </small>
+                        </div>
+                        <div class="text-end">
+                            <small style="color: var(--color-text-muted);">{{ car.latest_date|date:"d M Y" }}</small>
+                            <br>
+                            <i class="bi bi-chevron-right" style="color: var(--color-text-muted);"></i>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center py-5" style="color: var(--color-text-muted);">
+        <h5>No cars found</h5>
+        <p>Cars will appear here after you create job cards.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

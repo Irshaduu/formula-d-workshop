@@ -80,6 +80,15 @@ class JobCard(models.Model):
     The main Job Card. 
     Fields are distinct text inputs to allow manual entry if master data is missing.
     """
+    # Bill Number (Auto-generated)
+    bill_number = models.CharField(
+        max_length=20, 
+        unique=True, 
+        blank=True,
+        null=True,
+        help_text="Auto-generated bill number (e.g. JB-26-001)"
+    )
+    
     # Dates
     admitted_date = models.DateField()
     discharged_date = models.DateField(blank=True, null=True, help_text="Planning date - when you plan to deliver")
@@ -101,11 +110,30 @@ class JobCard(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    def save(self, *args, **kwargs):
+        """Auto-generate bill number if not set"""
+        if not self.bill_number:
+            # Get year (2 digits)
+            year = str(self.admitted_date.year)[2:]  # 2026 → "26"
+            
+            # Find highest number for this year
+            year_jobs = JobCard.objects.filter(
+                bill_number__startswith=f'JB-{year}-'
+            ).count()
+            
+            # Next number (pad with zeros)
+            next_num = str(year_jobs + 1).zfill(3)  # 1 → "001"
+            
+            # Create bill number
+            self.bill_number = f'JB-{year}-{next_num}'
+        
+        super().save(*args, **kwargs)
+    
     class Meta:
         ordering = ['-updated_at'] # Newest jobs first
 
     def __str__(self):
-        return f"{self.registration_number} - {self.customer_name}"
+        return f"{self.bill_number or f'#{self.id}'} - {self.registration_number}"
 
 
 class JobCardConcern(models.Model):

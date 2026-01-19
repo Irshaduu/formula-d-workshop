@@ -1,0 +1,316 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invoice {{ jobcard.bill_number }}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: white;
+        }
+
+        .invoice-container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 20px;
+            border-bottom: 3px solid #e74c3c;
+            padding-bottom: 10px;
+        }
+
+        .logo {
+            font-size: 36px;
+            font-weight: bold;
+            font-style: italic;
+        }
+
+        .formula {
+            color: #000;
+        }
+
+        .d {
+            color: #e74c3c;
+        }
+
+        .tagline {
+            font-size: 12px;
+            color: #666;
+            margin-top: -5px;
+        }
+
+        .invoice-title {
+            font-size: 32px;
+            font-weight: bold;
+            text-align: right;
+        }
+
+        .company-info {
+            font-size: 12px;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+
+        .invoice-meta {
+            text-align: right;
+            font-size: 13px;
+            margin-bottom: 20px;
+        }
+
+        /* Info Sections */
+        .info-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        .info-section {
+            flex: 1;
+            background: #3b5998;
+            color: white;
+            padding: 8px 12px;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        .info-content {
+            background: #f0f4f8;
+            padding: 10px 12px;
+            min-height: 60px;
+            font-size: 13px;
+        }
+
+        .info-line {
+            margin-bottom: 5px;
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        .section-header {
+            background: #3b5998;
+            color: white;
+            padding: 8px 12px;
+            font-weight: bold;
+            font-size: 13px;
+        }
+
+        th {
+            background: #3b5998;
+            color: white;
+            padding: 8px;
+            text-align: left;
+            font-size: 12px;
+        }
+
+        td {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+            font-size: 12px;
+        }
+
+        tr:nth-child(even) {
+            background: #f0f4f8;
+        }
+
+        tr:nth-child(odd) {
+            background: white;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .subtotal-row {
+            background: #e8f0f8 !important;
+            font-weight: bold;
+        }
+
+        .total-row {
+            background: #d0e4f8 !important;
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 30px;
+            text-align: center;
+        }
+
+        .thank-you {
+            color: #3b5998;
+            font-style: italic;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .contact-info {
+            font-size: 11px;
+            color: #666;
+        }
+
+        /* Print styles */
+        @media print {
+            body {
+                padding: 0;
+            }
+
+            .no-print {
+                display: none;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="invoice-container">
+        <!-- Header -->
+        <div class="header">
+            <div>
+                <div class="logo">
+                    <span class="formula">FORMULA</span> <span class="d">D</span>
+                </div>
+                <div class="tagline">Diagnostic & Service</div>
+                <div class="company-info">
+                    Calicut Road, Pullara<br>
+                    PIN: 676517<br>
+                    Phone: +91 9207217978<br>
+                    formuladservice.in@gmail.com
+                </div>
+            </div>
+            <div>
+                <div class="invoice-title">INVOICE</div>
+                <div class="invoice-meta">
+                    <strong>DATE:</strong> {{ jobcard.admitted_date|date:"d-M-Y" }}<br>
+                    <strong>#:</strong> {{ jobcard.bill_number|default:"Pending" }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Bill To & Vehicle Info -->
+        <div class="info-row">
+            <div style="flex: 1;">
+                <div class="info-section">BILL TO</div>
+                <div class="info-content">
+                    <div class="info-line"><strong>NAME:</strong> {{ jobcard.customer_name|default:"N/A" }}</div>
+                    <div class="info-line"><strong>MAKE:</strong> {{ jobcard.brand_name }}</div>
+                </div>
+            </div>
+            <div style="flex: 1;">
+                <div class="info-section">VEHICLE INFO</div>
+                <div class="info-content">
+                    <div class="info-line"><strong>REG NO:</strong> {{ jobcard.registration_number }}</div>
+                    <div class="info-line"><strong>MODEL:</strong> {{ jobcard.model_name }}</div>
+                    <div class="info-line"><strong>MILAGE:</strong> {{ jobcard.mileage|default:"N/A" }}</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Job Performed -->
+        <div class="section-header">JOB PERFOMED</div>
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 70%;">DESCRIPTION</th>
+                    <th style="width: 30%;" class="text-right">AMOUNT</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for labour in jobcard.labours.all %}
+                <tr>
+                    <td>{{ labour.job_description }}</td>
+                    <td class="text-right">₹ {{ labour.amount|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="2" style="text-align: center; color: #999;">No labour charges</td>
+                </tr>
+                {% endfor %}
+
+                <tr class="subtotal-row">
+                    <td class="text-right">SUBTOTAL</td>
+                    <td class="text-right">₹ {{ labour_subtotal|floatformat:2 }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Parts -->
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 40%;">PART NAME</th>
+                    <th style="width: 15%;" class="text-right">QTY</th>
+                    <th style="width: 20%;" class="text-right">UNIT PRICE</th>
+                    <th style="width: 25%;" class="text-right">AMOUNT</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for spare in jobcard.spares.all %}
+                <tr>
+                    <td>{{ spare.spare_part_name }}</td>
+                    <td class="text-right">{{ spare.quantity }}</td>
+                    <td class="text-right">₹ {{ spare.unit_price|floatformat:2 }}</td>
+                    <td class="text-right">₹ {{ spare.total_price|floatformat:2 }}</td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="4" style="text-align: center; color: #999;">No spare parts</td>
+                </tr>
+                {% endfor %}
+
+                <tr class="subtotal-row">
+                    <td colspan="3" class="text-right">SUBTOTAL</td>
+                    <td class="text-right">₹ {{ spare_subtotal|floatformat:2 }}</td>
+                </tr>
+                <tr class="total-row">
+                    <td colspan="3" class="text-right">TOTAL</td>
+                    <td class="text-right">₹ {{ grand_total|floatformat:2 }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- Footer -->
+        <div class="footer">
+            <div class="thank-you">Thank you for your business!</div>
+            <div class="contact-info">
+                Should you have any enquiries concerning this invoice please contact:<br>
+                Rijas Mohd, +91 92 07 21 79 78
+            </div>
+        </div>
+
+        <!-- Print Button (won't show in PDF) -->
+        <div class="no-print" style="text-align: center; margin-top: 30px;">
+            <button onclick="window.print()"
+                style="padding: 12px 40px; background: #3b5998; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">
+                🖨️ Print / Save as PDF
+            </button>
+            <a href="{% url 'jobcard_edit' jobcard.pk %}"
+                style="display: inline-block; margin-left: 10px; padding: 12px 40px; background: #27ae60; color: white; text-decoration: none; border-radius: 5px; font-size: 14px;">
+                ✏️ Edit Job Card
+            </a>
+        </div>
+    </div>
+</body>
+
+</html>

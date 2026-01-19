@@ -57,6 +57,17 @@ urlpatterns = [
     path('api/autocomplete/spares/', views.autocomplete_spares, name='autocomplete_spares'),
 
     # ------------------
+    # CAR PROFILES
+    # ------------------
+    path('car-profiles/', views.car_profile_list, name='car_profile_list'),
+    path('car-profiles/<str:registration>/', views.car_profile_detail, name='car_profile_detail'),
+
+    # ------------------
+    # INVOICE
+    # ------------------
+    path('invoice/<int:pk>/', views.invoice_view, name='invoice_view'),
+
+    # ------------------
     # AUTH: LOGIN/LOGOUT
     # ------------------
     path('login/', auth_views.LoginView.as_view(template_name='workshop/auth/login.html'), name='login'),

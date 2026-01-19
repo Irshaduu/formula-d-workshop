@@ -61,6 +61,14 @@
                             <i class="bi bi-eye"></i> View
                         </a>
                     </li>
+                    <!-- Invoice button (admin only) -->
+                    {% if user.is_staff %}
+                    <li>
+                        <a class="dropdown-item" href="{% url 'invoice_view' job.pk %}" target="_blank">
+                            <i class="bi bi-file-earmark-text"></i> View Invoice
+                        </a>
+                    </li>
+                    {% endif %}
                     <li>
                         <hr class="dropdown-divider">
                     </li>

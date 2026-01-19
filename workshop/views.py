@@ -333,3 +333,130 @@ def autocomplete_spares(request):
         return JsonResponse([], safe=False)
     spares = SparePart.objects.filter(name__icontains=q).values_list('name', flat=True)[:10]
     return JsonResponse(list(spares), safe=False)
+
+
+# ============================================================================
+# INVOICE VIEW
+# ============================================================================
+
+from django.contrib.auth.decorators import login_required
+from django.http import HttpResponseForbidden
+
+@login_required  # Regular login is enough
+def invoice_view(request, pk):
+    """Display professional invoice for a job card"""
+    
+    # Check if user is staff/admin
+    if not request.user.is_staff:
+        return HttpResponseForbidden("You don't have permission to view invoices. Contact admin.")
+    
+    jobcard = get_object_or_404(JobCard, pk=pk)
+    
+    # Calculate labour subtotal (using correct related name: labours)
+    labour_subtotal = sum(
+        item.amount or 0 
+        for item in jobcard.labours.all()
+    )
+    
+    # Calculate spare parts subtotal (using correct related name: spares)
+    spare_subtotal = sum(
+        item.total_price or 0 
+        for item in jobcard.spares.all()
+    )
+    
+    # Calculate grand total
+    grand_total = labour_subtotal + spare_subtotal
+    
+    return render(request, 'workshop/invoice/invoice_template.html', {
+        'jobcard': jobcard,
+        'labour_subtotal': labour_subtotal,
+        'spare_subtotal': spare_subtotal,
+        'grand_total': grand_total,
+    })
+
+
+# ============================================================================
+# CAR PROFILES
+# ============================================================================
+
+from django.db.models import Count, Max
+
+@login_required
+def car_profile_list(request):
+    """Show all unique cars (grouped by registration) with filters"""
+    
+    # Get all unique registrations with their latest job card info
+    cars = JobCard.objects.values('registration_number').annotate(
+        total_visits=Count('id'),
+        latest_date=Max('admitted_date'),
+    ).order_by('-latest_date')
+    
+    # Get full details for each car (from their latest job card)
+    car_profiles = []
+    for car in cars:
+        latest_job = JobCard.objects.filter(
+            registration_number=car['registration_number']
+        ).order_by('-admitted_date').first()
+        
+        if latest_job:
+            car_profiles.append({
+                'registration': car['registration_number'],
+                'brand': latest_job.brand_name,
+                'model': latest_job.model_name,
+                'customer': latest_job.customer_name,
+                'total_visits': car['total_visits'],
+                'latest_date': car['latest_date'],
+            })
+    
+    # Apply filters if provided
+    brand_filter = request.GET.get('brand', '')
+    search_query = request.GET.get('q', '')
+    
+    if brand_filter:
+        car_profiles = [c for c in car_profiles if brand_filter.lower() in c['brand'].lower()]
+    
+    if search_query:
+        car_profiles = [c for c in car_profiles if 
+            search_query.lower() in c['registration'].lower() or
+            search_query.lower() in (c['customer'] or '').lower()
+        ]
+    
+    # Get unique brands for filter dropdown
+    all_brands = list(set(c['brand'] for c in car_profiles))
+    
+    return render(request, 'workshop/car_profiles/car_profile_list.html', {
+        'car_profiles': car_profiles,
+        'all_brands': sorted(all_brands),
+        'brand_filter': brand_filter,
+        'search_query': search_query,
+    })
+
+
+@login_required
+def car_profile_detail(request, registration):
+    """Show all bills for a specific car"""
+    
+    # Get all job cards for this registration
+    bills = JobCard.objects.filter(
+        registration_number=registration
+    ).order_by('-admitted_date')
+    
+    if not bills.exists():
+        raise Http404("Car not found")
+    
+    # Get car info from latest job card
+    latest = bills.first()
+    car_info = {
+        'registration': registration,
+        'brand': latest.brand_name,
+        'model': latest.model_name,
+        'customer': latest.customer_name,
+    }
+    
+    return render(request, 'workshop/car_profiles/car_profile_detail.html', {
+        'car_info': car_info,
+        'bills': bills,
+    })
+
+
+
