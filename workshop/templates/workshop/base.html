@@ -62,11 +62,87 @@
         }
 
         /* NAVBAR STYLES */
-        .navbar-custom {
+
+        /* DESKTOP TOP BAR (Hidden on Mobile) */
+        .navbar-top {
             background-color: var(--color-card);
             border-bottom: 1px solid var(--color-border);
             padding: 0.5rem 0;
             height: 60px;
+            display: none;
+            /* Hidden by default */
+        }
+
+        /* MOBILE BOTTOM BAR (Fixed) */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 65px;
+            background-color: var(--color-card);
+            border-top: 1px solid var(--color-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px;
+            z-index: 1000;
+            box-shadow: 0 -2px 10px var(--color-shadow);
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: var(--color-text-muted);
+            font-size: 10px;
+            height: 100%;
+        }
+
+        .nav-item i {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+
+        .nav-item.active {
+            color: var(--color-primary);
+        }
+
+        /* Big Center Button (New Job) */
+        .center-btn {
+            position: relative;
+            top: -20px;
+        }
+
+        .center-btn i {
+            font-size: 45px;
+            color: var(--color-primary);
+            background: var(--color-card);
+            border-radius: 50%;
+            /* box-shadow: 0 4px 10px var(--color-shadow); */
+        }
+
+        /* MEDIA QUERIES FOR NAV VISIBILITY */
+        @media (min-width: 769px) {
+            .navbar-top {
+                display: flex;
+                /* Show Top Bar on PC */
+            }
+
+            .bottom-nav {
+                display: none;
+                /* Hide Bottom Bar on PC */
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding-bottom: 80px;
+                /* Space for bottom bar */
+            }
         }
 
         .navbar-container {
@@ -74,8 +150,19 @@
             max-width: 800px;
             margin: 0 auto;
             display: flex;
-            justify-content: space-around;
+            justify-content: space-between;
             align-items: center;
+            padding: 0 15px;
+        }
+
+        .nav-link-custom {
+            color: var(--color-text-muted);
+            font-weight: 500;
+            text-decoration: none;
+            padding: 0.5rem 1.0rem;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+            font-size: 14px;
         }
 
         .nav-link-custom {
@@ -160,52 +247,42 @@
 
 <body>
 
-    <!-- NAV: 3 BUTTONS ONLY. NO HAMBURGER. -->
-    <nav class="navbar fixed-top navbar-custom">
+    <!-- ============================================== -->
+    <!-- DESKTOP TOP NAVIGATION (PC View)             -->
+    <!-- ============================================== -->
+    <nav class="navbar fixed-top navbar-top">
         <div class="navbar-container">
-
-            <!-- 1. HOME -->
-            <a class="nav-link-custom {% if request.path == '/' %}active{% endif %}" href="{% url 'home' %}">
-                Home
+            <!-- Left: Logo -->
+            <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}"
+                style="text-decoration: none;">
+                <span style="font-weight: 800; font-style: italic; color: var(--color-text);">FORMULA</span>
+                <span
+                    style="font-weight: 800; font-style: italic; color: #e74c3c; border-bottom: 2px solid #e74c3c;">D</span>
             </a>
 
-            <!-- 2. JOBS -->
-            <a class="nav-link-custom {% if 'jobcard' in request.path and 'delivered' not in request.path %}active{% endif %}"
-                href="{% url 'jobcard_list' %}">
-                Jobs
-            </a>
+            <!-- Center: Links -->
+            <div class="d-flex gap-2">
+                <a class="nav-link-custom {% if '/jobcards/' in request.path and 'create' not in request.path and 'delivered' not in request.path %}active{% endif %}"
+                    href="{% url 'jobcard_list' %}">Jobs</a>
+                <a class="nav-link-custom {% if 'delivered' in request.path %}active{% endif %}"
+                    href="{% url 'delivered_list' %}">Delivered</a>
+                <a class="nav-link-custom {% if 'car-profiles' in request.path %}active{% endif %}"
+                    href="{% url 'car_profile_list' %}">Car Profiles</a>
+            </div>
 
-            <!-- NEW: DELIVERED -->
-            <a class="nav-link-custom {% if 'delivered' in request.path %}active{% endif %}"
-                href="{% url 'delivered_list' %}">
-                Delivered
-            </a>
-
-            <!-- 3. STUDY (Dropdown) -->
+            <!-- Right: Manage/Study Dropdown -->
             <div class="dropdown">
-                <a class="nav-link-custom dropdown-toggle {% if 'study' in request.path or 'brand' in request.path or 'spare' in request.path or 'concern' in request.path or 'model' in request.path %}active{% endif %}"
+                <a class="nav-link-custom dropdown-toggle {% if 'study' in request.path or 'brand' in request.path or 'spare' in request.path or 'concern' in request.path %}active{% endif %}"
                     href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                    🔧
+                    🔧 Manage
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end dropdown-menu-custom">
                     <li>
-                        <h6 class="dropdown-header">Common info:</h6>
+                        <h6 class="dropdown-header">Master Data</h6>
                     </li>
                     <li><a class="dropdown-item" href="{% url 'brand_list' %}">Cars & Models</a></li>
                     <li><a class="dropdown-item" href="{% url 'spare_list' %}">Spare Parts</a></li>
-                    <li>
-                        <hr class="dropdown-divider">
-                    </li>
                     <li><a class="dropdown-item" href="{% url 'concern_list' %}">Concerns & Solutions</a></li>
-                    <li>
-                        <hr class="dropdown-divider">
-                    </li>
-                    <!-- Car Profiles -->
-                    <li>
-                        <a class="dropdown-item" href="{% url 'car_profile_list' %}">
-                            🚗 Car Profiles
-                        </a>
-                    </li>
                     <li>
                         <hr class="dropdown-divider">
                     </li>
@@ -213,18 +290,76 @@
                     <li>
                         <form method="post" action="{% url 'logout' %}" class="d-inline">
                             {% csrf_token %}
-                            <button type="submit" class="dropdown-item text-danger"
-                                style="border: none; background: none; width: 100%; text-align: left;">
-                                🔓 Logout Admin
-                            </button>
+                            <button type="submit" class="dropdown-item text-danger">🔓 Logout</button>
                         </form>
                     </li>
-                    {% else %}
-                    <li><a class="dropdown-item text-success" href="{% url 'login' %}">🔐 Admin</a></li>
                     {% endif %}
                 </ul>
             </div>
+        </div>
+    </nav>
 
+    <!-- ============================================== -->
+    <!-- MOBILE BOTTOM NAVIGATION (App View)          -->
+    <!-- ============================================== -->
+    <nav class="bottom-nav">
+        <!-- 1. Home -->
+        <a href="{% url 'home' %}" class="nav-item {% if request.path == '/' %}active{% endif %}">
+            <i class="bi {% if request.path == '/' %}bi-house-door-fill{% else %}bi-house-door{% endif %}"></i>
+            <span>Home</span>
+        </a>
+
+        <!-- 2. Jobs -->
+        <a href="{% url 'jobcard_list' %}"
+            class="nav-item {% if '/jobcards/' in request.path and 'create' not in request.path and 'delivered' not in request.path %}active{% endif %}">
+            <i
+                class="bi {% if '/jobcards/' in request.path and 'create' not in request.path %}bi-tools{% else %}bi-tools{% endif %}"></i>
+            <span>Jobs</span>
+        </a>
+
+        <!-- 3. NEW (Center Button) -->
+        <a href="{% url 'jobcard_create' %}" class="nav-item center-btn">
+            <i class="bi bi-plus-circle-fill"></i>
+        </a>
+
+        <!-- 4. History (Car Profiles) -->
+        <a href="{% url 'car_profile_list' %}"
+            class="nav-item {% if 'car-profiles' in request.path %}active{% endif %}">
+            <i
+                class="bi {% if 'car-profiles' in request.path %}bi-clock-history{% else %}bi-clock-history{% endif %}"></i>
+            <span>History</span>
+        </a>
+
+        <!-- 5. Menu (Dropup) -->
+        <div class="nav-item dropup">
+            <a href="#" class="nav-item" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-list"></i>
+                <span>Menu</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-custom mb-2">
+                <li><a class="dropdown-item" href="{% url 'delivered_list' %}"><i class="bi bi-check-circle"></i>
+                        Delivered Jobs</a></li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                <li>
+                    <h6 class="dropdown-header">Master Data</h6>
+                </li>
+                <li><a class="dropdown-item" href="{% url 'brand_list' %}">Cars & Models</a></li>
+                <li><a class="dropdown-item" href="{% url 'spare_list' %}">Spare Parts</a></li>
+                <li><a class="dropdown-item" href="{% url 'concern_list' %}">Concerns & Solutions</a></li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                {% if user.is_authenticated %}
+                <li>
+                    <form method="post" action="{% url 'logout' %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="dropdown-item text-danger">🔓 Logout</button>
+                    </form>
+                </li>
+                {% endif %}
+            </ul>
         </div>
     </nav>
 
