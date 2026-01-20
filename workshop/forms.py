@@ -137,12 +137,12 @@ class JobCardForm(BootstrapFormMixin, forms.ModelForm):
 # =============================================================================
 
 # 1. CONCERNS
-# Simple rows: [ Concern Text ]
+# Simple rows: [ Concern Text | Status ]
 JobCardConcernFormSet = inlineformset_factory(
     JobCard,
     JobCardConcern,
-    fields=['concern_text'],
-    extra=1,            # Start with 1 empty row
+    fields=['concern_text', 'status'],
+    extra=0,            # Changed from 1 - no automatic empty row
     can_delete=True,    # Allow deletion for proper formset validation
     validate_min=False, # Don't require minimum number of forms
     widgets={
@@ -150,16 +150,20 @@ JobCardConcernFormSet = inlineformset_factory(
             'class': 'form-control',
             'placeholder': 'Start typing concern...',
             'list': 'datalist-concerns'
+        }),
+        'status': forms.Select(attrs={
+            'class': 'form-select form-select-sm',
+            'style': 'height: 38px;' # Match height of text input
         })
     }
 )
 
 # 2. SPARES
-# Columns: Part Name | Qty | Unit Price | Labour | Total
+# Columns: Part Name | Qty | Status | Unit Price | Total
 JobCardSpareFormSet = inlineformset_factory(
     JobCard,
     JobCardSpareItem,
-    fields=['spare_part_name', 'quantity', 'total_price'],  # Removed unit_price
+    fields=['spare_part_name', 'quantity', 'status', 'unit_price', 'total_price'],
     extra=0,
     can_delete=True,    # Allow deletion for proper formset validation
     validate_min=False, # Don't require minimum number of forms
@@ -170,11 +174,19 @@ JobCardSpareFormSet = inlineformset_factory(
             'placeholder': 'Part Name',
             'list': 'datalist-spares'
         }),
-        'quantity': forms.TextInput(attrs={  # Changed to TextInput for easy manual entry
+        'quantity': forms.TextInput(attrs={
             'class': 'form-control text-center',
             'placeholder': 'Qty'
         }),
-        'total_price': forms.TextInput(attrs={  # Changed to TextInput to remove spinner arrows
+        'status': forms.Select(attrs={
+            'class': 'form-select form-select-sm',
+            'style': 'min-width: 90px;'
+        }),
+        'unit_price': forms.TextInput(attrs={
+            'class': 'form-control text-end',
+            'placeholder': 'Price'
+        }),
+        'total_price': forms.TextInput(attrs={
             'class': 'form-control text-end fw-bold',
             'placeholder': 'Total'
         }),

@@ -140,24 +140,34 @@ class JobCardConcern(models.Model):
     """
     Specific concerns reported by the customer for a specific Job Card.
     """
+    STATUS_CHOICES = [
+        ('HOLD', 'Hold'),
+        ('PROCESSING', 'Processing'),
+        ('FIXED', 'Fixed'),
+    ]
+
     job_card = models.ForeignKey(JobCard, on_delete=models.CASCADE, related_name='concerns')
     concern_text = models.TextField()
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='HOLD')
 
     def __str__(self):
-        return self.concern_text[:50]
+        return f"{self.concern_text[:50]} ({self.get_status_display()})"
 
 
 class JobCardSpareItem(models.Model):
     """
-    Spare parts and labour added to a Job Card.
-    All monetary fields are manual entry (Zero logic).
+    Spare parts used in the job.
     """
-    job_card = models.ForeignKey(JobCard, on_delete=models.CASCADE, related_name='spares')
+    STATUS_CHOICES = [
+        ('HOLD', 'Hold'),
+        ('ORDERED', 'Ordered'),
+        ('RECEIVED', 'Received'),
+    ]
 
+    job_card = models.ForeignKey(JobCard, on_delete=models.CASCADE, related_name='spares')
     spare_part_name = models.CharField(max_length=100, blank=True, null=True)
-    
-    # Changed to DecimalField to allow fractional quantities (e.g. 3.5 liters oil)
-    quantity = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)  # Removed default=1
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='HOLD')
+    quantity = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
     
     unit_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     total_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)

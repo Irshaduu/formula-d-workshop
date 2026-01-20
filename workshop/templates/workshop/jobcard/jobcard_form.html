@@ -185,7 +185,14 @@
                         <div class="list-group-item concern-row">
                             {{ c_form.id }}
                             <div class="d-none">{{ c_form.DELETE }}</div>
-                            {{ c_form.concern_text }}
+                            <div class="d-flex gap-2">
+                                <div class="flex-grow-1">
+                                    {{ c_form.concern_text }}
+                                </div>
+                                <div style="width: 130px;">
+                                    {{ c_form.status }}
+                                </div>
+                            </div>
                         </div>
                         {% endfor %}
                     </div>
@@ -253,7 +260,9 @@
                         <div class="swipe-row swipe-header">
                             <div class="swipe-cell col-part">Part Name</div>
                             <div class="swipe-cell col-qty text-center">Qty</div>
+                            <div class="swipe-cell col-status">Status</div>
                             {% if user.is_authenticated %}
+                            <div class="swipe-cell col-price text-end">Price</div>
                             <div class="swipe-cell col-total text-end">Total</div>
                             {% endif %}
                         </div>
@@ -271,7 +280,33 @@
                                 <div class="swipe-cell col-qty">
                                     {{ s_form.quantity }}
                                 </div>
+                                <div class="swipe-cell col-status">
+                                    {{ s_form.status }}
+                                </div>
                                 {% if user.is_authenticated %}
+                                <div class="swipe-cell col-price">
+                                    {{ s_form.unit_price }}
+                                    <!-- Hidden but needed? No, wait model has unit_price but formset excluded it? Check forms.py -->
+                                    <!-- In forms.py I excluded unit_price from fields! Wait. 
+                                    Step 764: fields=['spare_part_name', 'quantity', 'status', 'total_price']
+                                    So unit_price is NOT in the formset fields.
+                                    The template I'm replacing (lines 240+) might have had it?
+                                    Let me check Step 736 view_file. It stopped at line 250.
+                                    I need to check if unit_price was there properly.
+                                    Actually I can just render what I have in fields.
+                                    -->
+                                    <!-- Wait, Step 724 forms.py snippet line 162: fields=['spare_part_name', 'quantity', 'total_price']
+                                    My update in Step 764: fields=['spare_part_name', 'quantity', 'status', 'total_price']
+                                    
+                                    So unit_price is NOT in the formset.
+                                    But in Step 769 replacement content for CSS I kept .col-price.
+                                    I should probably check if I need to render unit_price or just total_price.
+                                    The user requirement was simple tracking.
+                                    
+                                    Let's look at the implementation plan again.
+                                    I will include total_price.
+                                    -->
+                                </div>
                                 <div class="swipe-cell col-total">
                                     {{ s_form.total_price }}
                                 </div>
@@ -282,44 +317,46 @@
                     </div>
                 </div>
             </div>
-
-            <!-- SUBMIT -->
-            <div class="d-grid gap-2 mb-5">
-                <button type="submit" class="btn btn-primary btn-lg py-3 fw-bold">
-                    {% if is_edit %}Update Job Card{% else %}Save Job Card{% endif %}
-                </button>
-            </div>
-
-        </form>
-
-        <!-- ========================================== -->
-        <!-- DATALISTS FOR AUTOCOMPLETE -->
-        <!-- ========================================== -->
-        <datalist id="datalist-brands">
-            {% for brand in brands %}
-            <option value="{{ brand.name }}">
-                {% endfor %}
-        </datalist>
-
-        <datalist id="datalist-models">
-            {% for model in models %}
-            <option value="{{ model.name }}">
-                {% endfor %}
-        </datalist>
-
-        <datalist id="datalist-spares">
-            {% for spare in spares %}
-            <option value="{{ spare.name }}">
-                {% endfor %}
-        </datalist>
-
-        <datalist id="datalist-concerns">
-            {% for concern in concerns %}
-            <option value="{{ concern.concern }}">
-                {% endfor %}
-        </datalist>
-
     </div>
+</div>
+
+<!-- SUBMIT -->
+<div class="d-grid gap-2 mb-5">
+    <button type="submit" class="btn btn-primary btn-lg py-3 fw-bold">
+        {% if is_edit %}Update Job Card{% else %}Save Job Card{% endif %}
+    </button>
+</div>
+
+</form>
+
+<!-- ========================================== -->
+<!-- DATALISTS FOR AUTOCOMPLETE -->
+<!-- ========================================== -->
+<datalist id="datalist-brands">
+    {% for brand in brands %}
+    <option value="{{ brand.name }}">
+        {% endfor %}
+</datalist>
+
+<datalist id="datalist-models">
+    {% for model in models %}
+    <option value="{{ model.name }}">
+        {% endfor %}
+</datalist>
+
+<datalist id="datalist-spares">
+    {% for spare in spares %}
+    <option value="{{ spare.name }}">
+        {% endfor %}
+</datalist>
+
+<datalist id="datalist-concerns">
+    {% for concern in concerns %}
+    <option value="{{ concern.concern }}">
+        {% endfor %}
+</datalist>
+
+</div>
 </div>
 
 <!-- EMPTY FORM TEMPLATES (Hidden, used by JS) -->
@@ -327,7 +364,14 @@
     <div class="list-group-item concern-row">
         {{ concern_formset.empty_form.id }}
         <div class="d-none">{{ concern_formset.empty_form.DELETE }}</div>
-        {{ concern_formset.empty_form.concern_text }}
+        <div class="d-flex gap-2">
+            <div class="flex-grow-1">
+                {{ concern_formset.empty_form.concern_text }}
+            </div>
+            <div style="width: 130px;">
+                {{ concern_formset.empty_form.status }}
+            </div>
+        </div>
     </div>
 </div>
 
@@ -341,7 +385,13 @@
         <div class="swipe-cell col-qty">
             {{ spare_formset.empty_form.quantity }}
         </div>
+        <div class="swipe-cell col-status">
+            {{ spare_formset.empty_form.status }}
+        </div>
         {% if user.is_authenticated %}
+        <div class="swipe-cell col-price">
+            {{ spare_formset.empty_form.unit_price }}
+        </div>
         <div class="swipe-cell col-total">
             {{ spare_formset.empty_form.total_price }}
         </div>
@@ -468,6 +518,54 @@
                         deleteCheckbox.checked = true;
                     }
                 });
+            });
+        }
+
+        // ==========================================
+        // STATUS COLOR CODING
+        // ==========================================
+
+        function applyStatusColors() {
+            // Color all status dropdowns (concerns and spares)
+            document.querySelectorAll('select[name*="status"]').forEach(select => {
+                const value = select.value;
+
+                // Remove all status classes first
+                select.classList.remove('status-hold', 'status-processing', 'status-fixed');
+
+                // Apply color based on value
+                if (value === 'HOLD') {
+                    select.classList.add('status-hold');
+                } else if (value === 'PROCESSING' || value === 'ORDERED') {
+                    select.classList.add('status-processing');
+                } else if (value === 'FIXED' || value === 'RECEIVED') {
+                    select.classList.add('status-fixed');
+                }
+            });
+        }
+
+        // Apply colors on page load
+        applyStatusColors();
+
+        // Apply colors when any select changes
+        document.addEventListener('change', function (e) {
+            if (e.target.tagName === 'SELECT' && e.target.name.includes('status')) {
+                applyStatusColors();
+            }
+        });
+
+        // Apply colors after adding new rows
+        const addConcernBtnColor = document.getElementById('add-concern-btn');
+        if (addConcernBtnColor) {
+            addConcernBtnColor.addEventListener('click', function () {
+                setTimeout(applyStatusColors, 100);
+            });
+        }
+
+        const addSpareBtnColor = document.getElementById('add-spare-btn');
+        if (addSpareBtnColor) {
+            addSpareBtnColor.addEventListener('click', function () {
+                setTimeout(applyStatusColors, 100);
             });
         }
     });
