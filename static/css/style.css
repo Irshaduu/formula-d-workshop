@@ -257,23 +257,24 @@
 /* STATUS COLOR CODING */
 /* ========================================== */
 
-/* Hold status - Red */
-select.status-hold {
+/* Pending status - Red */
+select.status-pending {
     background-color: #dc3545 !important;
     color: white !important;
     font-weight: 600;
     border-color: #dc3545 !important;
 }
 
-/* Processing/Ordered status - Yellow */
-select.status-processing {
+/* Working/Ordered status - Yellow */
+select.status-working,
+select.status-ordered {
     background-color: #ffc107 !important;
     color: #000 !important;
     font-weight: 600;
     border-color: #ffc107 !important;
 }
 
-/* Fixed/Received status - Green */
+/* Fixed status - Green */
 select.status-fixed {
     background-color: #28a745 !important;
     color: white !important;
@@ -282,8 +283,9 @@ select.status-fixed {
 }
 
 /* Ensure dropdown arrow is visible on colored backgrounds */
-select.status-hold,
-select.status-processing,
+select.status-pending,
+select.status-working,
+select.status-ordered,
 select.status-fixed {
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
     background-repeat: no-repeat;
@@ -293,6 +295,7 @@ select.status-fixed {
 }
 
 /* Yellow status gets black arrow */
-select.status-processing {
+select.status-working,
+select.status-ordered {
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23000000' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
 }

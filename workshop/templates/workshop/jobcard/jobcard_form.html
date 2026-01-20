@@ -533,12 +533,20 @@
                 // Remove all status classes first
                 select.classList.remove('status-hold', 'status-processing', 'status-fixed');
 
+                // Remove all status classes first
+                select.classList.remove('status-pending', 'status-working', 'status-ordered', 'status-fixed', 'status-hold', 'status-processing');
+
                 // Apply color based on value
-                if (value === 'HOLD') {
-                    select.classList.add('status-hold');
-                } else if (value === 'PROCESSING' || value === 'ORDERED') {
-                    select.classList.add('status-processing');
-                } else if (value === 'FIXED' || value === 'RECEIVED') {
+                // Helper to normalize values in case of mix (DB vs New)
+                const val = value ? value.toUpperCase() : '';
+
+                if (val === 'PENDING' || val === 'HOLD') {
+                    select.classList.add('status-pending');
+                } else if (val === 'WORKING' || val === 'PROCESSING') {
+                    select.classList.add('status-working');
+                } else if (val === 'ORDERED') {
+                    select.classList.add('status-ordered');
+                } else if (val === 'FIXED' || val === 'RECEIVED') {
                     select.classList.add('status-fixed');
                 }
             });

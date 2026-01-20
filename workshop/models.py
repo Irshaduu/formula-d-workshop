@@ -141,14 +141,14 @@ class JobCardConcern(models.Model):
     Specific concerns reported by the customer for a specific Job Card.
     """
     STATUS_CHOICES = [
-        ('HOLD', 'Hold'),
-        ('PROCESSING', 'Processing'),
+        ('PENDING', 'Pending'),
+        ('WORKING', 'Working'),
         ('FIXED', 'Fixed'),
     ]
 
     job_card = models.ForeignKey(JobCard, on_delete=models.CASCADE, related_name='concerns')
     concern_text = models.TextField()
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='HOLD')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
 
     def __str__(self):
         return f"{self.concern_text[:50]} ({self.get_status_display()})"
@@ -159,14 +159,14 @@ class JobCardSpareItem(models.Model):
     Spare parts used in the job.
     """
     STATUS_CHOICES = [
-        ('HOLD', 'Hold'),
+        ('PENDING', 'Pending'),
         ('ORDERED', 'Ordered'),
-        ('RECEIVED', 'Received'),
+        ('FIXED', 'Fixed'),
     ]
 
     job_card = models.ForeignKey(JobCard, on_delete=models.CASCADE, related_name='spares')
     spare_part_name = models.CharField(max_length=100, blank=True, null=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='HOLD')
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
     quantity = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
     
     unit_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
