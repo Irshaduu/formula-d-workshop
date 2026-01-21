@@ -262,12 +262,22 @@
 
             <!-- Center: Links -->
             <div class="d-flex gap-2">
+                {% if user.is_authenticated %}
                 <a class="nav-link-custom {% if '/jobcards/' in request.path and 'create' not in request.path and 'delivered' not in request.path %}active{% endif %}"
                     href="{% url 'jobcard_list' %}">Jobs</a>
                 <a class="nav-link-custom {% if 'delivered' in request.path %}active{% endif %}"
                     href="{% url 'delivered_list' %}">Delivered</a>
+                {% endif %}
+                {% if user.is_authenticated %}
                 <a class="nav-link-custom {% if 'car-profiles' in request.path %}active{% endif %}"
                     href="{% url 'car_profile_list' %}">Car Profiles</a>
+                {% endif %}
+                {% if not user.is_authenticated %}
+                <!-- New Job Button for Workers -->
+                <a href="{% url 'jobcard_create' %}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-plus-circle"></i> New Job
+                </a>
+                {% endif %}
             </div>
 
             <!-- Right: Manage/Study Dropdown -->
@@ -293,6 +303,10 @@
                             <button type="submit" class="dropdown-item text-danger">🔓 Logout</button>
                         </form>
                     </li>
+                    {% else %}
+                    <li>
+                        <a class="dropdown-item text-primary" href="{% url 'login' %}">🔒 Login</a>
+                    </li>
                     {% endif %}
                 </ul>
             </div>
@@ -310,12 +324,14 @@
         </a>
 
         <!-- 2. Jobs -->
+        {% if user.is_authenticated %}
         <a href="{% url 'jobcard_list' %}"
             class="nav-item {% if '/jobcards/' in request.path and 'create' not in request.path and 'delivered' not in request.path %}active{% endif %}">
             <i
                 class="bi {% if '/jobcards/' in request.path and 'create' not in request.path %}bi-tools{% else %}bi-tools{% endif %}"></i>
             <span>Jobs</span>
         </a>
+        {% endif %}
 
         <!-- 3. NEW (Center Button) -->
         <a href="{% url 'jobcard_create' %}" class="nav-item center-btn">
@@ -323,12 +339,14 @@
         </a>
 
         <!-- 4. History (Car Profiles) -->
+        {% if user.is_authenticated %}
         <a href="{% url 'car_profile_list' %}"
             class="nav-item {% if 'car-profiles' in request.path %}active{% endif %}">
             <i
                 class="bi {% if 'car-profiles' in request.path %}bi-clock-history{% else %}bi-clock-history{% endif %}"></i>
             <span>History</span>
         </a>
+        {% endif %}
 
         <!-- 5. Menu (Dropup) -->
         <div class="nav-item dropup">
@@ -337,8 +355,10 @@
                 <span>Menu</span>
             </a>
             <ul class="dropdown-menu dropdown-menu-end dropdown-menu-custom mb-2">
+                {% if user.is_authenticated %}
                 <li><a class="dropdown-item" href="{% url 'delivered_list' %}"><i class="bi bi-check-circle"></i>
                         Delivered Jobs</a></li>
+                {% endif %}
                 <li>
                     <hr class="dropdown-divider">
                 </li>
@@ -357,6 +377,10 @@
                         {% csrf_token %}
                         <button type="submit" class="dropdown-item text-danger">🔓 Logout</button>
                     </form>
+                </li>
+                {% else %}
+                <li>
+                    <a class="dropdown-item text-primary" href="{% url 'login' %}">🔒 Login</a>
                 </li>
                 {% endif %}
             </ul>

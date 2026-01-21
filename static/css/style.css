@@ -120,17 +120,16 @@
 
 .vehicle-scroll {
     display: flex;
+    flex-direction: column;
     gap: 1rem;
-    overflow-x: auto;
-    padding-bottom: 0.5rem;
-    -webkit-overflow-scrolling: touch;
-    /* Smooth scrolling on iOS */
+    padding-bottom: 1rem;
+    padding-top: 0.5rem;
 }
 
+
 .vehicle-box {
-    min-width: 250px;
-    max-width: 250px;
-    flex-shrink: 0;
+    width: 100%;
+    /* Full width within container margins */
     border: 2px solid var(--color-border);
     border-radius: 12px;
     padding: 1rem;
@@ -149,22 +148,13 @@
     font-size: 1rem;
 }
 
-/* Mobile: Show scroll hint */
+
+/* Mobile: Maintain vertical layout */
 @media (max-width: 768px) {
     .vehicle-scroll {
-        box-shadow: inset -10px 0 10px -10px rgba(0, 0, 0, 0.15);
-    }
-
-    .vehicle-box {
-        min-width: 220px;
-        max-width: 220px;
-    }
-}
-
-/* Desktop: Allow wrapping if space available */
-@media (min-width: 1200px) {
-    .vehicle-scroll {
-        flex-wrap: wrap;
+        gap: 0.75rem;
+        padding-bottom: 5rem;
+        /* Extra space for bottom nav bar */
     }
 }
 
@@ -298,4 +288,47 @@ select.status-fixed {
 select.status-working,
 select.status-ordered {
     background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23000000' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+}
+
+/* ========================================== */
+/* PROGRESS BAR COLORS */
+/* ========================================== */
+.progress-critical {
+    background-color: #EF4444 !important;
+}
+
+/* 0-29% */
+/* 0-29% */
+.progress-warning {
+    background-color: #d97706 !important;
+}
+
+/* 30-59% */
+.progress-info {
+    background-color: #3B82F6 !important;
+}
+
+/* 60-99% */
+.progress-success {
+    background-color: #22C55E !important;
+}
+
+/* 100% */
+
+/* Text colors matching progress */
+.text-critical {
+    color: #EF4444 !important;
+}
+
+.text-warning {
+    color: #d97706 !important;
+}
+
+/* Slightly darker for readability */
+.text-info-custom {
+    color: #3B82F6 !important;
+}
+
+.text-success-custom {
+    color: #22C55E !important;
 }

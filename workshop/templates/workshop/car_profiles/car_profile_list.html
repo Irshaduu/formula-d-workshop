@@ -1,62 +1,63 @@
 {% extends 'workshop/base.html' %}
 {% load static %}
 
-{% block title %}Car Profiles - Formula D{% endblock %}
+{% block title %}Car Profiles{% endblock %}
 
 {% block content %}
 <div class="container-fluid px-3 py-3">
     <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-3">
-        <h4 class="mb-0">🚗 Car Profiles</h4>
-        <span class="badge bg-secondary">{{ car_profiles|length }} Cars</span>
+        <h6 class="mb-0 text-primary fw-bold" style="font-size: 0.85rem;">
+            <i class="bi bi-clock-history"></i> Car Profiles ({{ car_profiles|length }})
+        </h6>
     </div>
 
     <!-- Filters -->
-    <div class="card mb-3" style="background: var(--color-surface); border: 1px solid var(--color-border);">
-        <div class="card-body py-2">
-            <form method="get" class="row g-2 align-items-center">
-                <div class="col-5">
-                    <select name="brand" class="form-select form-select-sm">
-                        <option value="">All Brands</option>
-                        {% for b in all_brands %}
-                        <option value="{{ b }}" {% if b == brand_filter %}selected{% endif %}>{{ b }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div class="col-5">
-                    <input type="text" name="q" class="form-control form-control-sm" placeholder="Reg / Owner"
-                        value="{{ search_query }}">
-                </div>
-                <div class="col-2">
-                    <button type="submit" class="btn btn-primary btn-sm w-100">🔍</button>
-                </div>
-            </form>
-        </div>
+    <div class="filter-card mb-3">
+        <form method="get" class="row g-2">
+            <div class="col-sm-5 col-12">
+                <select name="brand" class="form-select form-select-sm">
+                    <option value="">All Brands</option>
+                    {% for b in all_brands %}
+                    <option value="{{ b }}" {% if b == brand_filter %}selected{% endif %}>{{ b }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-sm-5 col-12">
+                <input type="text" name="q" class="form-control form-control-sm"
+                    placeholder="Search registration or owner" value="{{ search_query }}">
+            </div>
+            <div class="col-sm-2 col-12">
+                <button type="submit" class="btn btn-primary btn-sm w-100">
+                    <i class="bi bi-search"></i> Filter
+                </button>
+            </div>
+        </form>
     </div>
 
     <!-- Car List -->
     {% if car_profiles %}
-    <div class="row g-2">
+    <div class="row g-3">
         {% for car in car_profiles %}
-        <div class="col-12">
-            <a href="{% url 'car_profile_detail' car.registration %}" class="card text-decoration-none"
-                style="background: var(--color-surface); border: 1px solid var(--color-border);">
-                <div class="card-body py-2 px-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <strong style="color: var(--color-text);">{{ car.brand }} {{ car.model }}</strong>
-                            <span class="badge bg-primary ms-2">{{ car.registration }}</span>
-                            <br>
-                            <small style="color: var(--color-text-muted);">
-                                {{ car.customer|default:"No Owner" }} · {{ car.total_visits }} visit{{
-                                car.total_visits|pluralize }}
-                            </small>
-                        </div>
-                        <div class="text-end">
-                            <small style="color: var(--color-text-muted);">{{ car.latest_date|date:"d M Y" }}</small>
-                            <br>
-                            <i class="bi bi-chevron-right" style="color: var(--color-text-muted);"></i>
-                        </div>
+        <div class="col-12 col-md-6 col-lg-4">
+            <a href="{% url 'car_profile_detail' car.registration %}" class="car-card">
+                <div class="car-header">
+                    <h6 class="car-name">{{ car.brand }} {{ car.model }}</h6>
+                    <span class="reg-number">{{ car.registration }}</span>
+                </div>
+
+                <div class="car-info">
+                    <div class="info-item">
+                        <i class="bi bi-person-fill"></i>
+                        <span>{{ car.customer|default:"No Owner" }}</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="bi bi-arrow-repeat"></i>
+                        <span>{{ car.total_visits }} visit{{ car.total_visits|pluralize }}</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="bi bi-calendar3"></i>
+                        <span>{{ car.latest_date|date:"d M Y" }}</span>
                     </div>
                 </div>
             </a>
@@ -64,10 +65,114 @@
         {% endfor %}
     </div>
     {% else %}
-    <div class="text-center py-5" style="color: var(--color-text-muted);">
+    <div class="empty-state">
+        <i class="bi bi-inbox"></i>
         <h5>No cars found</h5>
-        <p>Cars will appear here after you create job cards.</p>
+        <p>
+            {% if search_query or brand_filter %}
+            Try adjusting your filters.
+            {% else %}
+            Cars will appear here after creating job cards.
+            {% endif %}
+        </p>
     </div>
     {% endif %}
 </div>
+
+<style>
+    /* Filter Card */
+    .filter-card {
+        background: var(--color-card);
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        padding: 1rem;
+    }
+
+    /* Car Card */
+    .car-card {
+        display: block;
+        background: var(--color-card);
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        padding: 1rem;
+        text-decoration: none;
+        color: inherit;
+    }
+
+    .car-card:hover {
+        border-color: var(--color-primary);
+    }
+
+    /* Car Header */
+    .car-header {
+        margin-bottom: 1rem;
+        padding-bottom: 0.75rem;
+        border-bottom: 1px solid var(--color-border);
+    }
+
+    .car-name {
+        color: var(--color-text);
+        font-size: 1rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+
+    .reg-number {
+        background: var(--color-hover);
+        color: var(--color-primary);
+        border: 1px solid var(--color-primary);
+        padding: 0.25rem 0.75rem;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        display: inline-block;
+    }
+
+    /* Car Info */
+    .car-info {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .info-item {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        font-size: 0.9rem;
+        color: var(--color-text-muted);
+    }
+
+    .info-item i {
+        width: 18px;
+        text-align: center;
+        color: var(--color-primary);
+    }
+
+    /* Empty State */
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--color-text-muted);
+    }
+
+    .empty-state i {
+        font-size: 4rem;
+        opacity: 0.3;
+        margin-bottom: 1rem;
+    }
+
+    .empty-state h5 {
+        color: var(--color-text);
+        margin-bottom: 0.5rem;
+    }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+        .filter-card {
+            padding: 0.75rem;
+        }
+    }
+</style>
 {% endblock %}

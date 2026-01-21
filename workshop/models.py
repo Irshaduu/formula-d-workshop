@@ -95,6 +95,10 @@ class JobCard(models.Model):
     
     # Delivery Status (separate from planning date)
     delivered = models.BooleanField(default=False, help_text="Actually delivered (marked via Delivered button)")
+    
+    # On Hold Status (for jobs waiting for parts or paused)
+    on_hold = models.BooleanField(default=False, help_text="Job is on hold (waiting for parts, etc.)")
+
 
     # Vehicle Details (Text fields with Autocomplete)
     brand_name = models.CharField(max_length=100)

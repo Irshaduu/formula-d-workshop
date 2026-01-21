@@ -3,25 +3,19 @@
 {% block title %}Workshop Dashboard{% endblock %}
 
 {% block content %}
-<!-- Header Section (Outside Container) -->
-<div class="row mb-4 align-items-center">
-    <div class="col">
-        <h4 class="mb-0" style="color: var(--color-text);">
-            <i class="bi bi-speedometer2"></i> FORMULA D
-        </h4>
+<!-- Header Section -->
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <div class="d-flex align-items-center gap-3">
+        <h6 class="mb-0 text-primary fw-bold" style="font-size: 0.85rem;">
+            <i class="bi bi-car-front"></i> Workshop ({{ active_jobcards.count }})
+        </h6>
+        <h6 class="mb-0 text-success fw-bold" style="font-size: 0.85rem;">
+            <i class="bi bi-check-circle"></i> Delivered ({{ delivered_count|default:"0" }})
+        </h6>
     </div>
-    <div class="col-auto">
-        <a href="{% url 'jobcard_create' %}" class="btn btn-primary fw-bold shadow-sm">
-            <i class="bi bi-plus-circle"></i> New Job Card
-        </a>
-    </div>
-</div>
-
-<!-- Vehicle Section Title -->
-<div class="mb-3">
-    <h6 class="text-primary">
-        <i class="bi bi-car-front"></i> Vehicles in Workshop ({{ active_jobcards.count }})
-    </h6>
+    <a href="{% url 'jobcard_create' %}" class="btn btn-primary btn-sm py-0 px-2" style="font-size: 0.85rem;">
+        <i class="bi bi-plus-circle"></i> New
+    </a>
 </div>
 
 <!-- Vehicle Cards -->
@@ -29,59 +23,99 @@
 <div class="vehicle-scroll mb-5 pb-5">
     {% for job in active_jobcards %}
     <div class="vehicle-box-horizontal">
-        <div class="vehicle-info-row">
-            <div class="d-flex align-items-center gap-2">
-                <strong>{{ job.brand_name }} {{ job.model_name }}</strong>
-                <span class="badge bg-primary">{{ job.registration_number }}</span>
+        <div class="vehicle-info-row w-100">
+            <!-- Top Row: Brand Model and Actions -->
+            <div class="d-flex justify-content-between align-items-center w-100 mb-2">
+                <div class="d-flex align-items-center gap-2">
+                    <h6 class="mb-0 fw-bold">{{ job.brand_name }} {{ job.model_name }}</h6>
+                    <span class="badge bg-light text-dark border">{{ job.registration_number }}</span>
+
+                    <!-- Status Dot Indicator -->
+                    <span class="status-dot {% if job.on_hold %}status-hold{% else %}status-active{% endif %}"
+                        title="{% if job.on_hold %}On Hold{% else %}Active{% endif %}"></span>
+                </div>
+
+                <!-- 3-Dot Menu -->
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-link text-muted p-0" type="button" data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                        <li>
+                            <a class="dropdown-item" href="{% url 'jobcard_edit' job.pk %}">
+                                <i class="bi bi-pencil-square me-2"></i>Edit / Update
+                            </a>
+                        </li>
+                        {% if user.is_staff %}
+                        <li>
+                            <a class="dropdown-item" href="{% url 'invoice_view' job.pk %}" target="_blank">
+                                <i class="bi bi-receipt me-2"></i>View Invoice
+                            </a>
+                        </li>
+                        {% endif %}
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li>
+                            <form method="post" action="{% url 'toggle_hold' job.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit"
+                                    class="dropdown-item {% if job.on_hold %}text-success{% else %}text-warning{% endif %}">
+                                    <i
+                                        class="bi {% if job.on_hold %}bi-play-circle{% else %}bi-pause-circle{% endif %} me-2"></i>
+                                    {% if job.on_hold %}Mark Active{% else %}Put On Hold{% endif %}
+                                </button>
+                            </form>
+                        </li>
+                        <li>
+                            <hr class="dropdown-divider">
+                        </li>
+                        <li>
+                            <form method="post" action="{% url 'mark_delivered' job.pk %}" class="d-inline">
+                                {% csrf_token %}
+                                <button type="submit" class="dropdown-item text-success"
+                                    onclick="return confirm('Mark {{ job.registration_number }} as delivered?');">
+                                    <i class="bi bi-check-circle me-2"></i>Mark Delivered
+                                </button>
+                            </form>
+                        </li>
+                    </ul>
+                </div>
             </div>
-            <small class="text-muted">
-                <i class="bi bi-calendar"></i> {{ job.admitted_date|date:"d M" }}
-            </small>
-            <small class="text-muted">
-                <i class="bi bi-calendar-check"></i>
-                <span class="discharge-due" data-date="{{ job.discharged_date|date:'Y-m-d'|default:'' }}">
-                    {% if job.discharged_date %}
-                    {{ job.discharged_date|date:"d/m/Y" }}
+
+            <!-- Progress Section -->
+            <div class="d-flex align-items-center gap-3 w-100">
+                <div class="flex-grow-1">
+                    {% if job.total_concerns > 0 %}
+                    {% widthratio job.fixed_concerns job.total_concerns 100 as progress %}
+                    {% with p=progress|add:"0" %}
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <small class="text-muted" style="font-size: 0.75rem;">Status</small>
+                        <small class="fw-bold 
+                                {% if p == 100 %}text-success-custom
+                                {% elif p >= 60 %}text-info-custom
+                                {% elif p >= 30 %}text-warning
+                                {% else %}text-critical{% endif %}" style="font-size: 0.75rem;">
+                            {{ progress }}% Done
+                        </small>
+                    </div>
+                    <div class="progress" style="height: 6px; background-color: #e9ecef; border-radius: 10px;">
+                        <div class="progress-bar 
+                                {% if p == 100 %}progress-success
+                                {% elif p >= 60 %}progress-info
+                                {% elif p >= 30 %}progress-warning
+                                {% else %}progress-critical{% endif %}" role="progressbar"
+                            style="width: {{ progress }}%; border-radius: 10px;" aria-valuenow="{{ progress }}"
+                            aria-valuemin="0" aria-valuemax="100">
+                        </div>
+                    </div>
+                    {% endwith %}
                     {% else %}
-                    <span class="discharge-not-set">Not set</span>
+                    <!-- No concerns added yet -->
+                    <small class="text-muted fst-italic" style="font-size: 0.75rem;">No concerns listed</small>
                     {% endif %}
-                </span>
-            </small>
-        </div>
-        <div class="vehicle-actions-row">
-            <!-- 3-Dot Menu -->
-            <div class="dropdown">
-                <button class="btn btn-sm btn-outline-secondary" type="button" data-bs-toggle="dropdown"
-                    aria-expanded="false">
-                    <i class="bi bi-three-dots-vertical"></i>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li>
-                        <a class="dropdown-item" href="{% url 'jobcard_edit' job.pk %}">
-                            <i class="bi bi-eye"></i> View
-                        </a>
-                    </li>
-                    <!-- Invoice button (admin only) -->
-                    {% if user.is_staff %}
-                    <li>
-                        <a class="dropdown-item" href="{% url 'invoice_view' job.pk %}" target="_blank">
-                            <i class="bi bi-file-earmark-text"></i> View Invoice
-                        </a>
-                    </li>
-                    {% endif %}
-                    <li>
-                        <hr class="dropdown-divider">
-                    </li>
-                    <li>
-                        <form method="post" action="{% url 'mark_delivered' job.pk %}" class="d-inline">
-                            {% csrf_token %}
-                            <button type="submit" class="dropdown-item text-success"
-                                onclick="return confirm('Mark {{ job.registration_number }} as delivered?');">
-                                <i class="bi bi-check-lg"></i> Delivered
-                            </button>
-                        </form>
-                    </li>
-                </ul>
+                </div>
             </div>
         </div>
     </div>
@@ -98,38 +132,48 @@
 </div>
 {% endif %}
 
-<!-- Quick Stats (Horizontal) -->
-<div class="row g-3 mb-5 pb-5">
-    <div class="col-6 col-md-4">
-        <div class="card shadow-sm border-0">
-            <div class="card-body text-center py-3">
-                <h3 class="text-primary mb-1">{{ active_jobcards.count }}</h3>
-                <small class="text-muted">In Workshop</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-6 col-md-4">
-        <div class="card shadow-sm border-0">
-            <div class="card-body text-center py-3">
-                <h3 class="text-success mb-1">{{ delivered_count|default:"0" }}</h3>
-                <small class="text-muted">Delivered Today</small>
-            </div>
-        </div>
-    </div>
-    <div class="col-12 col-md-4">
-        <div class="card shadow-sm border-0">
-            <div class="card-body text-center py-3">
-                <a href="{% url 'delivered_list' %}" class="text-decoration-none">
-                    <i class="bi bi-check-circle text-secondary" style="font-size: 1.5rem;"></i>
-                    <div><small class="text-muted">View All Delivered</small></div>
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
+<style>
+    /* Simple cursor pointer for clickable cards */
+    .vehicle-box-horizontal {
+        cursor: pointer;
+    }
+
+    /* Status Dot Indicator */
+    .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        display: inline-block;
+        flex-shrink: 0;
+    }
+
+    .status-active {
+        background-color: #22C55E;
+        /* Green */
+        box-shadow: 0 0 4px rgba(34, 197, 94, 0.5);
+    }
+
+    .status-hold {
+        background-color: #EF4444;
+        /* Red */
+        box-shadow: 0 0 4px rgba(239, 68, 68, 0.5);
+        animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+
+        0%,
+        100% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.6;
+        }
+    }
+</style>
 
 <script>
-    // Smart discharge date display
     document.addEventListener('DOMContentLoaded', function () {
         const today = new Date();
         today.setHours(0, 0, 0, 0);
@@ -137,9 +181,10 @@
         const tomorrow = new Date(today);
         tomorrow.setDate(tomorrow.getDate() + 1);
 
+        // Smart discharge date display
         document.querySelectorAll('.discharge-due').forEach(function (el) {
             const dateStr = el.getAttribute('data-date');
-            if (!dateStr) return; // No date set
+            if (!dateStr) return;
 
             const dischargeDate = new Date(dateStr + 'T00:00:00');
 
@@ -148,10 +193,36 @@
             } else if (dischargeDate.getTime() === tomorrow.getTime()) {
                 el.innerHTML = '<span class="badge bg-info text-dark">Tomorrow</span>';
             } else if (dischargeDate < today) {
-                // Overdue - show in red
                 el.innerHTML = '<span class="text-danger fw-bold">' + el.textContent + ' (Overdue)</span>';
             }
-            // Otherwise, keep the formatted date as is
+        });
+
+        // Card Click Handler: Clicking card opens the 3-dot dropdown
+        document.querySelectorAll('.vehicle-box-horizontal').forEach(card => {
+            card.addEventListener('click', function (e) {
+                // Prevent if clicking inside the dropdown menu itself
+                if (e.target.closest('.dropdown-menu')) {
+                    return;
+                }
+
+                // Find the dropdown toggle button
+                const dropdownToggle = this.querySelector('[data-bs-toggle="dropdown"]');
+                if (dropdownToggle) {
+                    // Don't trigger if clicking the toggle button itself
+                    if (e.target === dropdownToggle || dropdownToggle.contains(e.target)) {
+                        return;
+                    }
+
+                    // Trigger a real click event on the dropdown button
+                    e.preventDefault();
+                    e.stopPropagation();
+                    dropdownToggle.dispatchEvent(new MouseEvent('click', {
+                        bubbles: true,
+                        cancelable: true,
+                        view: window
+                    }));
+                }
+            });
         });
     });
 </script>

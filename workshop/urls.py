@@ -23,6 +23,7 @@ urlpatterns = [
     path('delivered/', views.delivered_list, name='delivered_list'),
     path('jobcards/<int:pk>/deliver/', views.mark_delivered, name='mark_delivered'),
     path('jobcards/<int:pk>/undo-deliver/', views.undo_delivered, name='undo_delivered'),
+    path('jobcards/<int:pk>/toggle-hold/', views.toggle_hold, name='toggle_hold'),
 
     # ------------------
     # SECTION 3: STUDY (Master Data)

@@ -23,9 +23,15 @@ def home(request):
     """
     from datetime import date
     
+    from django.db.models import Count, Q
+    
     # Get only non-delivered job cards (where delivered=False)
     # Discharge date is just for planning - doesn't control visibility
-    active_jobcards = JobCard.objects.filter(delivered=False).order_by('admitted_date')
+    # Annotate with concern counts for progress bar
+    active_jobcards = JobCard.objects.filter(delivered=False).annotate(
+        total_concerns=Count('concerns'),
+        fixed_concerns=Count('concerns', filter=Q(concerns__status='FIXED'))
+    ).order_by('admitted_date')
     
     # Count delivered today
     delivered_count = JobCard.objects.filter(
@@ -197,6 +203,19 @@ def undo_delivered(request, pk):
         jobcard.delivered = False
         jobcard.save()
     return redirect('delivered_list')
+
+
+def toggle_hold(request, pk):
+    """
+    Toggle the on_hold status of a job card.
+    Used when waiting for parts or other delays.
+    """
+    if request.method == 'POST':
+        jobcard = get_object_or_404(JobCard, pk=pk)
+        jobcard.on_hold = not jobcard.on_hold
+        jobcard.save()
+    return redirect('home')
+
 
 
 # =============================================================================
