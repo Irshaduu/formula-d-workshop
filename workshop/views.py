@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.db.models import Q 
+from django.http import HttpResponse
 
 from .models import (
     CarBrand, CarModel, SparePart, ConcernSolution,
@@ -47,8 +48,11 @@ def home(request):
 
 def jobcard_create(request):
     """
-    Create a new job card (moved from home).
+    Create a new job card with formsets for concerns, spares, and labour.
+    Admitted date defaults to today but is editable.
     """
+    from datetime import date
+    
     if request.method == 'POST':
         form = JobCardForm(request.POST)
 
@@ -78,7 +82,8 @@ def jobcard_create(request):
                 labour_formset.save()
                 return redirect('jobcard_list')
     else:
-        form = JobCardForm()
+        # Pre-fill admitted_date with today's date
+        form = JobCardForm(initial={'admitted_date': date.today()})
         concern_formset = JobCardConcernFormSet(prefix='concerns')
         spare_formset = JobCardSpareFormSet(prefix='spares')
         labour_formset = JobCardLabourFormSet(prefix='labours')
@@ -183,24 +188,26 @@ def delivered_list(request):
 
 def mark_delivered(request, pk):
     """
-    Mark a job card as actually delivered.
-    Sets delivered=True (discharge_date remains as planning date).
+    Mark job card as delivered.
+    Auto-sets discharged_date to today (actual delivery date).
     """
     if request.method == 'POST':
+        from datetime import date
         jobcard = get_object_or_404(JobCard, pk=pk)
         jobcard.delivered = True
+        jobcard.discharged_date = date.today()
         jobcard.save()
     return redirect('home')
 
 
 def undo_delivered(request, pk):
     """
-    Undo delivery by setting delivered=False.
-    Discharge date remains unchanged (it's a planning date).
+    Undo delivery by setting delivered=False and clearing discharged_date.
     """
     if request.method == 'POST':
         jobcard = get_object_or_404(JobCard, pk=pk)
         jobcard.delivered = False
+        jobcard.discharged_date = None
         jobcard.save()
     return redirect('delivered_list')
 

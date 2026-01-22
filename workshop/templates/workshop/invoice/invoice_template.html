@@ -23,6 +23,8 @@
             max-width: 800px;
             margin: 0 auto;
             background: white;
+            border: 2px solid #000;
+            padding: 20px;
         }
 
         /* Header */
@@ -31,14 +33,19 @@
             justify-content: space-between;
             align-items: flex-start;
             margin-bottom: 20px;
-            border-bottom: 3px solid #e74c3c;
-            padding-bottom: 10px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #000;
+        }
+
+        .logo-section {
+            flex: 1;
         }
 
         .logo {
-            font-size: 36px;
+            font-size: 32px;
             font-weight: bold;
             font-style: italic;
+            margin-bottom: 2px;
         }
 
         .formula {
@@ -50,87 +57,102 @@
         }
 
         .tagline {
-            font-size: 12px;
-            color: #666;
-            margin-top: -5px;
-        }
-
-        .invoice-title {
-            font-size: 32px;
-            font-weight: bold;
-            text-align: right;
+            font-size: 11px;
+            color: #000;
+            margin-bottom: 10px;
+            font-style: italic;
         }
 
         .company-info {
-            font-size: 12px;
-            line-height: 1.6;
-            margin-bottom: 10px;
+            font-size: 11px;
+            line-height: 1.5;
+        }
+
+        .invoice-section {
+            text-align: right;
+        }
+
+        .invoice-title {
+            font-size: 36px;
+            font-weight: bold;
+            margin-bottom: 15px;
         }
 
         .invoice-meta {
-            text-align: right;
-            font-size: 13px;
-            margin-bottom: 20px;
+            font-size: 12px;
+            line-height: 1.6;
         }
 
         /* Info Sections */
         .info-row {
             display: flex;
-            gap: 10px;
+            gap: 0;
             margin-bottom: 15px;
+            border: 2px solid #000;
         }
 
-        .info-section {
+        .info-box {
             flex: 1;
-            background: #3b5998;
+        }
+
+        .info-box:first-child {
+            border-right: 2px solid #000;
+        }
+
+        .info-header {
+            background: #2c5282;
             color: white;
-            padding: 8px 12px;
+            padding: 6px 12px;
             font-weight: bold;
-            font-size: 13px;
+            font-size: 12px;
+            text-align: center;
         }
 
         .info-content {
-            background: #f0f4f8;
+            background: white;
             padding: 10px 12px;
-            min-height: 60px;
-            font-size: 13px;
+            min-height: 70px;
+            font-size: 11px;
         }
 
         .info-line {
-            margin-bottom: 5px;
+            margin-bottom: 4px;
         }
 
         /* Tables */
         table {
             width: 100%;
             border-collapse: collapse;
-            margin-bottom: 20px;
+            margin-bottom: 0;
+            border: 2px solid #000;
         }
 
-        .section-header {
-            background: #3b5998;
+        .table-header {
+            background: #2c5282;
             color: white;
-            padding: 8px 12px;
+            padding: 6px 12px;
             font-weight: bold;
-            font-size: 13px;
+            font-size: 12px;
         }
 
         th {
-            background: #3b5998;
+            background: #2c5282;
             color: white;
-            padding: 8px;
+            padding: 6px 8px;
             text-align: left;
-            font-size: 12px;
+            font-size: 11px;
+            font-weight: bold;
+            border: 1px solid #000;
         }
 
         td {
-            padding: 8px;
-            border-bottom: 1px solid #ddd;
-            font-size: 12px;
+            padding: 6px 8px;
+            font-size: 11px;
+            border: 1px solid #000;
         }
 
         tr:nth-child(even) {
-            background: #f0f4f8;
+            background: #e8f0f8;
         }
 
         tr:nth-child(odd) {
@@ -149,7 +171,11 @@
         .total-row {
             background: #d0e4f8 !important;
             font-weight: bold;
-            font-size: 14px;
+            font-size: 12px;
+        }
+
+        .parts-table {
+            margin-top: 15px;
         }
 
         /* Footer */
@@ -159,15 +185,16 @@
         }
 
         .thank-you {
-            color: #3b5998;
+            color: #2c5282;
             font-style: italic;
-            font-size: 16px;
+            font-size: 14px;
             margin-bottom: 15px;
         }
 
         .contact-info {
-            font-size: 11px;
-            color: #666;
+            font-size: 10px;
+            color: #000;
+            line-height: 1.6;
         }
 
         /* Print styles */
@@ -176,8 +203,38 @@
                 padding: 0;
             }
 
+            .invoice-container {
+                border: 2px solid #000;
+            }
+
             .no-print {
                 display: none;
+            }
+
+            /* Force colors to print */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+
+            .info-header,
+            .table-header,
+            th {
+                background: #2c5282 !important;
+                color: white !important;
+            }
+
+            tr:nth-child(even) {
+                background: #e8f0f8 !important;
+            }
+
+            .subtotal-row {
+                background: #e8f0f8 !important;
+            }
+
+            .total-row {
+                background: #d0e4f8 !important;
             }
         }
     </style>
@@ -187,7 +244,7 @@
     <div class="invoice-container">
         <!-- Header -->
         <div class="header">
-            <div>
+            <div class="logo-section">
                 <div class="logo">
                     <span class="formula">FORMULA</span> <span class="d">D</span>
                 </div>
@@ -199,7 +256,7 @@
                     formuladservice.in@gmail.com
                 </div>
             </div>
-            <div>
+            <div class="invoice-section">
                 <div class="invoice-title">INVOICE</div>
                 <div class="invoice-meta">
                     <strong>DATE:</strong> {{ jobcard.admitted_date|date:"d-M-Y" }}<br>
@@ -210,15 +267,15 @@
 
         <!-- Bill To & Vehicle Info -->
         <div class="info-row">
-            <div style="flex: 1;">
-                <div class="info-section">BILL TO</div>
+            <div class="info-box">
+                <div class="info-header">BILL TO</div>
                 <div class="info-content">
                     <div class="info-line"><strong>NAME:</strong> {{ jobcard.customer_name|default:"N/A" }}</div>
                     <div class="info-line"><strong>MAKE:</strong> {{ jobcard.brand_name }}</div>
                 </div>
             </div>
-            <div style="flex: 1;">
-                <div class="info-section">VEHICLE INFO</div>
+            <div class="info-box">
+                <div class="info-header">VEHICLE INFO</div>
                 <div class="info-content">
                     <div class="info-line"><strong>REG NO:</strong> {{ jobcard.registration_number }}</div>
                     <div class="info-line"><strong>MODEL:</strong> {{ jobcard.model_name }}</div>
@@ -228,11 +285,13 @@
         </div>
 
         <!-- Job Performed -->
-        <div class="section-header">JOB PERFOMED</div>
         <table>
             <thead>
                 <tr>
-                    <th style="width: 70%;">DESCRIPTION</th>
+                    <th colspan="2" class="table-header">JOB PERFOMED</th>
+                </tr>
+                <tr>
+                    <th style="width: 70%; text-align: left;">DESCRIPTION</th>
                     <th style="width: 30%;" class="text-right">AMOUNT</th>
                 </tr>
             </thead>
@@ -249,14 +308,14 @@
                 {% endfor %}
 
                 <tr class="subtotal-row">
-                    <td class="text-right">SUBTOTAL</td>
-                    <td class="text-right">₹ {{ labour_subtotal|floatformat:2 }}</td>
+                    <td class="text-right"><strong>SUBTOTAL</strong></td>
+                    <td class="text-right"><strong>₹ {{ labour_subtotal|floatformat:2 }}</strong></td>
                 </tr>
             </tbody>
         </table>
 
         <!-- Parts -->
-        <table>
+        <table class="parts-table">
             <thead>
                 <tr>
                     <th style="width: 40%;">PART NAME</th>
@@ -280,12 +339,12 @@
                 {% endfor %}
 
                 <tr class="subtotal-row">
-                    <td colspan="3" class="text-right">SUBTOTAL</td>
-                    <td class="text-right">₹ {{ spare_subtotal|floatformat:2 }}</td>
+                    <td colspan="3" class="text-right"><strong>SUBTOTAL</strong></td>
+                    <td class="text-right"><strong>₹ {{ spare_subtotal|floatformat:2 }}</strong></td>
                 </tr>
                 <tr class="total-row">
-                    <td colspan="3" class="text-right">TOTAL</td>
-                    <td class="text-right">₹ {{ grand_total|floatformat:2 }}</td>
+                    <td colspan="3" class="text-right"><strong>TOTAL</strong></td>
+                    <td class="text-right"><strong>₹ {{ grand_total|floatformat:2 }}</strong></td>
                 </tr>
             </tbody>
         </table>
@@ -302,7 +361,7 @@
         <!-- Print Button (won't show in PDF) -->
         <div class="no-print" style="text-align: center; margin-top: 30px;">
             <button onclick="window.print()"
-                style="padding: 12px 40px; background: #3b5998; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">
+                style="padding: 12px 40px; background: #2c5282; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 14px;">
                 🖨️ Print / Save as PDF
             </button>
             <a href="{% url 'jobcard_edit' jobcard.pk %}"

@@ -89,11 +89,14 @@ class ConcernSolutionForm(BootstrapFormMixin, forms.ModelForm):
 # =============================================================================
 
 class JobCardForm(BootstrapFormMixin, forms.ModelForm):
+    """
+    Main job card form.
+    Note: discharged_date is auto-filled on delivery, not manually entered.
+    """
     class Meta:
         model = JobCard
         fields = [
             'admitted_date',
-            'discharged_date',
             'brand_name',
             'model_name',
             'registration_number',
@@ -102,11 +105,11 @@ class JobCardForm(BootstrapFormMixin, forms.ModelForm):
             'customer_contact',
         ]
         labels = {
-            'discharged_date': 'Discharge Date',  # Changed from default 'Discharged Date'
+            # 'discharged_date': 'Discharge Date',  # Changed from default 'Discharged Date'
         }
         widgets = {
             'admitted_date': forms.DateInput(attrs={'type': 'date'}),
-            'discharged_date': forms.DateInput(attrs={'type': 'date'}),
+            # 'discharged_date': forms.DateInput(attrs={'type': 'date'}),
             # Autocomplete targets - JS will hook into these IDs/Classes
             'brand_name': forms.TextInput(attrs={
                 'autocomplete': 'off',

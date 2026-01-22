@@ -8,13 +8,20 @@
 <div class="row justify-content-center">
     <div class="col-lg-18">
 
-        <h4 class="mb-4 text-secondary">
-            {% if is_edit %}
-            Editing Job: {{ jobcard.registration_number }}
-            {% else %}
-            New Job Card
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h4 class="mb-0 text-secondary">
+                {% if is_edit %}
+                Editing Job: {{ jobcard.registration_number }}
+                {% else %}
+                New Job Card
+                {% endif %}
+            </h4>
+            {% if user.is_authenticated and is_edit %}
+            <a href="{% url 'invoice_view' jobcard.pk %}" target="_blank" class="btn btn-outline-primary">
+                <i class="bi bi-receipt"></i> Invoice
+            </a>
             {% endif %}
-        </h4>
+        </div>
 
         <!-- ========================================== -->
         <!-- ACTIVE VEHICLES DASHBOARD (Show on home only) -->
@@ -119,7 +126,7 @@
                             {{ form.admitted_date }}
                         </div>
                         <div class="col-6 col-md-3">
-                            <label class="form-label small text-muted">Discharge Date</label>
+                            <label class="form-label small text-muted"></label>
                             {{ form.discharged_date }}
                         </div>
 

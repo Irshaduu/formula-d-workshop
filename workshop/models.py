@@ -91,7 +91,7 @@ class JobCard(models.Model):
     
     # Dates
     admitted_date = models.DateField()
-    discharged_date = models.DateField(blank=True, null=True, help_text="Planning date - when you plan to deliver")
+    discharged_date = models.DateField(blank=True, null=True, help_text="Auto-filled when job is marked as delivered")
     
     # Delivery Status (separate from planning date)
     delivered = models.BooleanField(default=False, help_text="Actually delivered (marked via Delivered button)")
@@ -165,7 +165,7 @@ class JobCardSpareItem(models.Model):
     STATUS_CHOICES = [
         ('PENDING', 'Pending'),
         ('ORDERED', 'Ordered'),
-        ('FIXED', 'Fixed'),
+        ('RECEIVED', 'Received'),
     ]
 
     job_card = models.ForeignKey(JobCard, on_delete=models.CASCADE, related_name='spares')

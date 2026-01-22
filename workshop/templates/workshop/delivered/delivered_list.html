@@ -50,4 +50,21 @@
     </div>
     {% endif %}
 </div>
+
+<style>
+    /* Light mode fixes - add visible borders */
+    .card {
+        border: 1px solid var(--color-border) !important;
+    }
+
+    /* Registration badge - ensure visibility in all modes */
+    .reg-badge {
+        background-color: var(--color-primary) !important;
+        color: white !important;
+        border: 2px solid var(--color-primary) !important;
+        padding: 0.35rem 0.75rem !important;
+        font-weight: 700 !important;
+        letter-spacing: 1px !important;
+    }
+</style>
 {% endblock %}

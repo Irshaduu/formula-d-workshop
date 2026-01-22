@@ -54,6 +54,7 @@
                             </a>
                         </li>
                         {% endif %}
+                        {% if user.is_authenticated %}
                         <li>
                             <hr class="dropdown-divider">
                         </li>
@@ -80,6 +81,7 @@
                                 </button>
                             </form>
                         </li>
+                        {% endif %}
                     </ul>
                 </div>
             </div>
@@ -136,6 +138,27 @@
     /* Simple cursor pointer for clickable cards */
     .vehicle-box-horizontal {
         cursor: pointer;
+    }
+
+    /* 3-Dot Button Border */
+    .dropdown>button {
+        padding: 0.25rem 0.4rem !important;
+    }
+
+    .dropdown>button:hover {
+        border-color: var(--color-primary) !important;
+        background-color: var(--color-hover) !important;
+    }
+
+    /* Dropdown Menu Border */
+    .dropdown-menu {
+        border: 1px solid rgba(255, 255, 255, 0.3) !important;
+    }
+
+    /* Fix dropdown item hover in light mode */
+    .dropdown-item:hover {
+        background-color: var(--color-primary) !important;
+        color: white !important;
     }
 
     /* Status Dot Indicator */
