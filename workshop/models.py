@@ -58,16 +58,17 @@ class ConcernSolution(models.Model):
     """
     Knowledge base for common Concerns and their Solutions.
     Renamed from CustomerConcern to avoid confusion with active Job Cards.
+    Solution is optional - can save with just concern.
     """
     concern = models.TextField(help_text="e.g., Sound when applying brake")
-    solution = models.TextField(help_text="e.g., Change brake pads")
+    solution = models.TextField(blank=True, null=True, help_text="e.g., Change brake pads")  # Optional
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['-created_at']
 
     def __str__(self):
-        return f"{self.concern[:30]}... | {self.solution[:30]}..."
+        return f"{self.concern[:30]}... | {self.solution[:30] if self.solution else 'No solution'}..."
 
 
 # -----------------------------------------------------------------------------

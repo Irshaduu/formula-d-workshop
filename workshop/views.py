@@ -50,8 +50,10 @@ def jobcard_create(request):
     """
     Create a new job card with formsets for concerns, spares, and labour.
     Admitted date defaults to today but is editable.
+    Redirects to edit page after save with success message.
     """
     from datetime import date
+    from django.contrib import messages
     
     if request.method == 'POST':
         form = JobCardForm(request.POST)
@@ -77,10 +79,26 @@ def jobcard_create(request):
 
             if concern_formset.is_valid() and spare_formset.is_valid() and labour_formset.is_valid():
                 jobcard.save()
-                concern_formset.save()
-                spare_formset.save()
+                saved_concerns = concern_formset.save()
+                saved_spares = spare_formset.save()
                 labour_formset.save()
-                return redirect('jobcard_list')
+                
+                # Auto-learn: Add new concerns to master data
+                for concern in saved_concerns:
+                    if concern.concern_text and concern.concern_text.strip():
+                        ConcernSolution.objects.get_or_create(
+                            concern=concern.concern_text.strip()
+                        )
+                
+                # Auto-learn: Add new spare parts to master data
+                for spare in saved_spares:
+                    if spare.spare_part_name and spare.spare_part_name.strip():
+                        SparePart.objects.get_or_create(
+                            name=spare.spare_part_name.strip()
+                        )
+                
+                messages.success(request, f'Job card for {jobcard.registration_number} created successfully!')
+                return redirect('jobcard_edit', pk=jobcard.pk)
     else:
         # Pre-fill admitted_date with today's date
         form = JobCardForm(initial={'admitted_date': date.today()})
@@ -120,7 +138,10 @@ def jobcard_list(request):
 def jobcard_edit(request, pk):
     """
     Edit an existing Job Card. Pre-populates form and formsets.
+    Stays on same page after save with success message.
     """
+    from django.contrib import messages
+    
     jobcard = get_object_or_404(JobCard, pk=pk)
 
     if request.method == 'POST':
@@ -131,10 +152,26 @@ def jobcard_edit(request, pk):
 
         if form.is_valid() and concern_formset.is_valid() and spare_formset.is_valid() and labour_formset.is_valid():
             form.save()
-            concern_formset.save()
-            spare_formset.save()
+            saved_concerns = concern_formset.save()
+            saved_spares = spare_formset.save()
             labour_formset.save()
-            return redirect('jobcard_list')
+            
+            # Auto-learn: Add new concerns to master data
+            for concern in saved_concerns:
+                if concern.concern_text and concern.concern_text.strip():
+                    ConcernSolution.objects.get_or_create(
+                        concern=concern.concern_text.strip()
+                    )
+            
+            # Auto-learn: Add new spare parts to master data
+            for spare in saved_spares:
+                if spare.spare_part_name and spare.spare_part_name.strip():
+                    SparePart.objects.get_or_create(
+                        name=spare.spare_part_name.strip()
+                    )
+            
+            messages.success(request, f'Job card for {jobcard.registration_number} updated successfully!')
+            return redirect('jobcard_edit', pk=jobcard.pk)
     else:
         form = JobCardForm(instance=jobcard)
         concern_formset = JobCardConcernFormSet(instance=jobcard, prefix='concerns')
@@ -179,11 +216,46 @@ def jobcard_delete(request, pk):
 
 def delivered_list(request):
     """
-    Shows all delivered vehicles (delivered=True).
-    Ordered by when they were marked as delivered (newest first).
+    Show delivered vehicles with date range filtering.
+    Default: Today's deliveries
+    Options: today, week, month, year, all, custom
     """
-    delivered_jobcards = JobCard.objects.filter(delivered=True).order_by('-updated_at')
-    return render(request, 'workshop/delivered/delivered_list.html', {'delivered_jobcards': delivered_jobcards})
+    from datetime import date, timedelta
+    
+    # Get filter parameter (default to 'today')
+    filter_type = request.GET.get('filter', 'today')
+    
+    # Base queryset
+    delivered_jobcards = JobCard.objects.filter(delivered=True).order_by('-discharged_date')
+    
+    # Apply date filters
+    today = date.today()
+    
+    if filter_type == 'today':
+        delivered_jobcards = delivered_jobcards.filter(discharged_date=today)
+    elif filter_type == 'week':
+        start_date = today - timedelta(days=7)
+        delivered_jobcards = delivered_jobcards.filter(discharged_date__gte=start_date)
+    elif filter_type == 'month':
+        start_date = today - timedelta(days=30)
+        delivered_jobcards = delivered_jobcards.filter(discharged_date__gte=start_date)
+    elif filter_type == 'year':
+        start_date = today - timedelta(days=365)
+        delivered_jobcards = delivered_jobcards.filter(discharged_date__gte=start_date)
+    elif filter_type == 'custom':
+        start_date = request.GET.get('start_date')
+        end_date = request.GET.get('end_date')
+        if start_date and end_date:
+            delivered_jobcards = delivered_jobcards.filter(
+                discharged_date__gte=start_date,
+                discharged_date__lte=end_date
+            )
+    # 'all' - no filtering
+    
+    return render(request, 'workshop/delivered/delivered_list.html', {
+        'delivered_jobcards': delivered_jobcards,
+        'filter_type': filter_type,
+    })
 
 
 def mark_delivered(request, pk):

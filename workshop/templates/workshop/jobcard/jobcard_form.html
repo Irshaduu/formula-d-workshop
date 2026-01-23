@@ -23,6 +23,35 @@
             {% endif %}
         </div>
 
+        <!-- Toast Notification (Fixed Position) -->
+        {% if messages %}
+        <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+            {% for message in messages %}
+            <div class="toast show align-items-center text-white bg-success border-0" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        <i class="bi bi-check-circle me-2"></i>{{ message }}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                        data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <script>
+            // Auto-dismiss toast after 2 seconds
+            document.addEventListener('DOMContentLoaded', function () {
+                const toasts = document.querySelectorAll('.toast');
+                toasts.forEach(toast => {
+                    setTimeout(() => {
+                        toast.classList.remove('show');
+                        setTimeout(() => toast.remove(), 300);
+                    }, 2000);
+                });
+            });
+        </script>
+        {% endif %}
+
         <!-- ========================================== -->
         <!-- ACTIVE VEHICLES DASHBOARD (Show on home only) -->
         <!-- ========================================== -->
@@ -347,7 +376,7 @@
 
 <datalist id="datalist-models">
     {% for model in models %}
-    <option value="{{ model.name }}">
+    <option value="{{ model.name }}" data-brand="{{ model.brand.name }}">
         {% endfor %}
 </datalist>
 
@@ -365,6 +394,49 @@
 
 </div>
 </div>
+
+<!-- Store all models data for filtering -->
+<script>
+    // Store brand-model relationships
+    const allModels = [
+        {% for model in models %}
+    { name: "{{ model.name }}", brand: "{{ model.brand.name }}" },
+    {% endfor %}
+    ];
+
+    // Filter models based on selected brand
+    function filterModelsByBrand() {
+        const brandInputs = document.querySelectorAll('input[name*="brand_name"]');
+
+        brandInputs.forEach(brandInput => {
+            brandInput.addEventListener('input', function () {
+                const selectedBrand = this.value.trim();
+                const modelDatalist = document.getElementById('datalist-models');
+
+                if (!selectedBrand) {
+                    // If no brand selected, show all models
+                    modelDatalist.innerHTML = allModels.map(m =>
+                        `<option value="${m.name}" data-brand="${m.brand}">`
+                    ).join('');
+                    return;
+                }
+
+                // Filter models by selected brand
+                const filteredModels = allModels.filter(m =>
+                    m.brand.toLowerCase() === selectedBrand.toLowerCase()
+                );
+
+                // Update datalist with filtered models
+                modelDatalist.innerHTML = filteredModels.map(m =>
+                    `<option value="${m.name}" data-brand="${m.brand}">`
+                ).join('');
+            });
+        });
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', filterModelsByBrand);
+</script>
 
 <!-- EMPTY FORM TEMPLATES (Hidden, used by JS) -->
 <div id="empty-concern-form" class="d-none">

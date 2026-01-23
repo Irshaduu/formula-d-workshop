@@ -6,7 +6,51 @@
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Delivered Vehicles</h2>
-        <a href="{% url 'home' %}" class="btn btn-outline-primary">Back to Workshop</a>
+        <div class="d-flex gap-2 align-items-center">
+            <!-- Date Filter Dropdown -->
+            <div class="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
+                    data-bs-toggle="dropdown">
+                    <i class="bi bi-funnel"></i>
+                    {% if filter_type == 'today' %}Today
+                    {% elif filter_type == 'week' %}1 Week
+                    {% elif filter_type == 'month' %}1 Month
+                    {% elif filter_type == 'year' %}1 Year
+                    {% elif filter_type == 'custom' %}Custom
+                    {% else %}All{% endif %}
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                    <li><a class="dropdown-item {% if filter_type == 'today' %}active{% endif %}"
+                            href="?filter=today">Today</a></li>
+                    <li><a class="dropdown-item {% if filter_type == 'week' %}active{% endif %}" href="?filter=week">1
+                            Week</a></li>
+                    <li><a class="dropdown-item {% if filter_type == 'month' %}active{% endif %}" href="?filter=month">1
+                            Month</a></li>
+                    <li><a class="dropdown-item {% if filter_type == 'year' %}active{% endif %}" href="?filter=year">1
+                            Year</a></li>
+                    <li><a class="dropdown-item {% if filter_type == 'all' %}active{% endif %}"
+                            href="?filter=all">All</a></li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    <li>
+                        <a class="dropdown-item {% if filter_type == 'custom' %}active{% endif %}" href="#"
+                            onclick="toggleCustomDatePicker(event)">Custom</a>
+                    </li>
+                    <li id="customDatePicker"
+                        style="display: {% if filter_type == 'custom' %}block{% else %}none{% endif %};">
+                        <div class="px-3 py-2">
+                            <form method="get" class="d-flex flex-column gap-2">
+                                <input type="hidden" name="filter" value="custom">
+                                <input type="date" name="start_date" class="form-control form-control-sm" required>
+                                <input type="date" name="end_date" class="form-control form-control-sm" required>
+                                <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+                            </form>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
     </div>
 
     {% if delivered_jobcards %}
@@ -50,6 +94,14 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+    function toggleCustomDatePicker(event) {
+        event.preventDefault();
+        const picker = document.getElementById('customDatePicker');
+        picker.style.display = (picker.style.display === 'none') ? 'block' : 'none';
+    }
+</script>
 
 <style>
     /* Light mode fixes - add visible borders */
