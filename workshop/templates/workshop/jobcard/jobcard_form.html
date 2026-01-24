@@ -8,29 +8,47 @@
 <div class="row justify-content-center">
     <div class="col-lg-18">
 
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h4 class="mb-0 text-secondary">
+        <!-- Fixed Compact Header -->
+        <div class="position-sticky shadow-sm"
+            style="top: 60px; z-index: 100; padding: 0.25rem 1rem; border-radius: 0 0 8px 8px; margin-bottom: 2rem; background-color: var(--color-primary-light);">
+            <div class="d-flex justify-content-between align-items-center">
                 {% if is_edit %}
-                Editing Job: {{ jobcard.registration_number }}
-                {% else %}
-                New Job Card
+                <span class="text-truncate" style="font-size: 0.9rem;">
+                    <span class="text-primary fw-bold">Editing:</span>
+                    <strong>{{ jobcard.brand_name }} {{ jobcard.model_name }}</strong>
+                    <span class="text-primary fw-bold ms-2">{{ jobcard.registration_number }}</span>
+                </span>
+                {% if user.is_authenticated %}
+                <div class="d-flex gap-2">
+                    <a href="{% url 'car_profile_detail' jobcard.registration_number %}"
+                        class="btn btn-sm btn-outline-primary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">
+                        <i class="bi bi-car-front"></i> Profile
+                    </a>
+                    <a href="{% url 'invoice_view' jobcard.pk %}" target="_blank" class="btn btn-sm btn-outline-primary"
+                        style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">
+                        <i class="bi bi-receipt"></i> Invoice
+                    </a>
+                </div>
                 {% endif %}
-            </h4>
-            {% if user.is_authenticated and is_edit %}
-            <a href="{% url 'invoice_view' jobcard.pk %}" target="_blank" class="btn btn-outline-primary">
-                <i class="bi bi-receipt"></i> Invoice
-            </a>
-            {% endif %}
+                {% else %}
+                <strong style="font-size: 0.9rem;">New Job Card</strong>
+                <span></span>
+                {% endif %}
+            </div>
         </div>
+
+
 
         <!-- Toast Notification (Fixed Position) -->
         {% if messages %}
         <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999;">
             {% for message in messages %}
-            <div class="toast show align-items-center text-white bg-success border-0" role="alert">
+            <div class="toast show align-items-center text-white border-0 {% if message.tags == 'warning' %}bg-warning{% else %}bg-success{% endif %}"
+                role="alert" data-level="{{ message.tags }}">
                 <div class="d-flex">
                     <div class="toast-body">
-                        <i class="bi bi-check-circle me-2"></i>{{ message }}
+                        {% if message.tags == 'warning' %}<i class="bi bi-exclamation-triangle me-2"></i>{% else
+                        %}<i class="bi bi-check-circle me-2"></i>{% endif %}{{ message }}
                     </div>
                     <button type="button" class="btn-close btn-close-white me-2 m-auto"
                         data-bs-dismiss="toast"></button>
@@ -39,14 +57,17 @@
             {% endfor %}
         </div>
         <script>
-            // Auto-dismiss toast after 2 seconds
+            //Auto-dismiss success toasts only, warnings stay visible
             document.addEventListener('DOMContentLoaded', function () {
                 const toasts = document.querySelectorAll('.toast');
                 toasts.forEach(toast => {
-                    setTimeout(() => {
-                        toast.classList.remove('show');
-                        setTimeout(() => toast.remove(), 300);
-                    }, 2000);
+                    const level = toast.getAttribute('data-level');
+                    if (level === 'success') {
+                        setTimeout(() => {
+                            toast.classList.remove('show');
+                            setTimeout(() => toast.remove(), 300);
+                        }, 2000);
+                    }
                 });
             });
         </script>
@@ -82,7 +103,8 @@
                         </div>
                         <div class="mb-2">
                             <small class="text-muted">
-                                <i class="bi bi-calendar-check"></i> Due: {{ job.discharged_date|date:"d M"|default:"Not
+                                <i class="bi bi-calendar-check"></i> Due: {{ job.discharged_date|date:"d
+                                M"|default:"Not
                                 set" }}
                             </small>
                         </div>

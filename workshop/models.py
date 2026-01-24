@@ -116,21 +116,40 @@ class JobCard(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     def save(self, *args, **kwargs):
-        """Auto-generate bill number if not set"""
+        """
+        Auto-generate bill number if not set.
+        Thread-safe implementation to prevent duplicate numbers
+        when multiple users create job cards simultaneously.
+        """
+        from django.db import transaction
+        
         if not self.bill_number:
-            # Get year (2 digits)
-            year = str(self.admitted_date.year)[2:]  # 2026 → "26"
-            
-            # Find highest number for this year
-            year_jobs = JobCard.objects.filter(
-                bill_number__startswith=f'JB-{year}-'
-            ).count()
-            
-            # Next number (pad with zeros)
-            next_num = str(year_jobs + 1).zfill(3)  # 1 → "001"
-            
-            # Create bill number
-            self.bill_number = f'JB-{year}-{next_num}'
+            with transaction.atomic():
+                # Get year (2 digits)
+                year = str(self.admitted_date.year)[2:]  # 2026 → "26"
+                
+                # Lock and count existing bills for this year
+                # select_for_update() prevents race conditions
+                last_job = JobCard.objects.select_for_update().filter(
+                    bill_number__startswith=f'JB-{year}-'
+                ).order_by('-bill_number').first()
+                
+                if last_job and last_job.bill_number:
+                    # Extract number from last bill (e.g., "JB-26-005" → 5)
+                    try:
+                        last_num = int(last_job.bill_number.split('-')[-1])
+                        next_num = last_num + 1
+                    except (ValueError, IndexError):
+                        # Fallback if bill number format is unexpected
+                        next_num = JobCard.objects.filter(
+                            bill_number__startswith=f'JB-{year}-'
+                        ).count() + 1
+                else:
+                    # First bill of the year
+                    next_num = 1
+                
+                # Create bill number (pad with zeros)
+                self.bill_number = f'JB-{year}-{str(next_num).zfill(3)}'
         
         super().save(*args, **kwargs)
     

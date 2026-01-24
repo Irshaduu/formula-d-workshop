@@ -51,6 +51,7 @@ def jobcard_create(request):
     Create a new job card with formsets for concerns, spares, and labour.
     Admitted date defaults to today but is editable.
     Redirects to edit page after save with success message.
+    Prevents duplicate job cards with 3-attempt confirmation.
     """
     from datetime import date
     from django.contrib import messages
@@ -60,7 +61,71 @@ def jobcard_create(request):
 
         if form.is_valid():
             jobcard = form.save(commit=False)
-
+            
+            # Check for existing active job card for this vehicle
+            registration = jobcard.registration_number.strip().upper()
+            existing_job = JobCard.objects.filter(
+                registration_number__iexact=registration,
+                delivered=False
+            ).exclude(pk=jobcard.pk).first()
+            
+            if existing_job:
+                # Get or initialize confirmation counter
+                session_key = f'duplicate_confirm_{registration}'
+                confirm_count = request.session.get(session_key, 0)
+                
+                if confirm_count < 2:
+                    # Increment counter
+                    request.session[session_key] = confirm_count + 1
+                    
+                    # Build message with vehicle details
+                    vehicle_info = f"{existing_job.brand_name} {existing_job.model_name}" if existing_job.brand_name else registration
+                    
+                    # Show warning message
+                    messages.warning(
+                        request,
+                        f'{vehicle_info} ({registration}) has an active job (not marked Delivered).'
+                    )
+                    
+                    # Don't save, return to form with data
+                    concern_formset = JobCardConcernFormSet(
+                        request.POST,
+                        instance=jobcard,
+                        prefix='concerns'
+                    )
+                    spare_formset = JobCardSpareFormSet(
+                        request.POST,
+                        instance=jobcard,
+                        prefix='spares'
+                    )
+                    labour_formset = JobCardLabourFormSet(
+                        request.POST,
+                        instance=jobcard,
+                        prefix='labours'
+                    )
+                    
+                    # Fetch master data for datalists
+                    brands = CarBrand.objects.all()
+                    models = CarModel.objects.all()
+                    spares = SparePart.objects.all()
+                    concerns = ConcernSolution.objects.all()
+                    
+                    return render(request, 'workshop/jobcard/jobcard_form.html', {
+                        'form': form,
+                        'concern_formset': concern_formset,
+                        'spare_formset': spare_formset,
+                        'labour_formset': labour_formset,
+                        'is_edit': False,
+                        'brands': brands,
+                        'models': models,
+                        'spares': spares,
+                        'concerns': concerns,
+                    })
+                else:
+                    # Third attempt - clear counter and proceed with save
+                    del request.session[session_key]
+            
+            # Proceed with save
             concern_formset = JobCardConcernFormSet(
                 request.POST,
                 instance=jobcard,
