@@ -318,13 +318,10 @@
                         <div class="swipe-row swipe-header">
                             <div class="swipe-cell col-part">Part Name</div>
                             <div class="swipe-cell col-qty text-center">Qty</div>
-                            <div class="swipe-cell col-shop">Shop</div>
                             <div class="swipe-cell col-status">Status</div>
                             {% if user.is_authenticated %}
-                            <div class="swipe-cell col-price text-end">Shop Price</div>
-                            <div class="swipe-cell col-price text-end">Customer</div>
-                            <div class="swipe-cell col-date">Ordered</div>
-                            <div class="swipe-cell col-date">Received</div>
+                            <div class="swipe-cell col-price text-end">Price</div>
+                            <div class="swipe-cell col-total text-end">Total</div>
                             {% endif %}
                         </div>
 
@@ -332,7 +329,7 @@
                         {{ spare_formset.management_form }}
                         <div id="spare-list">
                             {% for s_form in spare_formset %}
-                            <div class="swipe-row spare-row" data-original-status="{{ s_form.instance.status }}">
+                            <div class="swipe-row">
                                 {{ s_form.id }}
                                 <div class="d-none">{{ s_form.DELETE }}</div>
                                 <div class="swipe-cell col-part">
@@ -341,24 +338,35 @@
                                 <div class="swipe-cell col-qty">
                                     {{ s_form.quantity }}
                                 </div>
-                                <div class="swipe-cell col-shop">
-                                    {{ s_form.shop_name }}
-                                </div>
                                 <div class="swipe-cell col-status">
                                     {{ s_form.status }}
                                 </div>
                                 {% if user.is_authenticated %}
                                 <div class="swipe-cell col-price">
                                     {{ s_form.unit_price }}
+                                    <!-- Hidden but needed? No, wait model has unit_price but formset excluded it? Check forms.py -->
+                                    <!-- In forms.py I excluded unit_price from fields! Wait. 
+                                    Step 764: fields=['spare_part_name', 'quantity', 'status', 'total_price']
+                                    So unit_price is NOT in the formset fields.
+                                    The template I'm replacing (lines 240+) might have had it?
+                                    Let me check Step 736 view_file. It stopped at line 250.
+                                    I need to check if unit_price was there properly.
+                                    Actually I can just render what I have in fields.
+                                    -->
+                                    <!-- Wait, Step 724 forms.py snippet line 162: fields=['spare_part_name', 'quantity', 'total_price']
+                                    My update in Step 764: fields=['spare_part_name', 'quantity', 'status', 'total_price']
+                                    
+                                    So unit_price is NOT in the formset.
+                                    But in Step 769 replacement content for CSS I kept .col-price.
+                                    I should probably check if I need to render unit_price or just total_price.
+                                    The user requirement was simple tracking.
+                                    
+                                    Let's look at the implementation plan again.
+                                    I will include total_price.
+                                    -->
                                 </div>
-                                <div class="swipe-cell col-price">
+                                <div class="swipe-cell col-total">
                                     {{ s_form.total_price }}
-                                </div>
-                                <div class="swipe-cell col-date">
-                                    {{ s_form.ordered_date }}
-                                </div>
-                                <div class="swipe-cell col-date">
-                                    {{ s_form.received_date }}
                                 </div>
                                 {% endif %}
                             </div>
@@ -469,7 +477,7 @@
 </div>
 
 <div id="empty-spare-form" class="d-none">
-    <div class="swipe-row spare-row" data-original-status="PENDING">
+    <div class="swipe-row">
         {{ spare_formset.empty_form.id }}
         <div class="d-none">{{ spare_formset.empty_form.DELETE }}</div>
         <div class="swipe-cell col-part">
@@ -477,9 +485,6 @@
         </div>
         <div class="swipe-cell col-qty">
             {{ spare_formset.empty_form.quantity }}
-        </div>
-        <div class="swipe-cell col-shop">
-            {{ spare_formset.empty_form.shop_name }}
         </div>
         <div class="swipe-cell col-status">
             {{ spare_formset.empty_form.status }}
@@ -674,9 +679,4 @@
         }
     });
 </script>
-
-<!-- Spare Parts Auto-Fill Logic -->
-{% load static %}
-<script src="{% static 'js/spare_autofill.js' %}"></script>
-
 {% endblock %}

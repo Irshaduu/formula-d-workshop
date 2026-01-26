@@ -181,6 +181,7 @@ class JobCardConcern(models.Model):
 class JobCardSpareItem(models.Model):
     """
     Spare parts used in the job.
+    Tracks ordering workflow with shop and dates.
     """
     STATUS_CHOICES = [
         ('PENDING', 'Pending'),
@@ -193,8 +194,14 @@ class JobCardSpareItem(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
     quantity = models.DecimalField(max_digits=8, decimal_places=2, blank=True, null=True)
     
-    unit_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
-    total_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    # Pricing (unit_price = shop cost, total_price = customer price with markup)
+    unit_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, help_text="Shop price (cost)")
+    total_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True, help_text="Customer price (with markup)")
+    
+    # Order tracking (NEW)
+    shop_name = models.CharField(max_length=100, blank=True, null=True, help_text="Shop where part was ordered")
+    ordered_date = models.DateField(blank=True, null=True, help_text="Auto-filled when status → ORDERED")
+    received_date = models.DateField(blank=True, null=True, help_text="Auto-filled when status → RECEIVED")
 
     def __str__(self):
         return f"{self.spare_part_name} ({self.quantity})"

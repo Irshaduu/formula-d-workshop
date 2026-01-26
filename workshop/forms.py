@@ -162,11 +162,12 @@ JobCardConcernFormSet = inlineformset_factory(
 )
 
 # 2. SPARES
-# Columns: Part Name | Qty | Status | Unit Price | Total
+# Main Row: Part Name | Qty | Shop | Status | Shop Price | [3-dot]
+# Dropdown: Customer Price | Ordered Date | Received Date
 JobCardSpareFormSet = inlineformset_factory(
     JobCard,
     JobCardSpareItem,
-    fields=['spare_part_name', 'quantity', 'status', 'unit_price', 'total_price'],
+    fields=['spare_part_name', 'quantity', 'shop_name', 'status', 'unit_price', 'total_price', 'ordered_date', 'received_date'],
     extra=0,
     can_delete=True,    # Allow deletion for proper formset validation
     validate_min=False, # Don't require minimum number of forms
@@ -181,17 +182,29 @@ JobCardSpareFormSet = inlineformset_factory(
             'class': 'form-control text-center',
             'placeholder': 'Qty'
         }),
+        'shop_name': forms.TextInput(attrs={
+            'class': 'form-control',
+            'placeholder': 'Shop Name'
+        }),
         'status': forms.Select(attrs={
-            'class': 'form-select form-select-sm',
+            'class': 'form-select form-select-sm status-dropdown',
             'style': 'min-width: 90px;'
         }),
         'unit_price': forms.TextInput(attrs={
             'class': 'form-control text-end',
-            'placeholder': 'Price'
+            'placeholder': 'Shop Price'
         }),
         'total_price': forms.TextInput(attrs={
             'class': 'form-control text-end fw-bold',
-            'placeholder': 'Total'
+            'placeholder': 'Customer Price'
+        }),
+        'ordered_date': forms.DateInput(attrs={
+            'type': 'date',
+            'class': 'form-control ordered-date'
+        }),
+        'received_date': forms.DateInput(attrs={
+            'type': 'date',
+            'class': 'form-control received-date'
         }),
     }
 )

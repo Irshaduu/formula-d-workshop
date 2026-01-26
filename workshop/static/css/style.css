@@ -201,6 +201,27 @@ input[type=number] {
     align-items: center;
 }
 
+/* MUST COME AFTER .swipe-cell - Override for expandable cells */
+.spare-row .swipe-cell.expandable-cell {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    max-width: 0 !important;
+    flex: 0 0 0 !important;
+    overflow: hidden !important;
+    padding: 0 !important;
+}
+
+.spare-row .swipe-cell.expandable-cell.show {
+    display: flex !important;
+    visibility: visible !important;
+    width: auto !important;
+    max-width: none !important;
+    flex: 0 0 100px !important;
+    overflow: visible !important;
+    padding: 8px !important;
+}
+
 /* Inner Inputs should fill the cell */
 .swipe-cell .form-control,
 .swipe-cell .form-select {
@@ -209,33 +230,67 @@ input[type=number] {
     /* Prevents overflow in flex items */
 }
 
-/* Specific Column Widths (Fixed visual rhythm) */
+/* Specific Column Widths (Optimized for professional layout) */
 .col-part {
-    flex: 2 0 160px;
+    flex: 1 1 140px;
+    min-width: 140px;
 }
 
-/* Grows, shrinks, min 160px */
+/* Wider for part names */
 .col-job {
-    flex: 3 0 200px;
+    flex: 2 0 180px;
 }
 
-/* Wider description */
+/* Job descriptions */
 .col-qty {
-    flex: 0 0 70px;
+    flex: 0 0 60px;
+    text-align: center;
 }
 
-/* Status Column */
-.col-status {
-    flex: 0 0 110px;
-}
-
-/* Fixed width */
-.col-price {
+/* Compact qty */
+.col-shop {
     flex: 0 0 100px;
 }
 
+/* Shop name */
+.col-status {
+    flex: 0 0 100px;
+}
+
+/* Status dropdown */
+.col-price {
+    flex: 0 0 85px;
+    text-align: right;
+}
+
+/* Shop & Customer prices */
+.col-date {
+    flex: 0 0 120px;
+}
+
+/* Date fields */
 .col-total {
     flex: 0 0 100px;
+}
+
+/* Actions Column for 3-dot button (NEW) */
+.col-actions {
+    flex: 0 0 40px;
+}
+
+/* MUST COME AFTER .swipe-cell - Override for expandable cells */
+.spare-row .swipe-cell.expandable-cell {
+    display: none !important;
+    visibility: hidden !important;
+    width: 0 !important;
+    flex: 0 0 0 !important;
+}
+
+.spare-row .swipe-cell.expandable-cell.show {
+    display: block !important;
+    visibility: visible !important;
+    width: auto !important;
+    flex: 0 0 100px !important;
 }
 
 /* Sticky Left Column (Part Name remains visible) - OPTIONAL but cool */
