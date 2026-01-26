@@ -192,7 +192,7 @@ input[type=number] {
 .col-price {
     width: 110px;
     min-width: 110px;
-    text-align: right;
+    /* text-align: right; Removed for consistency */
 }
 
 /* Shop & Customer prices */
@@ -299,4 +299,6 @@ input[type=number] {
     letter-spacing: 0.5px;
     padding: 12px 8px;
     /* Comfortable padding */
+    white-space: nowrap;
+    /* Prevent wrapping */
 }
