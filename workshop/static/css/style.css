@@ -158,97 +158,44 @@ input[type=number] {
     border: 1px solid var(--color-border-light);
 }
 
-/* Specific Column Widths (Converted to Width for Table) */
+/* Specific Column Widths (Unified & Cleaned) */
 .col-part {
-    width: 25%;
-    min-width: 180px;
+    width: auto;
+    min-width: 300px;
 }
 
-/* Wider for part names */
 .col-job {
     width: 40%;
     min-width: 200px;
 }
 
-/* Job descriptions */
 .col-qty {
     width: 70px;
     text-align: center;
 }
 
-/* Compact qty */
 .col-shop {
-    width: 15%;
-    min-width: 120px;
+    width: auto;
+    min-width: 250px;
 }
 
-/* Shop name */
 .col-status {
     width: 130px;
     min-width: 130px;
 }
 
-/* Status dropdown */
 .col-price {
     width: 110px;
     min-width: 110px;
-    /* text-align: right; Removed for consistency */
-}
-
-/* Shop & Customer prices */
-.col-date {
-    flex: 0 0 120px;
+    /* Left Aligned */
 }
 
 /* Date fields */
-.col-total {
-    flex: 0 0 100px;
-}
-
-/* Specific Column Widths (Converted to Width for Table) */
-.col-part {
-    width: 25%;
-    min-width: 180px;
-}
-
-/* Wider for part names */
-.col-job {
-    width: 40%;
-    min-width: 200px;
-}
-
-/* Job descriptions */
-.col-qty {
-    width: 60px;
-    text-align: center;
-}
-
-/* Compact qty */
-.col-shop {
-    width: 15%;
-    min-width: 120px;
-}
-
-/* Shop name */
-.col-status {
-    width: 120px;
-    min-width: 120px;
-}
-
-/* Status dropdown */
-.col-price {
-    width: 100px;
-    min-width: 100px;
-    text-align: right;
-}
-
-/* Shop & Customer prices */
 .col-date {
     width: 130px;
     min-width: 130px;
 }
 
-/* Date fields */
 .col-total {
     width: 100px;
     min-width: 100px;
@@ -295,6 +242,8 @@ input[type=number] {
 }
 
 .table-dark-header th {
+    background-color: #212529;
+    /* Explicitly set on TH */
     font-weight: 600;
     letter-spacing: 0.5px;
     padding: 12px 8px;

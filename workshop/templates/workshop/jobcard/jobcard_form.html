@@ -321,9 +321,9 @@
                         <table class="table table-borderless align-middle mb-0" style="min-width: 800px;">
                             <thead class="table-dark-header text-muted small text-uppercase">
                                 <tr class="border-bottom">
-                                    <th class="ps-3 col-part">Part Name</th>
+                                    <th class="ps-3 col-part" style="min-width: 300px;">Part Name</th>
                                     <th class="text-center col-qty">Qty</th>
-                                    <th class="col-shop">Shop</th>
+                                    <th class="col-shop" style="min-width: 250px;">Shop</th>
                                     <th class="col-status">Status</th>
                                     {% if user.is_authenticated %}
                                     <th class="col-price">Shop Price</th>
@@ -336,7 +336,7 @@
                             <tbody id="spare-list">
                                 {% for s_form in spare_formset %}
                                 <tr class="spare-row border-bottom" data-original-status="{{ s_form.instance.status }}">
-                                    <td class="ps-3 col-part">
+                                    <td class="ps-3 col-part" style="min-width: 300px;">
                                         {{ s_form.id }}
                                         <div class="d-none">{{ s_form.DELETE }}</div>
                                         {{ s_form.spare_part_name }}
@@ -344,7 +344,7 @@
                                     <td class="col-qty">
                                         {{ s_form.quantity }}
                                     </td>
-                                    <td class="col-shop">
+                                    <td class="col-shop" style="min-width: 250px;">
                                         {{ s_form.shop_name }}
                                     </td>
                                     <td class="col-status">
