@@ -140,126 +140,58 @@ input[type=number] {
     }
 }
 
-/* SWIPEABLE TABLES (Like Excel/Paper) */
-/* SWIPEABLE TABLES (Like Excel/Paper) */
-.swipe-container {
-    background-color: var(--color-card);
+/* SWIPEABLE TABLES (Refactored to Standard HTML Tables) */
+.table-responsive {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    width: 100%;
+    margin-bottom: 1rem;
+    border: 1px solid var(--color-border-light);
     border-radius: 8px;
+}
+
+/* Ensure inner inputs fill the table cells */
+.table td .form-control,
+.table td .form-select {
+    width: 100%;
+    min-width: 0;
     border: 1px solid var(--color-border-light);
 }
 
-.swipe-row {
-    display: flex;
-    border-bottom: 1px solid var(--color-border-light);
-    align-items: center;
-    /* Vertical center alignment */
-}
-
-/* MOBILE: Force Horizontal Scroll */
-@media (max-width: 768px) {
-    .swipe-container {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-    }
-
-    .swipe-row {
-        min-width: 600px;
-        /* Forces scroll triggers */
-    }
-}
-
-/* DESKTOP: Clean Grid */
-@media (min-width: 769px) {
-    .swipe-container {
-        overflow-x: visible;
-        width: 100%;
-    }
-
-    .swipe-row {
-        width: 100%;
-        min-width: auto;
-        /* No forced scroll */
-    }
-}
-
-.swipe-row:last-child {
-    border-bottom: none;
-}
-
-.swipe-header {
-    background-color: var(--color-bg);
-    color: var(--color-text-muted);
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.swipe-cell {
-    padding: 8px;
-    display: flex;
-    align-items: center;
-}
-
-/* MUST COME AFTER .swipe-cell - Override for expandable cells */
-.spare-row .swipe-cell.expandable-cell {
-    display: none !important;
-    visibility: hidden !important;
-    width: 0 !important;
-    max-width: 0 !important;
-    flex: 0 0 0 !important;
-    overflow: hidden !important;
-    padding: 0 !important;
-}
-
-.spare-row .swipe-cell.expandable-cell.show {
-    display: flex !important;
-    visibility: visible !important;
-    width: auto !important;
-    max-width: none !important;
-    flex: 0 0 100px !important;
-    overflow: visible !important;
-    padding: 8px !important;
-}
-
-/* Inner Inputs should fill the cell */
-.swipe-cell .form-control,
-.swipe-cell .form-select {
-    width: 100%;
-    min-width: 0;
-    /* Prevents overflow in flex items */
-}
-
-/* Specific Column Widths (Optimized for professional layout) */
+/* Specific Column Widths (Converted to Width for Table) */
 .col-part {
-    flex: 1 1 140px;
-    min-width: 140px;
+    width: 25%;
+    min-width: 180px;
 }
 
 /* Wider for part names */
 .col-job {
-    flex: 2 0 180px;
+    width: 40%;
+    min-width: 200px;
 }
 
 /* Job descriptions */
 .col-qty {
-    flex: 0 0 60px;
+    width: 70px;
     text-align: center;
 }
 
 /* Compact qty */
 .col-shop {
-    flex: 0 0 100px;
+    width: 15%;
+    min-width: 120px;
 }
 
 /* Shop name */
 .col-status {
-    flex: 0 0 100px;
+    width: 130px;
+    min-width: 130px;
 }
 
 /* Status dropdown */
 .col-price {
-    flex: 0 0 85px;
+    width: 110px;
+    min-width: 110px;
     text-align: right;
 }
 
@@ -273,9 +205,58 @@ input[type=number] {
     flex: 0 0 100px;
 }
 
+/* Specific Column Widths (Converted to Width for Table) */
+.col-part {
+    width: 25%;
+    min-width: 180px;
+}
+
+/* Wider for part names */
+.col-job {
+    width: 40%;
+    min-width: 200px;
+}
+
+/* Job descriptions */
+.col-qty {
+    width: 60px;
+    text-align: center;
+}
+
+/* Compact qty */
+.col-shop {
+    width: 15%;
+    min-width: 120px;
+}
+
+/* Shop name */
+.col-status {
+    width: 120px;
+    min-width: 120px;
+}
+
+/* Status dropdown */
+.col-price {
+    width: 100px;
+    min-width: 100px;
+    text-align: right;
+}
+
+/* Shop & Customer prices */
+.col-date {
+    width: 130px;
+    min-width: 130px;
+}
+
+/* Date fields */
+.col-total {
+    width: 100px;
+    min-width: 100px;
+}
+
 /* Actions Column for 3-dot button (NEW) */
 .col-actions {
-    flex: 0 0 40px;
+    width: 40px;
 }
 
 /* MUST COME AFTER .swipe-cell - Override for expandable cells */
@@ -303,3 +284,19 @@ input[type=number] {
     box-shadow: 2px 0 5px var(--color-shadow);
 }
 */
+
+/* Custom Table Header (Restoring Dark Look) */
+.table-dark-header {
+    background-color: #212529;
+    /* Dark background */
+    color: #adb5bd;
+    /* Muted text */
+    border-bottom: 1px solid var(--color-border-light);
+}
+
+.table-dark-header th {
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    padding: 12px 8px;
+    /* Comfortable padding */
+}
