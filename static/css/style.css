@@ -1,0 +1,334 @@
+/* ========================================== */
+/* SWIPEABLE TABLE STYLES */
+/* Used in Spare Parts and Labour sections */
+/* ========================================== */
+
+.swipe-container {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    /* Smooth scrolling on iOS */
+}
+
+.swipe-row {
+    display: flex;
+    min-width: max-content;
+    border-bottom: 1px solid var(--color-border-light);
+    padding: 0.75rem 0;
+}
+
+.swipe-row:last-child {
+    border-bottom: none;
+}
+
+.swipe-header {
+    font-weight: 600;
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 2px solid var(--color-border);
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.5rem;
+    position: sticky;
+    left: 0;
+    background-color: var(--color-card);
+    z-index: 1;
+}
+
+.swipe-cell {
+    padding: 0 0.5rem;
+    display: flex;
+    align-items: center;
+}
+
+/* Column widths for Spare Parts table */
+.col-part {
+    min-width: 110px;
+    /* Reduced for better status dropdown visibility */
+    flex: 1;
+}
+
+.col-qty {
+    min-width: 70px;
+    /* Reduced from 80px */
+    width: 70px;
+    flex-shrink: 0;
+}
+
+.col-price {
+    min-width: 145px;
+    /* Increased from 120px */
+    width: 145px;
+    flex-shrink: 0;
+}
+
+.col-total {
+    min-width: 155px;
+    /* Increased from 130px */
+    width: 155px;
+    flex-shrink: 0;
+}
+
+/* Status column for spare parts table */
+.col-status {
+    min-width: 120px;
+    /* Increased from 100px for comfortable dropdown */
+    width: 120px;
+    flex-shrink: 0;
+}
+
+/* Column widths for Labour table */
+.col-job {
+    min-width: 150px;
+    /* Reduced from 200px */
+    flex: 1;
+}
+
+/* Mobile optimizations */
+@media (max-width: 768px) {
+    .swipe-container {
+        /* Add visual hint that table is scrollable */
+        box-shadow: inset -10px 0 10px -10px rgba(0, 0, 0, 0.1);
+    }
+
+    .swipe-row {
+        padding: 0.5rem 0;
+    }
+
+    .col-part {
+        min-width: 160px;
+    }
+
+    .col-job {
+        min-width: 180px;
+    }
+}
+
+/* Input field adjustments within swipe cells */
+.swipe-cell input {
+    width: 100%;
+}
+
+.swipe-cell .form-control {
+    font-size: 0.95rem;
+}
+
+/* ========================================== */
+/* WORKSHOP DASHBOARD - VEHICLE BOXES */
+/* ========================================== */
+
+.vehicle-scroll {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding-bottom: 1rem;
+    padding-top: 0.5rem;
+}
+
+
+.vehicle-box {
+    width: 100%;
+    /* Full width within container margins */
+    border: 2px solid var(--color-border);
+    border-radius: 12px;
+    padding: 1rem;
+    background-color: var(--color-card);
+    transition: all 0.2s ease;
+}
+
+.vehicle-box:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px var(--color-shadow);
+    border-color: var(--color-primary);
+}
+
+.vehicle-box strong {
+    color: var(--color-text);
+    font-size: 1rem;
+}
+
+
+/* Mobile: Maintain vertical layout */
+@media (max-width: 768px) {
+    .vehicle-scroll {
+        gap: 0.75rem;
+        padding-bottom: 5rem;
+        /* Extra space for bottom nav bar */
+    }
+}
+
+/* Red underline for missing discharge date */
+.discharge-not-set {
+    color: var(--color-text-muted);
+    border-bottom: 2px solid #dc3545;
+    padding-bottom: 2px;
+    font-style: italic;
+}
+
+/* Horizontal vehicle box layout - COMPACT VERSION */
+.vehicle-box-horizontal {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.75rem;
+    /* Reduced from 0.75rem 1rem */
+    border: 1px solid var(--color-border);
+    /* Thinner border */
+    border-radius: 6px;
+    /* Slightly smaller radius */
+    background-color: var(--color-card);
+    transition: all 0.2s ease;
+    margin-bottom: 0.5rem;
+    /* Reduced from 0.75rem */
+}
+
+.vehicle-box-horizontal:hover {
+    border-color: var(--color-primary);
+    box-shadow: 0 2px 8px var(--color-shadow);
+}
+
+.vehicle-info-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    /* Tighter gap */
+    flex: 1;
+}
+
+.vehicle-actions-row {
+    display: flex;
+    gap: 0.35rem;
+    /* Reduced from 0.5rem */
+    flex-shrink: 0;
+}
+
+.vehicle-name {
+    min-width: 150px;
+}
+
+@media (max-width: 768px) {
+    .vehicle-box-horizontal {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 0.4rem 0.6rem;
+        /* Even more compact on mobile */
+        gap: 0.35rem;
+    }
+
+    .vehicle-info-row {
+        gap: 0.35rem;
+        /* Tighter on mobile */
+        font-size: 0.9rem;
+        /* Slightly smaller text */
+    }
+
+    .vehicle-actions-row {
+        width: 100%;
+        justify-content: flex-end;
+        gap: 0.3rem;
+    }
+
+    /* Make badges smaller on mobile */
+    .vehicle-info-row .badge {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+
+    /* Compact icon buttons on mobile */
+    .vehicle-actions-row .btn-sm {
+        padding: 0.25rem 0.5rem;
+    }
+}
+
+/* ========================================== */
+/* STATUS COLOR CODING */
+/* ========================================== */
+
+/* Pending status - Red */
+select.status-pending {
+    background-color: #dc3545 !important;
+    color: white !important;
+    font-weight: 600;
+    border-color: #dc3545 !important;
+}
+
+/* Working/Ordered status - Yellow */
+select.status-working,
+select.status-ordered {
+    background-color: #ffc107 !important;
+    color: #000 !important;
+    font-weight: 600;
+    border-color: #ffc107 !important;
+}
+
+/* Fixed status - Green */
+select.status-fixed {
+    background-color: #28a745 !important;
+    color: white !important;
+    font-weight: 600;
+    border-color: #28a745 !important;
+}
+
+/* Ensure dropdown arrow is visible on colored backgrounds */
+select.status-pending,
+select.status-working,
+select.status-ordered,
+select.status-fixed {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23ffffff' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 0.5rem center;
+    background-size: 16px 12px;
+    padding-right: 2rem;
+}
+
+/* Yellow status gets black arrow */
+select.status-working,
+select.status-ordered {
+    background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23000000' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m2 5 6 6 6-6'/%3e%3c/svg%3e");
+}
+
+/* ========================================== */
+/* PROGRESS BAR COLORS */
+/* ========================================== */
+.progress-critical {
+    background-color: #EF4444 !important;
+}
+
+/* 0-29% */
+/* 0-29% */
+.progress-warning {
+    background-color: #d97706 !important;
+}
+
+/* 30-59% */
+.progress-info {
+    background-color: #3B82F6 !important;
+}
+
+/* 60-99% */
+.progress-success {
+    background-color: #22C55E !important;
+}
+
+/* 100% */
+
+/* Text colors matching progress */
+.text-critical {
+    color: #EF4444 !important;
+}
+
+.text-warning {
+    color: #d97706 !important;
+}
+
+/* Slightly darker for readability */
+.text-info-custom {
+    color: #3B82F6 !important;
+}
+
+.text-success-custom {
+    color: #22C55E !important;
+}
