@@ -1,0 +1,152 @@
+{% extends 'workshop/base.html' %}
+
+{% block title %}Live Floor Report{% endblock %}
+
+{% block extra_css %}
+<style>
+    .live-card {
+        background: var(--color-card);
+        border: 1px solid var(--color-border);
+        border-radius: 12px;
+        padding: 1.2rem;
+        margin-bottom: 1.5rem;
+        box-shadow: 0 4px 6px var(--color-shadow);
+        position: relative;
+    }
+    .card-number {
+        font-size: 0.8rem;
+        font-weight: 700;
+        color: var(--color-text-muted);
+        opacity: 0.6;
+        margin-right: 8px;
+    }
+    .car-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 1rem;
+        border-bottom: 1px solid var(--color-border-light);
+        padding-bottom: 0.8rem;
+    }
+    .reg-tag {
+        background: var(--color-primary-light);
+        color: var(--color-primary);
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-weight: 800;
+        font-size: 0.9rem;
+        letter-spacing: 0.5px;
+        border: 1px solid var(--color-primary);
+        display: inline-block;
+        vertical-align: middle;
+    }
+    .car-info {
+        font-weight: 600;
+        font-size: 1.1rem;
+    }
+    .section-title {
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        color: var(--color-text-muted);
+        letter-spacing: 1px;
+        margin-bottom: 0.5rem;
+    }
+    .status-badge {
+        font-size: 0.75rem;
+        padding: 4px 8px;
+        border-radius: 4px;
+        font-weight: 600;
+        text-transform: uppercase;
+    }
+    /* Status Colors */
+    .status-pending { background: #fee2e2; color: #991b1b; }
+    .status-working { background: #fef3c7; color: #92400e; }
+    .status-fixed { background: #dcfce7; color: #166534; }
+    .status-ordered { background: #e0f2fe; color: #075985; }
+    .status-received { background: #dcfce7; color: #166534; }
+
+    .item-row {
+        display: flex;
+        justify-content: flex-start;
+        align-items: center;
+        gap: 10px;
+        padding: 0.4rem 0;
+        border-bottom: 1px dashed var(--color-border-light);
+    }
+    .item-row:last-child { border-bottom: none; }
+    
+    .item-text {
+        font-size: 0.95rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h2 class="mb-0">Live Floor Report</h2>
+    <span class="badge bg-primary rounded-pill">{{ active_jobs.count }} Vehicles</span>
+</div>
+
+{% if active_jobs %}
+    <div class="live-list">
+        {% for job in active_jobs %}
+        <div class="live-card">
+            <div class="car-header">
+                <div class="car-info">
+                    <span class="me-2">{{ job.brand_name }} {{ job.model_name }}</span>
+                    <span class="reg-tag">{{ job.registration_number }}</span>
+                    <div class="text-muted mt-1 small" style="font-weight: 400;">Customer: {{ job.customer_name }}</div>
+                </div>
+                <!-- RIGHT SIDE: Number + Edit -->
+                <div class="d-flex align-items-center gap-2">
+                    <span class="card-number m-0">#{{ forloop.counter }}</span>
+                    <a href="{% url 'jobcard_edit' job.pk %}" class="btn btn-outline-primary btn-sm rounded-pill" title="Edit Job Card">
+                        <i class="bi bi-pencil-square"></i>
+                    </a>
+                </div>
+            </div>
+
+            <!-- CONCERNS -->
+            <div class="mb-3">
+                <div class="section-title">Customer Concerns</div>
+                {% for concern in job.concerns.all %}
+                <div class="item-row">
+                    <span class="item-text">{{ concern.concern_text }}</span>
+                    <span class="status-badge 
+                        {% if concern.status == 'PENDING' %}status-pending
+                        {% elif concern.status == 'WORKING' %}status-working
+                        {% else %}status-fixed{% endif %}">
+                        {{ concern.get_status_display }}
+                    </span>
+                </div>
+                {% empty %}
+                <div class="text-muted small">No concerns listed</div>
+                {% endfor %}
+            </div>
+
+            <!-- SPARE PARTS -->
+            <div>
+                <div class="section-title">Spare Parts</div>
+                {% for spare in job.spares.all %}
+                <div class="item-row">
+                    <span class="item-text">{{ spare.spare_part_name }} ({{ spare.quantity|floatformat:0 }})</span>
+                    <span class="status-badge 
+                        {% if spare.status == 'PENDING' %}status-pending
+                        {% elif spare.status == 'ORDERED' %}status-ordered
+                        {% else %}status-received{% endif %}">
+                        {{ spare.get_status_display }}
+                    </span>
+                </div>
+                {% empty %}
+                <div class="text-muted small">No parts listed</div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <div class="alert alert-info">
+        <i class="bi bi-info-circle me-2"></i> No active vehicles on the floor.
+    </div>
+{% endif %}
+{% endblock %}

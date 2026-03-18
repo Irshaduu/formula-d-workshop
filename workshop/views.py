@@ -173,6 +173,19 @@ def jobcard_create(request):
 
 
 @staff_required
+def live_report(request):
+    """
+    SECTION 2.1: LIVE REPORT - Quick scroll for all roles.
+    Shows active jobs, concerns, and spares status.
+    """
+    active_jobs = JobCard.objects.filter(delivered=False).prefetch_related('concerns', 'spares')
+    
+    return render(request, 'workshop/jobcard/live_report.html', {
+        'active_jobs': active_jobs,
+    })
+
+
+@staff_required
 def jobcard_list(request):
     """
     SECTION 2: JOBS - List of saved job cards.
