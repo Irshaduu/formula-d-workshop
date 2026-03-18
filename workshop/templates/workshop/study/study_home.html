@@ -1,0 +1,68 @@
+{% extends 'workshop/templates/base.html' %}
+
+{% block title %}Study{% endblock %}
+
+{% block content %}
+<div class="row mb-5">
+    <div class="col-12 text-center">
+        <h3 class="mb-2 text-primary fw-bold">Workshop Knowledge</h3>
+        <p class="text-secondary small">Manage your master data and solutions</p>
+    </div>
+</div>
+
+<div class="row g-4 justify-content-center">
+
+    <!-- 1. CARS & MODELS -->
+    <div class="col-12 col-md-6 col-lg-4">
+        <a href="{% url 'brand_list' %}" class="text-decoration-none">
+            <div class="card shadow-sm border-0 h-100 hover-up text-center py-4">
+                <div class="card-body">
+                    <div class="mb-3 text-primary">
+                        <i class="bi bi-car-front display-4"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">Cars & Models</h5>
+                    <p class="text-muted small mb-0">
+                        Manage brands (Toyota, BMW) and their models.
+                        Add images for easy recognition.
+                    </p>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- 2. SPARE PARTS -->
+    <div class="col-12 col-md-6 col-lg-4">
+        <a href="{% url 'spare_list' %}" class="text-decoration-none">
+            <div class="card shadow-sm border-0 h-100 hover-up text-center py-4">
+                <div class="card-body">
+                    <div class="mb-3 text-primary">
+                        <i class="bi bi-gear display-4"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">Spare Parts</h5>
+                    <p class="text-muted small mb-0">
+                        Common parts list. Used for Quick Autocomplete in job cards.
+                    </p>
+                </div>
+            </div>
+        </a>
+    </div>
+
+    <!-- 3. CONCERNS -->
+    <div class="col-12 col-md-6 col-lg-4">
+        <a href="{% url 'concern_list' %}" class="text-decoration-none">
+            <div class="card shadow-sm border-0 h-100 hover-up text-center py-4">
+                <div class="card-body">
+                    <div class="mb-3 text-primary">
+                        <i class="bi bi-chat-left-quote display-4"></i>
+                    </div>
+                    <h5 class="fw-bold text-dark">Concerns & Solutions</h5>
+                    <p class="text-muted small mb-0">
+                        Dictionary of common problems and their standard fixes.
+                    </p>
+                </div>
+            </div>
+        </a>
+    </div>
+
+</div>
+{% endblock %}

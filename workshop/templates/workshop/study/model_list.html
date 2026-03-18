@@ -1,0 +1,52 @@
+{% extends 'workshop/base.html' %}
+
+{% block title %}{{ brand.name }} Models{% endblock %}
+
+{% block content %}
+<div class="row mb-4 align-items-center">
+    <div class="col">
+        <nav aria-label="breadcrumb">
+            <ol class="breadcrumb mb-1">
+                <li class="breadcrumb-item"><a href="{% url 'brand_list' %}">Brands</a></li>
+                <li class="breadcrumb-item active" aria-current="page">{{ brand.name }}</li>
+            </ol>
+        </nav>
+        <h4 class="mb-0 text-secondary">{{ brand.name }} Models</h4>
+    </div>
+    <div class="col-auto">
+        <a href="{% url 'model_add' brand.id %}" class="btn btn-primary fw-bold">
+            + Add Model
+        </a>
+    </div>
+</div>
+
+<div class="row g-3">
+    {% for model in models %}
+    <div class="col-6 col-md-4 col-lg-3">
+        <div class="card shadow-sm border-0 h-100">
+            <!-- Image Wrapper -->
+            <div class="bg-light d-flex align-items-center justify-content-center"
+                style="height: 120px; overflow: hidden; border-radius: 8px 8px 0 0;">
+                {% if model.sample_image %}
+                <img src="{{ model.sample_image.url }}" alt="{{ model.name }}" class="w-100 h-100 object-fit-cover">
+                {% else %}
+                <span class="text-muted small">No Image</span>
+                {% endif %}
+            </div>
+
+            <div class="card-body p-2 text-center">
+                <h6 class="fw-bold text-dark mb-2">{{ model.name }}</h6>
+                <a href="{% url 'model_edit' model.id %}" class="btn btn-xs btn-outline-secondary w-100 py-1"
+                    style="font-size: 0.8rem;">
+                    Edit
+                </a>
+            </div>
+        </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+        <p class="text-muted">No models added for {{ brand.name }}.</p>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

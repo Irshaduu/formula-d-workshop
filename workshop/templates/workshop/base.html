@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{% block title %}Workshop{% endblock %}</title>
+
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
+
+    <!-- Custom CSS Support -->
+    {% load static %}
+    {% load auth_extras %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}?v=3">
+
+    <style>
+        /* ========================================== */
+        /* CSS VARIABLES FOR LIGHT/DARK MODE */
+        /* ========================================== */
+        :root {
+            /* Light Mode Colors (Eye-Comfortable - Softer) */
+            --color-bg: #f0f2f5;
+            --color-card: #fafbfc;
+            --color-text: #2c3e50;
+            --color-text-muted: #6c757d;
+            --color-primary: #0d6efd;
+            --color-primary-light: #e8f2ff;
+            --color-border: #d1d9e0;
+            --color-border-light: #e4e9ee;
+            --color-hover: #f0f4f8;
+            --color-shadow: rgba(0, 0, 0, 0.08);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                /* Dark Mode Colors (Eye-Comfortable) */
+                --color-bg: #1a1d23;
+                --color-card: #242830;
+                --color-text: #e4e6eb;
+                --color-text-muted: #9ca3af;
+                --color-primary: #5b9eff;
+                --color-primary-light: #1e3a5f;
+                --color-border: #3a3f4b;
+                --color-border-light: #2d3139;
+                --color-hover: #2d3139;
+                --color-shadow: rgba(0, 0, 0, 0.3);
+            }
+        }
+
+        /* ========================================== */
+        /* CORE BASE STYLES */
+        /* ========================================== */
+        body {
+            background-color: var(--color-bg);
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            color: var(--color-text);
+            padding-bottom: 200px;
+            /* Increased space for dropdowns and mobile keyboard */
+        }
+
+        /* NAVBAR STYLES */
+
+        /* DESKTOP TOP BAR (Hidden on Mobile) */
+        .navbar-top {
+            background-color: var(--color-card);
+            border-bottom: 1px solid var(--color-border);
+            padding: 0.5rem 0;
+            height: 60px;
+            display: none;
+            /* Hidden by default */
+        }
+
+        /* MOBILE BOTTOM BAR (Fixed) */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 65px;
+            background-color: var(--color-card);
+            border-top: 1px solid var(--color-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 10px;
+            z-index: 1000;
+            box-shadow: 0 -2px 10px var(--color-shadow);
+        }
+
+        .nav-item {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: var(--color-text-muted);
+            font-size: 10px;
+            height: 100%;
+        }
+
+        .nav-item i {
+            font-size: 20px;
+            margin-bottom: 2px;
+        }
+
+        .nav-item.active {
+            color: var(--color-primary);
+        }
+
+        /* Big Center Button (New Job) */
+        .center-btn {
+            position: relative;
+            top: -20px;
+        }
+
+        .center-btn i {
+            font-size: 45px;
+            color: var(--color-primary);
+            background: var(--color-card);
+            border-radius: 50%;
+            /* box-shadow: 0 4px 10px var(--color-shadow); */
+        }
+
+        /* MEDIA QUERIES FOR NAV VISIBILITY */
+        @media (min-width: 769px) {
+            .navbar-top {
+                display: flex;
+                /* Show Top Bar on PC */
+            }
+
+            .bottom-nav {
+                display: none;
+                /* Hide Bottom Bar on PC */
+            }
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding-bottom: 80px;
+                /* Space for bottom bar */
+            }
+        }
+
+        .navbar-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 15px;
+        }
+
+        .nav-link-custom {
+            color: var(--color-text-muted);
+            font-weight: 500;
+            text-decoration: none;
+            padding: 0.5rem 1.0rem;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+            font-size: 14px;
+        }
+
+        .nav-link-custom {
+            color: var(--color-text-muted);
+            font-weight: 500;
+            text-decoration: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+        }
+
+        .nav-link-custom:hover,
+        .nav-link-custom:focus {
+            background-color: var(--color-hover);
+            color: var(--color-primary);
+        }
+
+        .nav-link-custom.active {
+            color: var(--color-primary);
+            font-weight: 600;
+            background-color: var(--color-primary-light);
+        }
+
+        /* STUDY DROPDOWN */
+        .dropdown-menu-custom {
+            border: none;
+            box-shadow: 0 4px 12px var(--color-shadow);
+            border-radius: 12px;
+            margin-top: 10px;
+            background-color: var(--color-card);
+        }
+
+        /* Compact dropdown for action menus */
+        .dropdown-menu {
+            min-width: 120px;
+            /* Narrower dropdown */
+            background-color: var(--color-card);
+            /* Match theme */
+            border: 1px solid var(--color-border);
+        }
+
+        .dropdown-item {
+            padding: 6px 12px;
+            /* Even more compact */
+            font-size: 0.85rem;
+            /* Smaller text */
+            color: var(--color-text);
+            /* Default text color */
+        }
+
+        .dropdown-item:hover,
+        .dropdown-item:focus {
+            background-color: var(--color-hover);
+        }
+
+        /* Keep success color for Delivered button */
+        .dropdown-item.text-success {
+            color: #198754 !important;
+            /* Bootstrap green */
+        }
+
+        .dropdown-header {
+            color: var(--color-text-muted);
+        }
+
+        .dropdown-divider {
+            border-color: var(--color-border-light);
+            margin: 0.2rem 0;
+            /* Tighter spacing */
+        }
+
+        /* CONTENT WRAPPER */
+        .main-content {
+            padding: 1.5rem 1rem;
+            max-width: 800px;
+            margin: 60px auto 0;
+        }
+    </style>
+
+    {% block extra_css %}{% endblock %}
+</head>
+
+<body>
+
+    <!-- ============================================== -->
+    <!-- DESKTOP TOP NAVIGATION (PC View)             -->
+    <!-- ============================================== -->
+    <nav class="navbar fixed-top navbar-top">
+        <div class="navbar-container">
+            <!-- Left: Logo -->
+            <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}"
+                style="text-decoration: none;">
+                <span style="font-weight: 800; font-style: italic; color: var(--color-text);">Floor</span>
+            </a>
+
+            <!-- Center: Links -->
+            <div class="d-flex gap-2">
+                {% if user.is_authenticated %}
+                <a class="nav-link-custom {% if '/jobcards/' in request.path and 'create' not in request.path and 'delivered' not in request.path %}active{% endif %}"
+                    href="{% url 'jobcard_list' %}">Jobs</a>
+                {% if request.user|has_group:"Owner" or request.user|has_group:"Office" or request.user.is_superuser %}
+                <a class="nav-link-custom {% if 'delivered' in request.path %}active{% endif %}"
+                    href="{% url 'delivered_list' %}">Delivered</a>
+                <a class="nav-link-custom {% if 'car-profiles' in request.path %}active{% endif %}"
+                    href="{% url 'car_profile_list' %}">Car Profiles</a>
+                {% endif %}
+                {% else %}
+                <!-- Login prompt for unauthenticated users -->
+                <a href="{% url 'login' %}" class="btn btn-primary btn-sm">
+                    <i class="bi bi-lock"></i> Login
+                </a>
+                {% endif %}
+            </div>
+
+            <!-- Right: Manage/Study Dropdown -->
+            {% if request.user|has_group:"Owner" or request.user.is_superuser %}
+            <div class="dropdown">
+                <a class="nav-link-custom dropdown-toggle {% if 'study' in request.path or 'brand' in request.path or 'spare' in request.path or 'concern' in request.path %}active{% endif %}"
+                    href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    🔧 Manage
+                </a>
+                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-custom">
+                    <li>
+                        <h6 class="dropdown-header">Master Data</h6>
+                    </li>
+                    <li><a class="dropdown-item" href="{% url 'brand_list' %}">Cars & Models</a></li>
+                    <li><a class="dropdown-item" href="{% url 'spare_list' %}">Spare Parts</a></li>
+                    <li><a class="dropdown-item" href="{% url 'concern_list' %}">Concerns & Solutions</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item fw-bold text-primary" href="{% url 'manage_dashboard' %}"><i class="bi bi-people"></i> Manage Staff & Mechanics</a></li>
+                    <li><a class="dropdown-item fw-bold text-warning" href="{% url 'data_cleanup' %}"><i class="bi bi-trash2"></i> Data Cleanup Tool</a></li>
+                    <li>
+                        <hr class="dropdown-divider">
+                    </li>
+                    {% if user.is_authenticated %}
+                    <li>
+                        <form method="post" action="{% url 'logout' %}" class="d-inline">
+                            {% csrf_token %}
+                            <button type="submit" class="dropdown-item text-danger">🔓 Logout</button>
+                        </form>
+                    </li>
+                    {% endif %}
+                </ul>
+            </div>
+            {% else %}
+                {% if user.is_authenticated %}
+                <div class="d-flex align-items-center">
+                    <form method="post" action="{% url 'logout' %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-outline-danger btn-sm">🔓 Logout</button>
+                    </form>
+                </div>
+                {% endif %}
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- ============================================== -->
+    <!-- MOBILE BOTTOM NAVIGATION (App View)          -->
+    <!-- ============================================== -->
+    <nav class="bottom-nav">
+        <!-- 1. Home -->
+        <a href="{% url 'home' %}" class="nav-item {% if request.path == '/' %}active{% endif %}">
+            <i class="bi {% if request.path == '/' %}bi-house-door-fill{% else %}bi-house-door{% endif %}"></i>
+            <span>Home</span>
+        </a>
+
+        <!-- 2. Jobs -->
+        {% if user.is_authenticated %}
+        <a href="{% url 'jobcard_list' %}"
+            class="nav-item {% if '/jobcards/' in request.path and 'create' not in request.path and 'delivered' not in request.path %}active{% endif %}">
+            <i
+                class="bi {% if '/jobcards/' in request.path and 'create' not in request.path %}bi-tools{% else %}bi-tools{% endif %}"></i>
+            <span>Jobs</span>
+        </a>
+        {% endif %}
+
+        <!-- 3. NEW (Center Button) -->
+        <a href="{% url 'jobcard_create' %}" class="nav-item center-btn">
+            <i class="bi bi-plus-circle-fill"></i>
+        </a>
+
+        <!-- 4. History (Car Profiles) - Office/Owner -->
+        {% if request.user|has_group:"Office" or request.user|has_group:"Owner" or request.user.is_superuser %}
+        <a href="{% url 'car_profile_list' %}"
+            class="nav-item {% if 'car-profiles' in request.path %}active{% endif %}">
+            <i
+                class="bi {% if 'car-profiles' in request.path %}bi-clock-history{% else %}bi-clock-history{% endif %}"></i>
+            <span>History</span>
+        </a>
+        {% endif %}
+
+        <!-- 5. Menu (Dropup) -->
+        <div class="nav-item dropup">
+            <a href="#" class="nav-item" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-list"></i>
+                <span>Menu</span>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end dropdown-menu-custom mb-2">
+                {% if request.user|has_group:"Office" or request.user|has_group:"Owner" or request.user.is_superuser %}
+                <li><a class="dropdown-item" href="{% url 'delivered_list' %}"><i class="bi bi-check-circle"></i>
+                        Delivered Jobs</a></li>
+                <li><a class="dropdown-item text-danger" href="{% url 'pending_payments_list' %}"><i class="bi bi-exclamation-octagon"></i>
+                        Pending Payments</a></li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                {% endif %}
+
+                {% if request.user|has_group:"Owner" or request.user.is_superuser %}
+                <li>
+                    <h6 class="dropdown-header">Master Data</h6>
+                </li>
+                <li><a class="dropdown-item" href="{% url 'brand_list' %}">Cars & Models</a></li>
+                <li><a class="dropdown-item" href="{% url 'spare_list' %}">Spare Parts</a></li>
+                <li><a class="dropdown-item" href="{% url 'concern_list' %}">Concerns & Solutions</a></li>
+                <li>
+                    <hr class="dropdown-divider">
+                </li>
+                {% endif %}
+                {% if user.is_authenticated %}
+                <li>
+                    <form method="post" action="{% url 'logout' %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="dropdown-item text-danger">🔓 Logout</button>
+                    </form>
+                </li>
+                {% else %}
+                <li>
+                    <a class="dropdown-item text-primary" href="{% url 'login' %}">🔒 Login</a>
+                </li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <!-- CONTENT -->
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- SCRIPTS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="{% static 'js/script.js' %}"></script>
+    {% block extra_js %}{% endblock %}
+
+</body>
+
+</html>

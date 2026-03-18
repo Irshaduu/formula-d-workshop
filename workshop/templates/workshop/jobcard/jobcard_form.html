@@ -1,0 +1,625 @@
+{% extends 'workshop/base.html' %}
+{% load auth_extras %}
+
+{% block title %}
+{% if is_edit %}Edit Job Card{% else %}New Job Card{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-18">
+
+        <!-- Fixed Compact Header -->
+        <div class="position-sticky shadow-sm"
+            style="top: 60px; z-index: 100; padding: 0.25rem 1rem; border-radius: 0 0 8px 8px; margin-bottom: 2rem; background-color: var(--color-primary-light);">
+            <div class="d-flex justify-content-between align-items-center">
+                {% if is_edit %}
+                <span class="text-truncate" style="font-size: 0.9rem;">
+                    <span class="text-primary fw-bold">Editing:</span>
+                    <strong>{{ jobcard.brand_name }} {{ jobcard.model_name }}</strong>
+                    <span class="text-primary fw-bold ms-2">{{ jobcard.registration_number }}</span>
+                </span>
+                {% if request.user|has_group:"Office" or request.user|has_group:"Owner" or request.user.is_superuser %}
+                <div class="d-flex gap-2">
+                    <a href="{% url 'car_profile_detail' jobcard.registration_number %}"
+                        class="btn btn-sm btn-outline-primary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">
+                        <i class="bi bi-car-front"></i> Profile
+                    </a>
+                    <a href="{% url 'invoice_view' jobcard.pk %}" target="_blank" class="btn btn-sm btn-outline-primary"
+                        style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">
+                        <i class="bi bi-receipt"></i> Invoice
+                    </a>
+                </div>
+                {% endif %}
+                {% else %}
+                <strong style="font-size: 0.9rem;">New Job Card</strong>
+                <span></span>
+                {% endif %}
+            </div>
+        </div>
+
+
+
+        <!-- Toast Notification (Fixed Position) -->
+        {% if messages %}
+        <div class="position-fixed top-0 end-0 p-3" style="z-index: 9999;">
+            {% for message in messages %}
+            <div class="toast show align-items-center text-white border-0 {% if message.tags == 'warning' %}bg-warning{% else %}bg-success{% endif %}"
+                role="alert" data-level="{{ message.tags }}">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        {% if message.tags == 'warning' %}<i class="bi bi-exclamation-triangle me-2"></i>{% else
+                        %}<i class="bi bi-check-circle me-2"></i>{% endif %}{{ message }}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                        data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        <script>
+            //Auto-dismiss success toasts only, warnings stay visible
+            document.addEventListener('DOMContentLoaded', function () {
+                const toasts = document.querySelectorAll('.toast');
+                toasts.forEach(toast => {
+                    const level = toast.getAttribute('data-level');
+                    if (level === 'success') {
+                        setTimeout(() => {
+                            toast.classList.remove('show');
+                            setTimeout(() => toast.remove(), 300);
+                        }, 2000);
+                    }
+                });
+            });
+        </script>
+        {% endif %}
+
+        <!-- ========================================== -->
+        <!-- ACTIVE VEHICLES DASHBOARD (Show on home only) -->
+        <!-- ========================================== -->
+        {% if not is_edit and active_jobcards %}
+        <div class="card shadow-sm mb-4 border-0">
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 text-primary fw-bold">
+                    <i class="bi bi-car-front"></i> Vehicles in Workshop ({{ active_jobcards.count }})
+                </h6>
+                <a href="{% url 'delivered_list' %}" class="btn btn-sm btn-outline-secondary">
+                    <i class="bi bi-check-circle"></i> View Delivered
+                </a>
+            </div>
+            <div class="card-body p-3">
+                <div class="vehicle-scroll">
+                    {% for job in active_jobcards %}
+                    <div class="vehicle-box">
+                        <div class="mb-2">
+                            <strong>{{ job.brand_name }} {{ job.model_name }}</strong>
+                        </div>
+                        <div class="mb-2">
+                            <span class="badge bg-primary">{{ job.registration_number }}</span>
+                        </div>
+                        <div class="mb-1">
+                            <small class="text-muted">
+                                <i class="bi bi-calendar"></i> Admitted: {{ job.admitted_date|date:"d M" }}
+                            </small>
+                        </div>
+                        <div class="mb-2">
+                            <small class="text-muted">
+                                <i class="bi bi-calendar-check"></i> Due: {{ job.discharged_date|date:"d
+                                M"|default:"Not
+                                set" }}
+                            </small>
+                        </div>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'jobcard_edit' job.pk %}" class="btn btn-sm btn-outline-primary flex-fill">
+                                <i class="bi bi-eye"></i> View
+                            </a>
+                            <form method="post" action="{% url 'mark_delivered' job.pk %}" class="flex-fill">
+                                {% csrf_token %}
+                                <button type="submit" class="btn btn-sm btn-success w-100"
+                                    onclick="return confirm('Mark {{ job.registration_number }} as delivered?');">
+                                    <i class="bi bi-check-lg"></i> Delivered
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        <form method="post" id="jobcardForm" autocomplete="off">
+            {% csrf_token %}
+
+            {% if form.errors or concern_formset.errors or spare_formset.errors or labour_formset.errors %}
+            <div class="alert alert-danger">
+                <strong>Please correct the errors below:</strong>
+                <ul>
+                    {% for field in form %}
+                    {% for error in field.errors %}
+                    <li>{{ field.label }}: {{ error }}</li>
+                    {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                    <li>{{ error }}</li>
+                    {% endfor %}
+
+                    <!-- Formset Errors Generic Check -->
+                    {% if concern_formset.errors %}<li>Check Concerns section for errors.</li>{% endif %}
+                    {% if spare_formset.errors %}<li>Check Spares section for errors.</li>{% endif %}
+                    {% if labour_formset.errors %}
+                    <li>Check Jobs (Labour) section for errors.</li>
+                    <!-- Debugging Labour Errors -->
+                    {% for dict in labour_formset.errors %}
+                    {% for key, value in dict.items %}
+                    <li>Labour Error - {{ key }}: {{ value }}</li>
+                    {% endfor %}
+                    {% endfor %}
+                    {% for error in labour_formset.non_form_errors %}
+                    <li>Labour Generic: {{ error }}</li>
+                    {% endfor %}
+                    {% endif %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <!-- ========================================== -->
+            <!-- SECTION 1: VEHICLE & DATES -->
+            <!-- ========================================== -->
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-header bg-white py-3">
+                    <h6 class="mb-0 text-primary fw-bold">Vehicle Details</h6>
+                </div>
+                <div class="card-body">
+                    <div class="row g-3">
+                        <!-- Dates -->
+                        <div class="col-6 col-md-3">
+                            <label class="form-label small text-muted">Admitted Date</label>
+                            {{ form.admitted_date }}
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label small text-muted"></label>
+                            {{ form.discharged_date }}
+                        </div>
+
+                        <!-- Spacer for Desktop -->
+                        <div class="col-md-6 d-none d-md-block"></div>
+
+                        <!-- Vehicle Fields: Reg -> Brand -> Model -> Mileage -->
+                        <div class="col-12 col-md-3">
+                            <label class="form-label small text-muted">Registration Number</label>
+                            {{ form.registration_number }}
+                        </div>
+
+                        <div class="col-6 col-md-3">
+                            <label class="form-label small text-muted">Car Brand</label>
+                            {{ form.brand_name }}
+                            <div class="list-group autocomplete-suggestions"></div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label small text-muted">Car Model</label>
+                            {{ form.model_name }}
+                            <div class="list-group autocomplete-suggestions"></div>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label small text-muted">Mileage (Km)</label>
+                            {{ form.mileage }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ========================================== -->
+            <!-- SECTION 2: CUSTOMER INFO -->
+            <!-- ========================================== -->
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-body">
+                    <div class="row g-3">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small text-muted">Customer Name</label>
+                            {{ form.customer_name }}
+                        </div>
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small text-muted">Contact Number</label>
+                            {{ form.customer_contact }}
+                        </div>
+                    </div>
+                    <div class="row g-3 mt-1">
+                        <div class="col-12 col-md-6 border-top pt-3">
+                            <label class="form-label small text-muted"><i class="bi bi-person-badge"></i> Assigned Mechanic (Floor Staff)</label>
+                            {{ form.lead_mechanic }}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ========================================== -->
+            <!-- SECTION 3: CONCERNS (Dynamic Formset) -->
+            <!-- ========================================== -->
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 text-primary fw-bold">Customer Concerns</h6>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="add-concern-btn">
+                        + Add Concern
+                    </button>
+                </div>
+                <div class="card-body p-0">
+                    {{ concern_formset.management_form }}
+                    <div id="concern-list" class="list-group list-group-flush">
+                        {% for c_form in concern_formset %}
+                        <div class="list-group-item concern-row">
+                            {{ c_form.id }}
+                            <div class="d-none">{{ c_form.DELETE }}</div>
+                            <div class="d-flex gap-2">
+                                <div class="flex-grow-1">
+                                    {{ c_form.concern_text }}
+                                    <div class="list-group autocomplete-suggestions"></div>
+                                </div>
+                                <div style="width: 130px;">
+                                    {{ c_form.status }}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- ========================================== -->
+            <!-- SECTION 4: JOBS / LABOUR (Swipeable) -->
+            <!-- ========================================== -->
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 text-primary fw-bold">Jobs (Labour)</h6>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="add-labour-btn">
+                        + Add Job
+                    </button>
+                </div>
+
+                <div class="card-body p-0">
+                    <div class="swipe-container">
+                        <!-- HEADER -->
+                        <div class="swipe-row swipe-header">
+                            <div class="swipe-cell col-job">Job Performed</div>
+                            {% if request.user|has_group:"Office" or request.user|has_group:"Owner" or request.user.is_superuser %}
+                            <div class="swipe-cell col-price text-end">Amount</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- LIST -->
+                        {{ labour_formset.management_form }}
+                        <div id="labour-list">
+                            {% for l_form in labour_formset %}
+                            <div class="swipe-row">
+                                {{ l_form.id }}
+                                <div class="d-none">{{ l_form.DELETE }}</div>
+                                <div class="swipe-cell col-job">
+                                    {{ l_form.job_description }}
+                                </div>
+                                {% if request.user|has_group:"Office" or request.user|has_group:"Owner" or request.user.is_superuser %}
+                                <div class="swipe-cell col-price">
+                                    {{ l_form.amount }}
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- SECTION 5: SPARE PARTS (Swipeable) -->
+            <!-- ========================================== -->
+            <div class="card shadow-sm mb-4 border-0">
+                <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 text-primary fw-bold">Spare Parts</h6>
+                    <button type="button" class="btn btn-sm btn-outline-primary" id="add-spare-btn">
+                        + Add Spare
+                    </button>
+                </div>
+
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <!-- Management Form (Must be outside table) -->
+                        {{ spare_formset.management_form }}
+
+                        <!-- Standard HTML Table -->
+                        <table class="table table-borderless align-middle mb-0" style="min-width: 800px;">
+                            <thead class="table-dark-header text-muted small text-uppercase">
+                                <tr class="border-bottom">
+                                    <th class="ps-3 col-part" style="min-width: 300px;">Part Name</th>
+                                    <th class="text-center col-qty">Qty</th>
+                                    <th class="col-shop" style="min-width: 250px;">Shop</th>
+                                    <th class="col-status">Status</th>
+                                    {% if request.user|has_group:"Office" or request.user|has_group:"Owner" or request.user.is_superuser %}
+                                    <th class="col-price">Shop Price</th>
+                                    <th class="col-price">Customer</th>
+                                    <th class="col-date">Ordered</th>
+                                    <th class="col-date">Received</th>
+                                    {% endif %}
+                                </tr>
+                            </thead>
+                            <tbody id="spare-list">
+                                {% for s_form in spare_formset %}
+                                <tr class="spare-row border-bottom" data-original-status="{{ s_form.instance.status }}">
+                                    <td class="ps-3 col-part" style="min-width: 300px;">
+                                        {{ s_form.id }}
+                                        <div class="d-none">{{ s_form.DELETE }}</div>
+                                        {{ s_form.spare_part_name }}
+                                        <div class="list-group autocomplete-suggestions"></div>
+                                    </td>
+                                    <td class="col-qty">
+                                        {{ s_form.quantity }}
+                                    </td>
+                                    <td class="col-shop" style="min-width: 250px;">
+                                        {{ s_form.shop_name }}
+                                    </td>
+                                    <td class="col-status">
+                                        {{ s_form.status }}
+                                    </td>
+                                    {% if request.user|has_group:"Office" or request.user|has_group:"Owner" or request.user.is_superuser %}
+                                    <td class="col-price">
+                                        {{ s_form.unit_price }}
+                                    </td>
+                                    <td class="col-price">
+                                        {{ s_form.total_price }}
+                                    </td>
+                                    <td class="col-date">
+                                        {{ s_form.ordered_date }}
+                                    </td>
+                                    <td class="col-date">
+                                        {{ s_form.received_date }}
+                                    </td>
+                                    {% endif %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+    </div>
+</div>
+
+<!-- SUBMIT -->
+<div class="d-grid gap-2 mb-5">
+    <button type="submit" class="btn btn-primary btn-lg py-3 fw-bold">
+        {% if is_edit %}Update Job Card{% else %}Save Job Card{% endif %}
+    </button>
+</div>
+
+</form>
+
+<!-- DATALISTS & FILTERING REMOVED - NOW HANDLED BY API IN script.js -->
+
+
+<!-- EMPTY FORM TEMPLATES (Hidden, used by JS) -->
+<div id="empty-concern-form" class="d-none">
+    <div class="list-group-item concern-row">
+        {{ concern_formset.empty_form.id }}
+        <div class="d-none">{{ concern_formset.empty_form.DELETE }}</div>
+        <div class="d-flex gap-2">
+            <div class="flex-grow-1">
+                {{ concern_formset.empty_form.concern_text }}
+                <div class="list-group autocomplete-suggestions"></div>
+            </div>
+            <div style="width: 130px;">
+                {{ concern_formset.empty_form.status }}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="d-none">
+    <table>
+        <tbody id="empty-spare-form">
+            <tr class="spare-row border-bottom" data-original-status="PENDING">
+                <td class="ps-3 col-part">
+                    {{ spare_formset.empty_form.id }}
+                    <div class="d-none">{{ spare_formset.empty_form.DELETE }}</div>
+                    {{ spare_formset.empty_form.spare_part_name }}
+                    <div class="list-group autocomplete-suggestions"></div>
+                </td>
+                <td class="col-qty">
+                    {{ spare_formset.empty_form.quantity }}
+                </td>
+                <td class="col-shop">
+                    {{ spare_formset.empty_form.shop_name }}
+                </td>
+                <td class="col-status">
+                    {{ spare_formset.empty_form.status }}
+                </td>
+                {% if user.is_authenticated %}
+                <td class="col-price">
+                    {{ spare_formset.empty_form.unit_price }}
+                </td>
+                <td class="col-price">
+                    {{ spare_formset.empty_form.total_price }}
+                </td>
+                <td class="col-date">
+                    {{ spare_formset.empty_form.ordered_date }}
+                </td>
+                <td class="col-date">
+                    {{ spare_formset.empty_form.received_date }}
+                </td>
+                {% endif %}
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+<div id="empty-labour-form" class="d-none">
+    <div class="swipe-row">
+        {{ labour_formset.empty_form.id }}
+        <div class="d-none">{{ labour_formset.empty_form.DELETE }}</div>
+        <div class="swipe-cell col-job">
+            {{ labour_formset.empty_form.job_description }}
+        </div>
+        {% if user.is_authenticated %}
+        <div class="swipe-cell col-price">
+            {{ labour_formset.empty_form.amount }}
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Only keep the auto-delete and clear-zero logic here.
+        // Dynamic row addition is handled in script.js.
+
+        // ==========================================
+        // UTILITY: CLEAR ZERO VALUES
+        // ==========================================
+
+        function clearZeroInputs() {
+            const inputs = document.querySelectorAll('input[type="number"], input[type="text"]');
+            inputs.forEach(input => {
+                if (input.value === '0' || input.value === '0.00' || input.value === '0.0') {
+                    input.value = '';
+                }
+            });
+        }
+
+        // Run on page load
+        clearZeroInputs();
+
+        // ==========================================
+        // AUTO-DELETE EMPTY ROWS ON SUBMIT
+        // ==========================================
+
+        const jobcardForm = document.getElementById('jobcardForm');
+        if (jobcardForm) {
+            jobcardForm.addEventListener('submit', function (e) {
+                // Mark empty concern rows for deletion
+                document.querySelectorAll('#concern-list .concern-row').forEach(row => {
+                    const textInput = row.querySelector('input[type="text"]');
+                    const deleteCheckbox = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
+                    if (textInput && deleteCheckbox && !textInput.value.trim()) {
+                        deleteCheckbox.checked = true;
+                    }
+                });
+
+                // Mark empty spare rows for deletion
+                document.querySelectorAll('#spare-list .spare-row').forEach(row => {
+                    const partInput = row.querySelector('input[name$="-spare_part_name"]');
+                    const deleteCheckbox = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
+                    if (partInput && deleteCheckbox && !partInput.value.trim()) {
+                        deleteCheckbox.checked = true;
+                    }
+                });
+
+                // Mark empty labour rows for deletion
+                document.querySelectorAll('#labour-list .swipe-row').forEach(row => {
+                    const jobInput = row.querySelector('input[name$="-job_description"]');
+                    const deleteCheckbox = row.querySelector('input[type="checkbox"][name$="-DELETE"]');
+                    if (jobInput && deleteCheckbox && !jobInput.value.trim()) {
+                        deleteCheckbox.checked = true;
+                    }
+                });
+            });
+        }
+
+        // Initialize display
+        // calculateFinalTotal(); // Removed as billing is separate
+
+        // Toggle payment method based on status
+        // Removed as billing is separate
+
+        // ==========================================
+        // STATUS COLOR CODING
+        // ==========================================
+
+        function applyStatusColors() {
+            // Color all status dropdowns (concerns and spares)
+            document.querySelectorAll('select[name*="status"]').forEach(select => {
+                const value = select.value;
+
+                // Remove all status classes first
+                select.classList.remove('status-hold', 'status-processing', 'status-fixed');
+
+                // Remove all status classes first
+                select.classList.remove('status-pending', 'status-working', 'status-ordered', 'status-fixed', 'status-hold', 'status-processing');
+
+                // Apply color based on value
+                // Helper to normalize values in case of mix (DB vs New)
+                const val = value ? value.toUpperCase() : '';
+
+                if (val === 'PENDING' || val === 'HOLD') {
+                    select.classList.add('status-pending');
+                } else if (val === 'WORKING' || val === 'PROCESSING') {
+                    select.classList.add('status-working');
+                } else if (val === 'ORDERED') {
+                    select.classList.add('status-ordered');
+                } else if (val === 'FIXED' || val === 'RECEIVED') {
+                    select.classList.add('status-fixed');
+                }
+            });
+        }
+
+        // Apply colors on page load
+        applyStatusColors();
+
+        // Apply colors when any select changes
+        document.addEventListener('change', function (e) {
+            if (e.target.tagName === 'SELECT' && e.target.name.includes('status')) {
+                applyStatusColors();
+            }
+        });
+
+        // Apply colors after adding new rows
+        const addConcernBtnColor = document.getElementById('add-concern-btn');
+        if (addConcernBtnColor) {
+            addConcernBtnColor.addEventListener('click', function () {
+                setTimeout(applyStatusColors, 100);
+            });
+        }
+
+        const addSpareBtnColor = document.getElementById('add-spare-btn');
+        if (addSpareBtnColor) {
+            addSpareBtnColor.addEventListener('click', function () {
+                setTimeout(applyStatusColors, 100);
+            });
+        }
+    });
+</script>
+
+<!-- Confirmation Modal -->
+<div class="modal fade" id="statusConfirmModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-warning-subtle text-warning-emphasis border-bottom-0">
+                <h5 class="modal-title fw-bold">
+                    <i class="bi bi-exclamation-triangle-fill me-2"></i>Status Revert
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body py-4">
+                <p class="mb-0 fs-6">
+                    You are reverting status from <strong id="modalFromIcon"></strong> to <strong
+                        id="modalToIcon"></strong>.
+                </p>
+                <p class="text-muted small mt-2 mb-0">
+                    <i class="bi bi-info-circle me-1"></i>
+                    This action will <strong>clear the <span id="modalDateType"></span> Date</strong>.
+                </p>
+            </div>
+            <div class="modal-footer border-top-0 bg-light rounded-bottom">
+                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning btn-sm fw-bold" id="confirmStatusChangeBtn">
+                    Yes, Revert & Clear Date
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Spare Parts Auto-Fill Logic -->
+{% load static %}
+<script src="{% static 'js/spare_autofill.js' %}"></script>
+
+{% endblock %}
