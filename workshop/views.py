@@ -95,7 +95,7 @@ def jobcard_create(request):
                     spare_formset = JobCardSpareFormSet(request.POST, prefix='spares')
                     labour_formset = JobCardLabourFormSet(request.POST, prefix='labours')
                     
-                    # Fetch master data for datalists
+                    # Fetch master lists for datalists
                     brands = CarBrand.objects.all()
                     models = CarModel.objects.all()
                     spares = SparePart.objects.all()
@@ -133,14 +133,14 @@ def jobcard_create(request):
                 saved_spares = spare_formset.save()
                 labour_formset.save()
                 
-                # Auto-learn: Add new concerns to master data
+                # Auto-learn: Add new concerns to master lists
                 for concern in saved_concerns:
                     if concern.concern_text and concern.concern_text.strip():
                         ConcernSolution.objects.get_or_create(
                             concern=concern.concern_text.strip()
                         )
                 
-                # Auto-learn: Add new spare parts to master data
+                # Auto-learn: Add new spare parts to master lists
                 for spare in saved_spares:
                     if spare.spare_part_name and spare.spare_part_name.strip():
                         SparePart.objects.get_or_create(
@@ -217,14 +217,14 @@ def jobcard_edit(request, pk):
             saved_spares = spare_formset.save()
             labour_formset.save()
             
-            # Auto-learn: Add new concerns to master data
+            # Auto-learn: Add new concerns to master lists
             for concern in saved_concerns:
                 if concern.concern_text and concern.concern_text.strip():
                     ConcernSolution.objects.get_or_create(
                         concern=concern.concern_text.strip()
                     )
             
-            # Auto-learn: Add new spare parts to master data
+            # Auto-learn: Add new spare parts to master lists
             for spare in saved_spares:
                 if spare.spare_part_name and spare.spare_part_name.strip():
                     SparePart.objects.get_or_create(
@@ -354,15 +354,13 @@ def toggle_hold(request, pk):
 
 
 # =============================================================================
-# 2. STUDY SECTION (CARS, SPARES, CONCERNS)
+# 2. MASTER LISTS (CARS, SPARES, CONCERNS)
 # =============================================================================
 
 @office_required
-def study_home(request):
-    """Landing page for Study section (optional, mostly accessed via dropdown)."""
-    return render(request, 'workshop/study/study_home.html')
-
-    return render(request, 'workshop/study/study_home.html')
+def master_lists_home(request):
+    """Landing page for Master Lists section (optional, mostly accessed via dropdown)."""
+    return render(request, 'workshop/master_lists/master_lists_home.html')
 
 # --- CARS (Brands & Models) ---
 
@@ -370,7 +368,7 @@ def study_home(request):
 def brand_list(request):
     """Grid of Car Brands"""
     brands = CarBrand.objects.all()
-    return render(request, 'workshop/study/brand_list.html', {'brands': brands})
+    return render(request, 'workshop/master_lists/brand_list.html', {'brands': brands})
 
 @office_required
 def brand_create(request):
@@ -378,7 +376,7 @@ def brand_create(request):
     if form.is_valid():
         form.save()
         return redirect('brand_list')
-    return render(request, 'workshop/study/brand_form.html', {'form': form, 'title': 'Add Brand'})
+    return render(request, 'workshop/master_lists/brand_form.html', {'form': form, 'title': 'Add Brand'})
 
 @office_required
 def brand_model_list(request, brand_id):
@@ -388,7 +386,7 @@ def brand_model_list(request, brand_id):
     """
     brand = get_object_or_404(CarBrand, pk=brand_id)
     models = brand.models.all()
-    return render(request, 'workshop/study/model_list.html', {'brand': brand, 'models': models})
+    return render(request, 'workshop/master_lists/model_list.html', {'brand': brand, 'models': models})
 
 @office_required
 def model_create(request, brand_id=None):
@@ -407,7 +405,7 @@ def model_create(request, brand_id=None):
         # Redirect back to the brand model list
         return redirect('brand_model_list', brand_id=model.brand.id)
         
-    return render(request, 'workshop/study/model_form.html', {'form': form, 'title': 'Add Model'})
+    return render(request, 'workshop/master_lists/model_form.html', {'form': form, 'title': 'Add Model'})
 
 @office_required
 def model_edit(request, pk):
@@ -416,14 +414,14 @@ def model_edit(request, pk):
     if form.is_valid():
         form.save()
         return redirect('brand_model_list', brand_id=model.brand.id)
-    return render(request, 'workshop/study/model_form.html', {'form': form, 'title': 'Edit Model'})
+    return render(request, 'workshop/master_lists/model_form.html', {'form': form, 'title': 'Edit Model'})
 
 # --- SPARE PARTS ---
 
 @office_required
 def spare_list(request):
     spares = SparePart.objects.all()
-    return render(request, 'workshop/study/spare_list.html', {'spares': spares})
+    return render(request, 'workshop/master_lists/spare_list.html', {'spares': spares})
 
 @office_required
 def spare_create(request):
@@ -431,7 +429,7 @@ def spare_create(request):
     if form.is_valid():
         form.save()
         return redirect('spare_list')
-    return render(request, 'workshop/study/spare_form.html', {'form': form, 'title': 'Add Spare'})
+    return render(request, 'workshop/master_lists/spare_form.html', {'form': form, 'title': 'Add Spare'})
 
 @office_required
 def spare_edit(request, pk):
@@ -440,14 +438,14 @@ def spare_edit(request, pk):
     if form.is_valid():
         form.save()
         return redirect('spare_list')
-    return render(request, 'workshop/study/spare_form.html', {'form': form, 'title': 'Edit Spare'})
+    return render(request, 'workshop/master_lists/spare_form.html', {'form': form, 'title': 'Edit Spare'})
 
 # --- CONCERNS & SOLUTIONS ---
 
 @office_required
 def concern_list(request):
     concerns = ConcernSolution.objects.all()
-    return render(request, 'workshop/study/concern_list.html', {'concerns': concerns})
+    return render(request, 'workshop/master_lists/concern_list.html', {'concerns': concerns})
 
 @office_required
 def concern_create(request):
@@ -455,7 +453,7 @@ def concern_create(request):
     if form.is_valid():
         form.save()
         return redirect('concern_list')
-    return render(request, 'workshop/study/concern_form.html', {'form': form, 'title': 'Add Solution'})
+    return render(request, 'workshop/master_lists/concern_form.html', {'form': form, 'title': 'Add Solution'})
 
 @staff_required
 def concern_edit(request, pk):
@@ -464,7 +462,7 @@ def concern_edit(request, pk):
     if form.is_valid():
         form.save()
         return redirect('concern_list')
-    return render(request, 'workshop/study/concern_form.html', {'form': form, 'title': 'Edit Solution'})
+    return render(request, 'workshop/master_lists/concern_form.html', {'form': form, 'title': 'Edit Solution'})
 
 
 # =============================================================================

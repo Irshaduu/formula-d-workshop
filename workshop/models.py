@@ -13,7 +13,7 @@ class UserProfile(models.Model):
         return f"{self.user.username}'s Profile"
 # -----------------------------------------------------------------------------
 # 1. STUDY SECTION MODELS
-# These models act as the "Master Data" for autocomplete suggestions.
+# These models act as the "Master Lists" for autocomplete suggestions.
 # -----------------------------------------------------------------------------
 
 class Mechanic(models.Model):
@@ -106,7 +106,7 @@ class ConcernSolution(models.Model):
 class JobCard(models.Model):
     """
     The main Job Card. 
-    Fields are distinct text inputs to allow manual entry if master data is missing.
+    Fields are distinct text inputs to allow manual entry if master lists is missing.
     """
     # Bill Number (Auto-generated)
     bill_number = models.CharField(
@@ -219,6 +219,18 @@ class JobCard(models.Model):
     def get_balance_amount(self):
         """Calculates remaining balance."""
         return max(0, self.get_total_amount - (self.received_amount or 0))
+
+    @property
+    def get_completion_percentage(self):
+        """
+        Calculates completion percentage based on FIXED concerns.
+        Returns a dictionary with 'percentage' and 'total'.
+        """
+        total = self.concerns.count()
+        if total == 0:
+            return 0
+        fixed = self.concerns.filter(status='FIXED').count()
+        return int((fixed / total) * 100)
 
 
 class JobCardConcern(models.Model):

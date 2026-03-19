@@ -32,29 +32,29 @@ urlpatterns = [
     path('jobcards/<int:pk>/update-bill/', views.update_bill_status, name='update_bill_status'),
 
     # ------------------
-    # SECTION 3: STUDY (Master Data)
+    # SECTION 3: MASTER LISTS
     # ------------------
-    path('study/', views.study_home, name='study_home'),
+    path('master-lists/', views.master_lists_home, name='master_lists_home'),
 
     # 3A. Cars (Brand -> Models Drilldown)
-    path('study/brands/', views.brand_list, name='brand_list'),
-    path('study/brands/add/', views.brand_create, name='brand_add'),
-    path('study/brands/<int:brand_id>/models/', views.brand_model_list, name='brand_model_list'),
+    path('master-lists/brands/', views.brand_list, name='brand_list'),
+    path('master-lists/brands/add/', views.brand_create, name='brand_add'),
+    path('master-lists/brands/<int:brand_id>/models/', views.brand_model_list, name='brand_model_list'),
     
     # Model Management
-    path('study/models/add/', views.model_create, name='model_add_generic'), # Fallback
-    path('study/brands/<int:brand_id>/models/add/', views.model_create, name='model_add'), # Context aware
-    path('study/models/<int:pk>/edit/', views.model_edit, name='model_edit'),
+    path('master-lists/models/add/', views.model_create, name='model_add_generic'), # Fallback
+    path('master-lists/brands/<int:brand_id>/models/add/', views.model_create, name='model_add'), # Context aware
+    path('master-lists/models/<int:pk>/edit/', views.model_edit, name='model_edit'),
 
     # 3B. Spares
-    path('study/spares/', views.spare_list, name='spare_list'),
-    path('study/spares/add/', views.spare_create, name='spare_add'),
-    path('study/spares/<int:pk>/edit/', views.spare_edit, name='spare_edit'),
+    path('master-lists/spares/', views.spare_list, name='spare_list'),
+    path('master-lists/spares/add/', views.spare_create, name='spare_add'),
+    path('master-lists/spares/<int:pk>/edit/', views.spare_edit, name='spare_edit'),
 
     # 3C. Concerns & Solutions
-    path('study/concerns/', views.concern_list, name='concern_list'),
-    path('study/concerns/add/', views.concern_create, name='concern_add'),
-    path('study/concerns/<int:pk>/edit/', views.concern_edit, name='concern_edit'),
+    path('master-lists/concerns/', views.concern_list, name='concern_list'),
+    path('master-lists/concerns/add/', views.concern_create, name='concern_add'),
+    path('master-lists/concerns/<int:pk>/edit/', views.concern_edit, name='concern_edit'),
 
     # ------------------
     # API: AUTOCOMPLETE

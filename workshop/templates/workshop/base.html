@@ -280,16 +280,16 @@
                 {% endif %}
             </div>
 
-            <!-- Right: Manage/Study Dropdown -->
+            <!-- Right: Manage/Master Lists Dropdown -->
             {% if request.user|has_group:"Owner" or request.user.is_superuser %}
             <div class="dropdown">
-                <a class="nav-link-custom dropdown-toggle {% if 'study' in request.path or 'brand' in request.path or 'spare' in request.path or 'concern' in request.path %}active{% endif %}"
+                <a class="nav-link-custom dropdown-toggle {% if 'master-lists' in request.path or 'brand' in request.path or 'spare' in request.path or 'concern' in request.path %}active{% endif %}"
                     href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     🔧 Manage
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end dropdown-menu-custom">
                     <li>
-                        <h6 class="dropdown-header">Master Data</h6>
+                        <h6 class="dropdown-header">Master Lists</h6>
                     </li>
                     <li><a class="dropdown-item" href="{% url 'brand_list' %}">Cars & Models</a></li>
                     <li><a class="dropdown-item" href="{% url 'spare_list' %}">Spare Parts</a></li>
@@ -383,7 +383,7 @@
 
                 {% if request.user|has_group:"Owner" or request.user.is_superuser %}
                 <li>
-                    <h6 class="dropdown-header">Master Data</h6>
+                    <h6 class="dropdown-header">Master Lists</h6>
                 </li>
                 <li><a class="dropdown-item" href="{% url 'brand_list' %}">Cars & Models</a></li>
                 <li><a class="dropdown-item" href="{% url 'spare_list' %}">Spare Parts</a></li>
