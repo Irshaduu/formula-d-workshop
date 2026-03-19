@@ -134,6 +134,27 @@ class JobCard(models.Model):
     registration_number = models.CharField(max_length=50)
     mileage = models.CharField(max_length=20, blank=True, null=True, help_text="e.g. 50000 or 50k")
 
+    # NEW: Car Color
+    COLOR_CHOICES = [
+        ('Black', 'Black'),
+        ('White', 'White'),
+        ('Silver', 'Silver'),
+        ('Grey', 'Grey'),
+        ('Red', 'Red'),
+        ('Light Blue', 'Light Blue'),
+        ('Blue', 'Blue'),
+        ('Dark Blue', 'Dark Blue'),
+        ('Yellow', 'Yellow'),
+        ('Light Green', 'Light Green'),
+        ('Green', 'Green'),
+        ('Dark Green', 'Dark Green'),
+        ('Brown', 'Brown'),
+        ('Dark Brown', 'Dark Brown'),
+        ('Other', 'Other'),
+    ]
+    car_color = models.CharField(max_length=50, choices=COLOR_CHOICES, blank=True, null=True)
+    car_color_other = models.CharField(max_length=100, blank=True, null=True, help_text="Specific color name if 'Other' is selected")
+
     # Customer Details
     customer_name = models.CharField(max_length=150, blank=True, null=True)
     customer_contact = models.CharField(max_length=20, blank=True, null=True)
@@ -207,6 +228,39 @@ class JobCard(models.Model):
 
     def __str__(self):
         return f"{self.bill_number or f'#{self.id}'} - {self.registration_number}"
+
+    @property
+    def get_car_color_hex(self):
+        """Returns the CSS/Hex color code for the car_color choice."""
+        if self.car_color == 'Other' and self.car_color_other:
+            # Check if it looks like a hex code (starts with #)
+            if self.car_color_other.startswith('#'):
+                return self.car_color_other
+        
+        mapping = {
+            'Black': '#000000',
+            'White': '#FFFFFF',
+            'Silver': '#C0C0C0',
+            'Grey': '#9E9E9E',
+            'Red': '#F44336',
+            'Light Blue': '#81D4FA',
+            'Blue': '#2196F3',
+            'Dark Blue': '#1565C0',
+            'Yellow': '#FFEB3B',
+            'Light Green': '#81C784',
+            'Green': '#4CAF50',
+            'Dark Green': '#2E7D32',
+            'Brown': '#795548',
+            'Dark Brown': '#4E342E',
+        }
+        return mapping.get(self.car_color, '#CED4DA')
+
+    @property
+    def get_car_color_display(self):
+        """Returns the color name (either standard choice or 'Other' text)."""
+        if self.car_color == 'Other':
+            return self.car_color_other or 'Other'
+        return self.car_color or 'Unknown'
 
     @property
     def get_total_amount(self):

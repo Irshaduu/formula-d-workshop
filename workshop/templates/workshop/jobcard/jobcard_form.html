@@ -16,6 +16,8 @@
                 {% if is_edit %}
                 <span class="text-truncate" style="font-size: 0.9rem;">
                     <span class="text-primary fw-bold">Editing:</span>
+                    <span id="header-color-dot" class="d-inline-block rounded-circle me-1" 
+                          style="width: 12px; height: 12px; background-color: {{ jobcard.get_car_color_hex }}; vertical-align: middle; border: 1px solid rgba(0,0,0,0.1);"></span>
                     <strong>{{ jobcard.brand_name }} {{ jobcard.model_name }}</strong>
                     <span class="text-primary fw-bold ms-2">{{ jobcard.registration_number }}</span>
                 </span>
@@ -172,42 +174,220 @@
                 </div>
                 <div class="card-body">
                     <div class="row g-3">
-                        <!-- Dates -->
-                        <div class="col-6 col-md-3">
-                            <label class="form-label small text-muted">Admitted Date</label>
-                            {{ form.admitted_date }}
-                        </div>
-                        <div class="col-6 col-md-3">
-                            <label class="form-label small text-muted"></label>
-                            {{ form.discharged_date }}
-                        </div>
-
-                        <!-- Spacer for Desktop -->
-                        <div class="col-md-6 d-none d-md-block"></div>
-
-                        <!-- Vehicle Fields: Reg -> Brand -> Model -> Mileage -->
-                        <div class="col-12 col-md-3">
-                            <label class="form-label small text-muted">Registration Number</label>
-                            {{ form.registration_number }}
-                        </div>
-
-                        <div class="col-6 col-md-3">
+                        <!-- Row 1: Brand -> Model -> Reg -->
+                        <div class="col-12 col-md-4">
                             <label class="form-label small text-muted">Car Brand</label>
                             {{ form.brand_name }}
                             <div class="list-group autocomplete-suggestions"></div>
                         </div>
-                        <div class="col-6 col-md-3">
+                        
+                        <div class="col-12 col-md-4">
                             <label class="form-label small text-muted">Car Model</label>
                             {{ form.model_name }}
                             <div class="list-group autocomplete-suggestions"></div>
                         </div>
-                        <div class="col-6 col-md-3">
-                            <label class="form-label small text-muted">Mileage (Km)</label>
-                            {{ form.mileage }}
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label small text-muted">Registration Number</label>
+                            {{ form.registration_number }}
                         </div>
+
+                        <!-- Row 2: Color -> Mileage -> Mechanic -> Admitted Date -->
+                        <div class="col-12 col-md-4">
+                            <div class="d-flex gap-3">
+                                <div style="flex: 0 0 45px;">
+                                    <label class="form-label small text-muted">Color</label>
+                                    <!-- COMPACT COLOR PICKER -->
+                                    <div class="dropdown">
+                                        <div id="color-picker-trigger" class="cursor-pointer border shadow-sm" 
+                                             data-bs-toggle="dropdown" aria-expanded="false"
+                                             style="width: 100%; height: 36px; background-color: {{ jobcard.get_car_color_hex }};"
+                                             title="Select Car Color">
+                                        </div>
+                                        <div class="dropdown-menu p-3 shadow-lg border-0 color-dropdown-menu" style="min-width: 180px; border-radius: 12px;">
+                                            <div class="color-mini-grid">
+                                                {% for val, name in form.fields.car_color.choices %}
+                                                    {% if val %}
+                                                    <div class="color-dot-item {% if val == 'Other' %}rainbow-dot{% endif %}" 
+                                                         data-value="{{ val }}" title="{{ name }}"
+                                                         style="background-color: 
+                                                            {% if val == 'Black' %}#212529{% elif val == 'White' %}#ffffff{% elif val == 'Silver' %}#C0C0C0{% elif val == 'Grey' %}#9E9E9E{% elif val == 'Red' %}#F44336{% elif val == 'Light Blue' %}#81D4FA{% elif val == 'Blue' %}#2196F3{% elif val == 'Dark Blue' %}#1565C0{% elif val == 'Yellow' %}#FFEB3B{% elif val == 'Light Green' %}#81C784{% elif val == 'Green' %}#4CAF50{% elif val == 'Dark Green' %}#2E7D32{% elif val == 'Brown' %}#795548{% elif val == 'Dark Brown' %}#4E342E{% else %}transparent{% endif %};
+                                                            {% if val == 'White' %}border: 1px solid #dee2e6;{% endif %}">
+                                                    </div>
+                                                    {% endif %}
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex-grow-1">
+                                    <label class="form-label small text-muted">Mileage (Km)</label>
+                                    {{ form.mileage }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label small text-muted"><i class="bi bi-person-badge"></i> Mechanic (Staff)</label>
+                            {{ form.lead_mechanic }}
+                        </div>
+
+                        <div class="col-12 col-md-4">
+                            <label class="form-label small text-muted">Admitted Date</label>
+                            {{ form.admitted_date }}
+                        </div>
+
+
+                    </div>
+
+                    <!-- Hidden original fields for form submission -->
+                    <div class="d-none">
+                        {{ form.car_color }}
+                        <input type="color" id="native-color-picker" value="{{ jobcard.car_color_other|default:'#0d6efd' }}">
+                    </div>
+
+                    <!-- Compact "Other" Input (Used for Hex Storage) -->
+                    <div id="other-color-container" class="d-none">
+                        {{ form.car_color_other }}
                     </div>
                 </div>
             </div>
+
+            <!-- Compact Color CSS -->
+            <style>
+                .cursor-pointer { cursor: pointer; }
+                .color-mini-grid {
+                    display: grid;
+                    grid-template-columns: repeat(5, 1fr);
+                    gap: 12px;
+                    justify-items: center;
+                }
+                .color-dot-item {
+                    width: 24px;
+                    height: 24px;
+                    border-radius: 6px;
+                    cursor: pointer;
+                    transition: transform 0.2s, border 0.2s;
+                    border: 2px solid transparent;
+                }
+                .color-dot-item:hover {
+                    transform: scale(1.2);
+                    border: 2px solid #0d6efd;
+                }
+                .color-dot-item.active {
+                    border: 2px solid #0d6efd;
+                    box-shadow: 0 0 0 2px white inset;
+                }
+                .rainbow-dot {
+                    background: conic-gradient(red, yellow, lime, aqua, blue, magenta, red) !important;
+                }
+                #color-picker-trigger {
+                    border-radius: 6px !important;
+                }
+            </style>
+
+            <!-- Compact Color JS -->
+            <script>
+                document.addEventListener('DOMContentLoaded', function() {
+                    const colorDots = document.querySelectorAll('.color-dot-item');
+                    const colorTrigger = document.getElementById('color-picker-trigger');
+                    const hiddenColorInput = document.querySelector('[name="car_color"]');
+                    const otherInput = document.querySelector('[name="car_color_other"]');
+                    const headerDot = document.getElementById('header-color-dot');
+                    const nativePicker = document.getElementById('native-color-picker');
+
+                    if (!colorTrigger || !hiddenColorInput) return;
+
+                    colorDots.forEach(dot => {
+                        dot.addEventListener('click', function() {
+                            const val = this.getAttribute('data-value');
+                            
+                            if (val === 'Other') {
+                                // Trigger native color picker
+                                nativePicker.click();
+                            } else {
+                                const hex = this.style.backgroundColor;
+                                updateColorSelection(val, hex);
+                            }
+                        });
+                    });
+
+                    // Listen for native color picker changes
+                    nativePicker.addEventListener('input', function() {
+                        const hex = this.value;
+                        updateColorSelection('Other', hex);
+                    });
+
+                    function updateColorSelection(val, hex) {
+                        // Update hidden fields
+                        hiddenColorInput.value = val;
+                        if (val === 'Other') {
+                            otherInput.value = hex;
+                        } else {
+                            otherInput.value = '';
+                        }
+
+                        // Update UI Trigger and Header
+                        colorTrigger.style.backgroundColor = hex;
+                        if (headerDot) {
+                            headerDot.style.backgroundColor = hex;
+                            headerDot.classList.remove('d-none');
+                        }
+
+                        // Close dropdown (Bootstrap)
+                        const dropdownToggle = bootstrap.Dropdown.getInstance(colorTrigger);
+                        if (dropdownToggle) dropdownToggle.hide();
+
+                        // Highlight active dot
+                        colorDots.forEach(d => d.classList.remove('active'));
+                        const selectedDot = document.querySelector(`.color-dot-item[data-value="${val}"]`);
+                        if (selectedDot) selectedDot.classList.add('active');
+                    }
+
+                    // Set Initial State
+                    if (hiddenColorInput && hiddenColorInput.value) {
+                        const val = hiddenColorInput.value;
+                        const activeDot = document.querySelector(`.color-dot-item[data-value="${val}"]`);
+                        if (activeDot) {
+                             activeDot.classList.add('active');
+                        }
+                    }
+
+                    colorDots.forEach(dot => {
+                        dot.addEventListener('click', function() {
+                            const val = this.getAttribute('data-value');
+                            hiddenColorSelect.value = val;
+                            
+                            // Visual update
+                            colorDots.forEach(d => d.classList.remove('active'));
+                            this.classList.add('active');
+                            
+                            updateUI(val, this.style.backgroundColor);
+                            
+                            // Trigger change
+                            hiddenColorSelect.dispatchEvent(new Event('change'));
+                        });
+                    });
+
+                    if (otherToggle) {
+                        otherToggle.addEventListener('click', function() {
+                            hiddenColorSelect.value = 'Other';
+                            colorDots.forEach(d => d.classList.remove('active'));
+                            updateUI('Other', '#CED4DA');
+                        });
+                    }
+
+                    if (clearOther) {
+                        clearOther.addEventListener('click', function() {
+                            otherInput.value = '';
+                            hiddenColorSelect.value = '';
+                            colorDots.forEach(d => d.classList.remove('active'));
+                            updateUI('', '#CED4DA');
+                        });
+                    }
+                });
+            </script>
+
 
 
             <!-- ========================================== -->
@@ -225,12 +405,7 @@
                             {{ form.customer_contact }}
                         </div>
                     </div>
-                    <div class="row g-3 mt-1">
-                        <div class="col-12 col-md-6 border-top pt-3">
-                            <label class="form-label small text-muted"><i class="bi bi-person-badge"></i> Assigned Mechanic (Floor Staff)</label>
-                            {{ form.lead_mechanic }}
-                        </div>
-                    </div>
+
                 </div>
             </div>
 

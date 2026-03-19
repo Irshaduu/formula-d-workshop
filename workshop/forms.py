@@ -104,6 +104,8 @@ class JobCardForm(BootstrapFormMixin, forms.ModelForm):
             'customer_name',
             'customer_contact',
             'lead_mechanic',
+            'car_color',
+            'car_color_other',
         ]
         labels = {
             'lead_mechanic': 'Assigned Mechanic',
@@ -134,6 +136,9 @@ class JobCardForm(BootstrapFormMixin, forms.ModelForm):
             }),
             'lead_mechanic': forms.Select(attrs={
                 'class': 'form-select'
+            }),
+            'car_color_other': forms.TextInput(attrs={
+                'placeholder': 'Specify "Other" color...',
             }),
         }
 
