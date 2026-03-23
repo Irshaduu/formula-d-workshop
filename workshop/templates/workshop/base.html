@@ -256,7 +256,10 @@
             <!-- Left: Logo -->
             <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}"
                 style="text-decoration: none;">
-                <span style="font-weight: 800; font-style: italic; color: var(--color-text);">Floor</span>
+                <span class="nav-link-custom fw-bold" 
+                      style="font-size: 1.1rem; color: {% if request.user|has_group:'Owner' or request.user.is_superuser %}#dc3545{% elif request.user|has_group:'Office' %}#ffc107{% else %}#ffffff{% endif %} !important; font-style: normal;">
+                      Floor
+                </span>
             </a>
 
             <!-- Center: Links -->

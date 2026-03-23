@@ -32,8 +32,10 @@
                     <div class="d-flex justify-content-between align-items-start mb-1 pe-4">
                         <h5 class="card-title fw-bold mb-0 text-truncate"
                             style="letter-spacing: -0.5px; color: var(--color-primary);">
+                            {% if job.car_color %}
                             <span class="d-inline-block rounded-circle me-1" 
                                   style="width: 10px; height: 10px; background-color: {{ job.get_car_color_hex }}; vertical-align: middle; border: 1px solid rgba(0,0,0,0.1); margin-top: -3px;"></span>
+                            {% endif %}
                             {{ job.brand_name }} {{ job.model_name }}
                         </h5>
                         <small class="job-date ms-2 pt-1" style="font-size: 0.75rem; white-space: nowrap;">
