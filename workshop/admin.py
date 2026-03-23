@@ -58,8 +58,8 @@ class SparePartAdmin(admin.ModelAdmin):
 
 @admin.register(ConcernSolution)
 class ConcernSolutionAdmin(admin.ModelAdmin):
-    list_display = ('concern', 'solution', 'created_at')
-    search_fields = ('concern', 'solution')
+    list_display = ('concern', 'created_at')
+    search_fields = ('concern',)
     ordering = ('-created_at',)
 
 

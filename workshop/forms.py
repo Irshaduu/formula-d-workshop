@@ -77,10 +77,9 @@ class SparePartForm(BootstrapFormMixin, forms.ModelForm):
 class ConcernSolutionForm(BootstrapFormMixin, forms.ModelForm):
     class Meta:
         model = ConcernSolution
-        fields = ['concern', 'solution']
+        fields = ['concern']
         widgets = {
             'concern': forms.Textarea(attrs={'rows': 2}),
-            'solution': forms.Textarea(attrs={'rows': 2}),
         }
 
 

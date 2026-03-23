@@ -87,6 +87,37 @@
         </div>
         {% endfor %}
     </div>
+
+    <!-- Pagination Controls -->
+    {% if delivered_jobcards.has_other_pages %}
+    <div class="mt-4 d-flex justify-content-center">
+        <nav>
+            <ul class="pagination pagination-sm mb-0 shadow-sm">
+                <!-- PREV BUTTON -->
+                {% if delivered_jobcards.has_previous %}
+                <li class="page-item">
+                    <a class="page-link text-primary" href="?page={{ delivered_jobcards.previous_page_number }}{% if filter_type %}&filter={{ filter_type }}{% endif %}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}">&laquo; Prev</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">&laquo; Prev</span></li>
+                {% endif %}
+                
+                <!-- CURRENT PAGE -->
+                <li class="page-item disabled"><span class="page-link text-muted fw-bold">Page {{ delivered_jobcards.number }} of {{ delivered_jobcards.paginator.num_pages }}</span></li>
+                
+                <!-- NEXT BUTTON -->
+                {% if delivered_jobcards.has_next %}
+                <li class="page-item">
+                    <a class="page-link text-primary" href="?page={{ delivered_jobcards.next_page_number }}{% if filter_type %}&filter={{ filter_type }}{% endif %}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}">Next &raquo;</a>
+                </li>
+                {% else %}
+                <li class="page-item disabled"><span class="page-link">Next &raquo;</span></li>
+                {% endif %}
+            </ul>
+        </nav>
+    </div>
+    {% endif %}
+
     {% else %}
     <div class="text-center py-5">
         <i class="bi bi-check-circle empty-state-icon"></i>

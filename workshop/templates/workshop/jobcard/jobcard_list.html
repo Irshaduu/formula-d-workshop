@@ -71,6 +71,36 @@
     {% endfor %}
 </div>
 
+<!-- Pagination Controls -->
+{% if jobcards.has_other_pages %}
+<div class="mt-4 d-flex justify-content-center">
+    <nav>
+        <ul class="pagination pagination-sm mb-5 shadow-sm">
+            <!-- PREV BUTTON -->
+            {% if jobcards.has_previous %}
+            <li class="page-item">
+                <a class="page-link text-primary" href="?page={{ jobcards.previous_page_number }}">&laquo; Prev</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">&laquo; Prev</span></li>
+            {% endif %}
+            
+            <!-- CURRENT PAGE -->
+            <li class="page-item disabled"><span class="page-link text-muted fw-bold">Page {{ jobcards.number }} of {{ jobcards.paginator.num_pages }}</span></li>
+            
+            <!-- NEXT BUTTON -->
+            {% if jobcards.has_next %}
+            <li class="page-item">
+                <a class="page-link text-primary" href="?page={{ jobcards.next_page_number }}">Next &raquo;</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">Next &raquo;</span></li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endif %}
+
 <style>
     /* Job Card Styling - Premium Polish */
     .job-card {

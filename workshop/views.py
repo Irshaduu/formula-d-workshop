@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.db.models import Q 
 from django.http import HttpResponse
+from django.core.paginator import Paginator
 
 from .models import (
     CarBrand, CarModel, SparePart, ConcernSolution,
@@ -185,13 +186,18 @@ def live_report(request):
     })
 
 
-@staff_required
+@office_required
 def jobcard_list(request):
     """
     SECTION 2: JOBS - List of saved job cards.
     Newest first is handled by Model Meta ordering.
     """
-    jobcards = JobCard.objects.all() 
+    jobcard_list_query = JobCard.objects.all() 
+    paginator = Paginator(jobcard_list_query, 21)  # Show 21 jobs per page (perfect 3-column grid)
+    
+    page_number = request.GET.get('page')
+    jobcards = paginator.get_page(page_number)
+    
     return render(request, 'workshop/jobcard/jobcard_list.html', {'jobcards': jobcards})
 
 
@@ -305,11 +311,14 @@ def delivered_list(request):
             )
     # 'all' - no filtering
     
+    paginator = Paginator(delivered_jobcards, 21)  # Show 21 deliveries per page (perfect 3-column grid)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     return render(request, 'workshop/delivered/delivered_list.html', {
-        'delivered_jobcards': delivered_jobcards,
+        'delivered_jobcards': page_obj,
         'filter_type': filter_type,
     })
-
 
 @office_required
 def mark_delivered(request, pk):
