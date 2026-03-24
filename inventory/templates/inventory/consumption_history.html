@@ -1,0 +1,73 @@
+{% extends 'workshop/base.html' %}
+{% block title %}Stock History | WorkshopOS{% endblock %}
+{% block content %}
+<div class="container-fluid py-3">
+    <!-- Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb mb-1">
+                    <li class="breadcrumb-item"><a href="{% url 'inventory_restock' %}" class="text-decoration-none text-muted">Inventory</a></li>
+                    <li class="breadcrumb-item active" aria-current="page">Stock History</li>
+                </ol>
+            </nav>
+            <h4 class="fw-bold mb-0">📊 Stock Consumption History</h4>
+        </div>
+        <a href="{% url 'inventory_restock' %}" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+            <i class="bi bi-arrow-left me-1"></i>Back
+        </a>
+    </div>
+
+    <!-- History Table -->
+    <div class="card border-0 shadow-sm overflow-hidden" style="border-radius: 15px; background-color: var(--color-card);">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0" style="color: var(--color-text);">
+                <thead style="background-color: rgba(0,0,0,0.03);">
+                    <tr>
+                        <th class="ps-4 py-3 border-0">Timestamp</th>
+                        <th class="py-3 border-0">User</th>
+                        <th class="py-3 border-0">Item</th>
+                        <th class="py-3 border-0 text-center">Qty Used</th>
+                    </tr>
+                </thead>
+                <tbody class="border-top-0">
+                    {% for record in records %}
+                    <tr class="border-bottom" style="border-color: rgba(255,255,255,0.05) !important;">
+                        <td class="ps-4 text-muted small">
+                            {{ record.timestamp|date:"d M Y" }}<br>
+                            <span style="font-size: 0.75rem;">{{ record.timestamp|date:"H:i" }}</span>
+                        </td>
+                        <td class="fw-bold">
+                            <span class="badge rounded-pill bg-light text-dark px-2 py-1 border">
+                                <i class="bi bi-person me-1"></i>{{ record.user.get_full_name|default:record.user.username }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary bg-opacity-10 text-primary rounded p-1 me-2" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+                                    <i class="bi bi-box-seam"></i>
+                                </div>
+                                <div>
+                                    <span class="d-block fw-bold">{{ record.item.name }}</span>
+                                    <span class="text-muted small">{{ record.item.category.name }}</span>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="text-center fw-bold text-danger">
+                            -{{ record.quantity|floatformat:1 }}
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="4" class="text-center py-5 text-muted">
+                            <i class="bi bi-clock-history d-block mb-2" style="font-size: 2rem;"></i>
+                            No consumption records found yet.
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

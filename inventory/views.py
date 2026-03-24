@@ -121,3 +121,8 @@ def inventory_low_stock(request):
         Q(current_stock__lt=F('average_stock') * 0.25)
     ).order_by('name')
     return render(request, 'inventory/low_stock.html', {'items': low_stock_items})
+
+@staff_required
+def consumption_history(request):
+    records = ConsumptionRecord.objects.select_related('user', 'item', 'item__category').order_by('-timestamp')[:100]
+    return render(request, 'inventory/consumption_history.html', {'records': records})

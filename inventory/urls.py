@@ -20,4 +20,5 @@ urlpatterns = [
     path('restock/', views.inventory_restock, name='inventory_restock'),
     path('restock/update/<int:item_id>/', views.update_stock, name='inventory_update_stock'),
     path('low-stock/', views.inventory_low_stock, name='inventory_low_stock'),
+    path('history/', views.consumption_history, name='inventory_history'),
 ]
