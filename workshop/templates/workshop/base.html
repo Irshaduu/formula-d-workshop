@@ -254,12 +254,8 @@
     <nav class="navbar fixed-top navbar-top">
         <div class="navbar-container">
             <!-- Left: Logo -->
-            <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}"
-                style="text-decoration: none;">
-                <span class="nav-link-custom fw-bold" 
-                      style="font-size: 1.1rem; color: {% if request.user|has_group:'Owner' or request.user.is_superuser %}#dc3545{% elif request.user|has_group:'Office' %}#ffc107{% else %}#ffffff{% endif %} !important; font-style: normal;">
-                      Floor
-                </span>
+            <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}" style="text-decoration: none;">
+                <span class="nav-link-custom fw-bold" style="font-size: 1.1rem; color: {% if request.user|has_group:'Owner' or request.user.is_superuser %}#dc3545{% elif request.user|has_group:'Office' %}#ffc107{% else %}#ffffff{% endif %} !important; font-style: normal;">Floor</span>
             </a>
 
             <!-- Center: Links -->
@@ -280,6 +276,14 @@
                 </a>
                 {% endif %}
             </div>
+
+            <!-- Right: Inventory Link -->
+            {% if request.user|has_group:"Owner" or request.user|has_group:"Office" or request.user|has_group:"Floor" or request.user.is_superuser %}
+            <a class="nav-link-custom {% if 'inventory' in request.path %}active{% endif %} me-2"
+                href="{% url 'inventory_restock' %}">
+                📦 Inventory
+            </a>
+            {% endif %}
 
             <!-- Right: Manage/Master Lists Dropdown -->
             {% if request.user|has_group:"Owner" or request.user|has_group:"Office" or request.user.is_superuser %}
@@ -303,28 +307,16 @@
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item fw-bold text-primary" href="{% url 'manage_dashboard' %}"><i class="bi bi-people"></i> Manage Accounts</a></li>
                     {% endif %}
-                    <li>
-                        <hr class="dropdown-divider">
-                    </li>
                     {% if user.is_authenticated %}
+                    <li><hr class="dropdown-divider"></li>
                     <li>
-                        <form method="post" action="{% url 'logout' %}" class="d-inline">
-                            {% csrf_token %}
-                            <button type="submit" class="dropdown-item text-danger">🔓 Logout</button>
-                        </form>
+                        <a class="dropdown-item fw-bold" href="#" data-bs-toggle="modal" data-bs-target="#accountProfileModal">
+                            👤 {% if request.user.is_superuser or request.user|has_group:"Owner" %}Admin Account{% elif request.user|has_group:"Office" %}Office Account{% else %}Floor Account{% endif %}
+                        </a>
                     </li>
                     {% endif %}
                 </ul>
             </div>
-            {% else %}
-                {% if user.is_authenticated %}
-                <div class="d-flex align-items-center">
-                    <form method="post" action="{% url 'logout' %}" class="d-inline">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-outline-danger btn-sm">🔓 Logout</button>
-                    </form>
-                </div>
-                {% endif %}
             {% endif %}
         </div>
     </nav>
@@ -339,8 +331,7 @@
             <span>Home</span>
         </a>
 
-        <a href="{% url 'live_report' %}"
-            class="nav-item {% if 'live-report' in request.path %}active{% endif %}">
+        <a href="{% url 'live_report' %}" class="nav-item {% if 'live-report' in request.path %}active{% endif %}">
             <i class="bi bi-activity"></i>
             <span>Live</span>
         </a>
@@ -372,15 +363,21 @@
                         All Job-cards</a></li>
                 <li><a class="dropdown-item" href="{% url 'delivered_list' %}"><i class="bi bi-check-circle"></i>
                         Delivered Jobs</a></li>
-                <li><a class="dropdown-item text-danger" href="{% url 'pending_payments_list' %}"><i class="bi bi-exclamation-octagon"></i>
+                <li><a class="dropdown-item text-danger" href="{% url 'pending_payments_list' %}"><i
+                            class="bi bi-exclamation-octagon"></i>
                         Pending Payments</a></li>
                 <li>
                     <hr class="dropdown-divider">
                 </li>
                 {% endif %}
 
+                {% if request.user|has_group:"Owner" or request.user|has_group:"Office" or request.user|has_group:"Floor" or request.user.is_superuser %}
+                <li><a class="dropdown-item fw-bold text-success" href="{% url 'inventory_restock' %}"><i class="bi bi-box-seam"></i> Inventory</a></li>
+                {% endif %}
+
                 {% if request.user|has_group:"Owner" or request.user|has_group:"Office" or request.user.is_superuser %}
-                <li><a class="dropdown-item fw-bold text-primary" href="{% url 'master_lists_home' %}"><i class="bi bi-hdd-stack"></i>
+                <li><a class="dropdown-item fw-bold text-primary" href="{% url 'master_lists_home' %}"><i
+                            class="bi bi-hdd-stack"></i>
                         Master Lists</a></li>
                 <li>
                     <hr class="dropdown-divider">
@@ -411,6 +408,45 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="{% static 'js/script.js' %}"></script>
     {% block extra_js %}{% endblock %}
+
+<!-- Account Profile Modal -->
+{% if user.is_authenticated %}
+<div class="modal fade" id="accountProfileModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 320px;">
+        <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+            <div class="modal-body text-center p-4">
+                <!-- Close -->
+                <button type="button" class="btn-close position-absolute" style="top: 16px; right: 16px;" data-bs-dismiss="modal"></button>
+
+                <!-- Avatar -->
+                <div style="width: 72px; height: 72px; border-radius: 50%; margin: 0 auto 12px; display: flex; align-items: center; justify-content: center;
+                    background: {% if request.user.is_superuser or request.user|has_group:'Owner' %}#fee2e2{% elif request.user|has_group:'Office' %}#fef9c3{% else %}#e0f2fe{% endif %};">
+                    <i class="bi bi-person-fill" style="font-size: 2rem; color: {% if request.user.is_superuser or request.user|has_group:'Owner' %}#dc3545{% elif request.user|has_group:'Office' %}#d97706{% else %}#0ea5e9{% endif %};"></i>
+                </div>
+
+                <!-- Role Badge -->
+                <div class="mb-1">
+                    <span class="badge rounded-pill px-3 py-1" style="font-size: 0.75rem; background: {% if request.user.is_superuser or request.user|has_group:'Owner' %}#dc3545{% elif request.user|has_group:'Office' %}#ffc107; color:#333{% else %}#0ea5e9{% endif %};">
+                        {% if request.user.is_superuser or request.user|has_group:"Owner" %}Admin Account{% elif request.user|has_group:"Office" %}Office Account{% else %}Floor Account{% endif %}
+                    </span>
+                </div>
+
+                <!-- Username -->
+                <h5 class="fw-bold mt-2 mb-0">{{ request.user.get_full_name|default:request.user.username }}</h5>
+                <p class="text-muted small mb-3">@{{ request.user.username }}</p>
+
+                <!-- Logout -->
+                <form method="post" action="{% url 'logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger w-100 fw-bold rounded-pill">
+                        <i class="bi bi-unlock me-2"></i>Logout
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
 
 </body>
 

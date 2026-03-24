@@ -1,0 +1,47 @@
+{% extends 'workshop/base.html' %}
+{% block title %}Inventory | WorkshopOS{% endblock %}
+{% block content %}
+<div class="container-fluid py-3">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h4 class="fw-bold mb-0">📦 Inventory Dashboard</h4>
+    </div>
+    
+    <div class="row g-3">
+        <div class="col-12 col-md-4">
+            <a href="{% url 'inventory_manage' %}" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100 p-2" style="border-radius: 12px; background-color: var(--color-card);">
+                    <div class="card-body text-center">
+                        <i class="bi bi-gear mb-3 d-block" style="font-size: 2.5rem; color: var(--color-primary);"></i>
+                        <h5 class="fw-bold" style="color: var(--color-text);">Manage Items</h5>
+                        <p class="small mb-0" style="color: var(--color-text-muted);">Create Categories & Items</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        
+        <div class="col-12 col-md-4">
+            <a href="{% url 'inventory_restock' %}" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100 p-2" style="border-radius: 12px; background-color: var(--color-card);">
+                    <div class="card-body text-center">
+                        <i class="bi bi-box-arrow-in-down mb-3 d-block text-success" style="font-size: 2.5rem;"></i>
+                        <h5 class="fw-bold" style="color: var(--color-text);">Restock</h5>
+                        <p class="small mb-0" style="color: var(--color-text-muted);">Update existing stock quantities</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        
+        <div class="col-12 col-md-4">
+            <a href="{% url 'inventory_low_stock' %}" class="text-decoration-none">
+                <div class="card border-0 shadow-sm h-100 p-2" style="border-radius: 12px; background-color: var(--color-card);">
+                    <div class="card-body text-center">
+                        <i class="bi bi-exclamation-triangle mb-3 d-block text-danger" style="font-size: 2.5rem;"></i>
+                        <h5 class="fw-bold" style="color: var(--color-text);">Low Stock</h5>
+                        <p class="small mb-0" style="color: var(--color-text-muted);">Critical items below 25% threshold</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}

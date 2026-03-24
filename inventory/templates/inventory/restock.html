@@ -1,0 +1,314 @@
+{% extends 'workshop/base.html' %}
+{% block title %}Restock Inventory{% endblock %}
+{% block content %}
+<style>
+    :root {
+        --panel: #121212;
+        --muted: #9aa0a6;
+        --accent-blue: #1177ff;
+        --accent-red: #ff4d4f;
+        --card-border: rgba(255, 255, 255, 0.06);
+        --success: #20c997;
+        --card-bg: rgba(255, 255, 255, 0.05);
+        --border-color: rgba(255, 255, 255, 0.1);
+        --input-bg: rgba(0, 0, 0, 0.2);
+        --text-primary: #e8eef7;
+    }
+
+    .inventory-dark-wrapper {
+        background-color: #000000;
+        color: var(--text-primary);
+        font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
+        border-radius: 12px;
+        min-height: 80vh;
+        margin: -1.5rem;
+        padding: 1.5rem;
+    }
+
+    /* ---------- TOP ROW ---------- */
+    .top-row {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .top-row h2 {
+        font-size: 1.25rem;
+        font-weight: 700;
+        margin: 0;
+        white-space: nowrap;
+        color: white;
+    }
+
+    .search-container {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .tiny-search {
+        width: 100%;
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 1px solid var(--card-border);
+        background: var(--input-bg);
+        color: var(--text-primary);
+        font-size: 0.95rem;
+        outline: none;
+        transition: border 0.2s;
+    }
+
+    .tiny-search:focus {
+        border-color: var(--accent-blue);
+    }
+
+    .tiny-search::placeholder {
+        color: var(--muted);
+    }
+
+    .low-stock-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 14px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        background: var(--accent-red);
+        color: #fff;
+        border-radius: 999px;
+        text-decoration: none;
+        white-space: nowrap;
+        border: none;
+    }
+
+    /* ---------- CATEGORY ---------- */
+    .category-section {
+        margin: 16px 0 24px;
+    }
+
+    .category-title {
+        color: var(--accent-blue);
+        font-weight: 700;
+        margin: 0 0 10px 6px;
+        font-size: 1.05rem;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        border-bottom: 1px solid var(--card-border);
+        padding-bottom: 8px;
+    }
+
+    /* ---------- ITEM CARD ---------- */
+    .item-card {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 14px;
+        margin: 6px 0;
+        border-radius: 10px;
+        border: 1px solid var(--card-border);
+    }
+
+    .item-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .item-name {
+        font-weight: 600;
+        font-size: 1.05rem;
+        line-height: 1.3;
+        color: white;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        cursor: pointer;
+    }
+
+    .item-name.expanded {
+        white-space: normal;
+        overflow: visible;
+        word-break: break-word;
+    }
+
+    .item-stock {
+        font-size: 0.85rem;
+        margin-top: 6px;
+        display: flex;
+        gap: 6px;
+    }
+
+    .stock-badge {
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-weight: 600;
+    }
+
+    .avg-badge {
+        background: rgba(17, 119, 255, 0.15);
+        color: var(--accent-blue);
+    }
+
+    .cur-badge {
+        background: rgba(32, 201, 151, 0.1);
+    }
+
+    /* ---------- CONTROLS ---------- */
+    .controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .controls input[type="number"] {
+        width: 70px;
+        padding: 8px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: var(--panel);
+        color: #fff;
+        font-weight: 700;
+        font-size: 0.95rem;
+        text-align: center;
+        outline: none;
+    }
+
+    .controls input[type=number]::-webkit-inner-spin-button,
+    .controls input[type=number]::-webkit-outer-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    /* ---------- SAVE BUTTON ---------- */
+    .btn-save {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 12px;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        background: linear-gradient(180deg, #2a2a2a, #171717);
+        color: #e8eef7;
+        font-size: 0.9rem;
+        font-weight: 600;
+        cursor: pointer;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+
+    .btn-save svg {
+        width: 14px;
+        height: 14px;
+        opacity: 0.9;
+    }
+
+    .btn-save:active {
+        transform: translateY(1px);
+    }
+</style>
+
+<div class="inventory-dark-wrapper">
+    <div class="top-row">
+        <h2>Restock</h2>
+        <div class="search-container">
+            <input id="restockSearch" class="tiny-search" type="text" placeholder="Search items or category…">
+        </div>
+        
+        <div class="dropdown ms-2">
+            <button class="btn btn-secondary d-flex align-items-center justify-content-center" style="background: var(--input-bg); border: 1px solid var(--card-border); color: var(--text-primary); border-radius: 8px; padding: 6px 12px; box-shadow: none;" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+                <i class="bi bi-list" style="font-size: 1.25rem; line-height: 1;"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end shadow" style="border-radius: 12px; border: 1px solid var(--border-color); margin-top: 8px; min-width: 160px; z-index: 1050;">
+                <li><a class="dropdown-item fw-bold text-danger py-2" href="{% url 'inventory_low_stock' %}"><i class="bi bi-exclamation-triangle me-2"></i> Low Stock</a></li>
+                <li><a class="dropdown-item fw-bold py-2" href="{% url 'inventory_manage' %}"><i class="bi bi-gear me-2"></i> Manage Database</a></li>
+            </ul>
+        </div>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div style="background: rgba(32, 201, 151, 0.15); color: #20c997; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; border: 1px solid rgba(32, 201, 151, 0.3); font-weight: 500; font-size: 0.9rem;">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    {% for category in categories %}
+    <div class="category-section">
+        <h3 class="category-title">{{ category.name }}</h3>
+
+        {% for item in category.items.all %}
+        <form method="post" action="{% url 'inventory_update_stock' item.id %}" class="item-card" data-default-display="flex"
+            style="background: linear-gradient(90deg, var(--card-bg) {{ item.stock_percentage|floatformat:0 }}%, transparent {{ item.stock_percentage|floatformat:0 }}%);">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.path }}">
+            <div class="item-info">
+                <div class="item-name" onclick="this.classList.toggle('expanded')">
+                    {{ item.name }}
+                    <span style="display:none">{{ category.name }}</span>
+                </div>
+                <div class="item-stock">
+                    <span class="stock-badge avg-badge">Avg {{ item.average_stock|floatformat:1 }}</span>
+                    <span class="stock-badge cur-badge" style="color:{{ item.stock_status_color }}">
+                        Cur <span style="font-weight: 800;">{{ item.current_stock|floatformat:1 }}</span>
+                    </span>
+                </div>
+            </div>
+            <div class="controls">
+                <input type="number" name="current_stock" value="{{ item.current_stock }}" inputmode="decimal" step="0.5"
+                    style="border-color: {{ item.stock_status_color }};">
+                <button type="submit" class="btn-save">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                        <path d="M17 21v-8H7v8" />
+                        <path d="M7 3v6h8" />
+                    </svg>
+                    Save
+                </button>
+            </div>
+        </form>
+        {% endfor %}
+    </div>
+    {% empty %}
+    <div style="text-align: center; margin-top: 40px; color: var(--muted);">
+        <p>No categories or items exist.</p>
+        <a href="{% url 'inventory_manage' %}" style="color: var(--accent-blue); text-decoration: none;">Go Setup</a>
+    </div>
+    {% endfor %}
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const input = document.getElementById('restockSearch');
+        const cards = [...document.querySelectorAll('.item-card')];
+        const categories = [...document.querySelectorAll('.category-section')];
+
+        cards.forEach(c => {
+            c.dataset.defaultDisplay = getComputedStyle(c).display || 'flex';
+        });
+
+        function debounce(fn, ms) {
+            let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }
+        }
+
+        function filter() {
+            const q = input.value.toLowerCase().trim();
+            cards.forEach(card => {
+                card.style.display =
+                    !q || card.textContent.toLowerCase().includes(q)
+                        ? card.dataset.defaultDisplay
+                        : 'none';
+            });
+
+            categories.forEach(cat => {
+                cat.style.display =
+                    [...cat.querySelectorAll('.item-card')]
+                        .some(c => c.style.display !== 'none')
+                        ? 'block' : 'none';
+            });
+        }
+
+        if (input) {
+            input.addEventListener('input', debounce(filter, 180));
+        }
+    });
+</script>
+{% endblock %}

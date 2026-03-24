@@ -131,14 +131,23 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (data.length === 0) return;
 
                 data.forEach(item => {
+                    const itemName = typeof item === 'object' ? item.name : item;
+                    const itemSource = typeof item === 'object' ? item.source : 'master';
+
                     const itemDiv = document.createElement('a');
                     itemDiv.classList.add('list-group-item', 'list-group-item-action', 'py-2');
                     itemDiv.style.cursor = 'pointer';
-                    itemDiv.textContent = item;
+
+                    if (itemSource === 'inventory') {
+                        itemDiv.classList.add('list-group-item-warning', 'fw-bold', 'text-dark');
+                        itemDiv.innerHTML = `<i class="bi bi-box-seam me-2"></i>${itemName}`;
+                    } else {
+                        itemDiv.textContent = itemName;
+                    }
 
                     itemDiv.addEventListener('click', function (e) {
                         e.preventDefault(); // Prevent jump
-                        inputObj.value = item;
+                        inputObj.value = itemName;
                         suggestionsBox.innerHTML = ''; // Clear
                     });
 

@@ -1,0 +1,123 @@
+from django.shortcuts import render, redirect, get_object_or_404
+from django.contrib import messages
+from .models import Category, Item, ConsumptionRecord
+from workshop.decorators import staff_required
+from django.db.models import F, Q
+
+@staff_required
+def inventory_home(request):
+    return redirect('inventory_restock')
+
+@staff_required
+def inventory_manage(request):
+    categories = Category.objects.prefetch_related('items').all()
+    return render(request, 'inventory/manage.html', {'categories': categories})
+
+@staff_required
+def add_category(request):
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        if name:
+            Category.objects.create(name=name)
+            messages.success(request, f"Category '{name}' created.")
+            return redirect('inventory_manage')
+    return render(request, 'inventory/add_category.html')
+
+@staff_required
+def edit_category(request, category_id):
+    category = get_object_or_404(Category, pk=category_id)
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        if name:
+            category.name = name
+            category.save()
+            messages.success(request, f"Category updated to '{name}'")
+            return redirect('inventory_manage')
+    return render(request, 'inventory/edit_category.html', {'category': category})
+
+@staff_required
+def delete_category(request, category_id):
+    if request.method != 'POST':
+        return redirect('inventory_manage')
+    category = get_object_or_404(Category, pk=category_id)
+    name = category.name
+    category.delete()
+    messages.success(request, f"Category '{name}' deleted.")
+    return redirect('inventory_manage')
+
+@staff_required
+def category_detail(request, category_id):
+    category = get_object_or_404(Category, pk=category_id)
+    return render(request, 'inventory/category_detail.html', {'category': category})
+
+@staff_required
+def add_item(request, category_id):
+    category = get_object_or_404(Category, pk=category_id)
+    if request.method == 'POST':
+        name = request.POST.get('name')
+        avg_stock = float(request.POST.get('average_stock') or 0)
+        cur_stock = float(request.POST.get('current_stock') or 0)
+
+        Item.objects.create(
+            category=category,
+            name=name,
+            average_stock=avg_stock,
+            current_stock=cur_stock,
+        )
+        messages.success(request, f"Item '{name}' added.")
+        return redirect('inventory_category_detail', category_id=category.id)
+    return redirect('inventory_category_detail', category_id=category.id)
+
+@staff_required
+def edit_item(request, item_id):
+    item = get_object_or_404(Item, pk=item_id)
+    if request.method == 'POST':
+        item.name = request.POST.get('name')
+        item.average_stock = float(request.POST.get('average_stock') or 0)
+        cur = request.POST.get('current_stock')
+        if cur is not None:
+             item.current_stock = float(cur)
+        item.save()
+        messages.success(request, f"Item '{item.name}' updated.")
+        return redirect('inventory_category_detail', category_id=item.category.id)
+    return redirect('inventory_category_detail', category_id=item.category.id)
+
+@staff_required
+def delete_item(request, item_id):
+    if request.method != 'POST':
+        return redirect('inventory_manage')
+    item = get_object_or_404(Item, pk=item_id)
+    cat_id = item.category.id
+    item.delete()
+    messages.success(request, "Item deleted.")
+    return redirect('inventory_category_detail', category_id=cat_id)
+
+@staff_required
+def inventory_restock(request):
+    categories = Category.objects.prefetch_related('items').all()
+    return render(request, 'inventory/restock.html', {'categories': categories})
+
+@staff_required
+def update_stock(request, item_id):
+    item = get_object_or_404(Item, pk=item_id)
+    if request.method == 'POST':
+        new_stock = request.POST.get('current_stock')
+        if new_stock is not None:
+            # Optionally add a record to StockLedger if keeping audit
+            item.current_stock = float(new_stock or 0)
+            item.save()
+            messages.success(request, f"Stock updated for {item.name}")
+    next_url = request.POST.get('next') or request.GET.get('next')
+    if next_url:
+        return redirect(next_url)
+    return redirect('inventory_restock')
+
+@staff_required
+def inventory_low_stock(request):
+    low_stock_items = Item.objects.filter(
+        average_stock__gt=0
+    ).filter(
+        Q(current_stock__lte=0) | 
+        Q(current_stock__lt=F('average_stock') * 0.25)
+    ).order_by('name')
+    return render(request, 'inventory/low_stock.html', {'items': low_stock_items})
