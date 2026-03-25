@@ -62,7 +62,7 @@ class CarBrandForm(BootstrapFormMixin, forms.ModelForm):
 class CarModelForm(BootstrapFormMixin, forms.ModelForm):
     class Meta:
         model = CarModel
-        fields = ['brand', 'name', 'sample_image']
+        fields = ['brand', 'name']
         widgets = {
             'brand': forms.Select(attrs={'class': 'form-select'}),
         }
@@ -108,12 +108,9 @@ class JobCardForm(BootstrapFormMixin, forms.ModelForm):
         ]
         labels = {
             'lead_mechanic': 'Assigned Mechanic',
-            # 'discharged_date': 'Discharge Date',  # Changed from default 'Discharged Date'
         }
         widgets = {
             'admitted_date': forms.DateInput(attrs={'type': 'date'}),
-            # 'discharged_date': forms.DateInput(attrs={'type': 'date'}),
-            # Autocomplete targets - JS will hook into these IDs/Classes
             'brand_name': forms.TextInput(attrs={
                 'autocomplete': 'off',
                 'class': 'autocomplete-brand',
@@ -128,10 +125,10 @@ class JobCardForm(BootstrapFormMixin, forms.ModelForm):
             }),
             'mileage': forms.TextInput(attrs={
                 'placeholder': 'e.g. 50000 or 50k',
-                'inputmode': 'numeric' # Suggests numeric keyboard on mobile but allows text
+                'inputmode': 'numeric'
             }),
             'customer_contact': forms.NumberInput(attrs={
-                 # Number input triggers numeric keypad on mobile
+                # numeric keypad
             }),
             'lead_mechanic': forms.Select(attrs={
                 'class': 'form-select'
@@ -146,15 +143,13 @@ class JobCardForm(BootstrapFormMixin, forms.ModelForm):
 # FORMSETS
 # =============================================================================
 
-# 1. CONCERNS
-# Simple rows: [ Concern Text | Status ]
 JobCardConcernFormSet = inlineformset_factory(
     JobCard,
     JobCardConcern,
     fields=['concern_text', 'status'],
-    extra=0,            # Changed from 1 - no automatic empty row
-    can_delete=True,    # Allow deletion for proper formset validation
-    validate_min=False, # Don't require minimum number of forms
+    extra=0,
+    can_delete=True,
+    validate_min=False,
     widgets={
         'concern_text': forms.TextInput(attrs={
             'class': 'form-control autocomplete-concern',
@@ -163,21 +158,18 @@ JobCardConcernFormSet = inlineformset_factory(
         }),
         'status': forms.Select(attrs={
             'class': 'form-select form-select-sm',
-            'style': 'height: 38px;' # Match height of text input
+            'style': 'height: 38px;'
         })
     }
 )
 
-# 2. SPARES
-# Main Row: Part Name | Qty | Shop | Status | Shop Price | [3-dot]
-# Dropdown: Customer Price | Ordered Date | Received Date
 JobCardSpareFormSet = inlineformset_factory(
     JobCard,
     JobCardSpareItem,
     fields=['spare_part_name', 'quantity', 'shop_name', 'status', 'unit_price', 'total_price', 'ordered_date', 'received_date'],
     extra=0,
-    can_delete=True,    # Allow deletion for proper formset validation
-    validate_min=False, # Don't require minimum number of forms
+    can_delete=True,
+    validate_min=False,
     widgets={
         'spare_part_name': forms.TextInput(attrs={
             'class': 'form-control autocomplete-spare',
@@ -215,22 +207,19 @@ JobCardSpareFormSet = inlineformset_factory(
     }
 )
 
-# 3. LABOUR (JOBS)
-# Columns: Job Description | Amount
 JobCardLabourFormSet = inlineformset_factory(
     JobCard,
     JobCardLabourItem,
     fields=['job_description', 'amount'],
     extra=0,
-    can_delete=True,    # Allow deletion for proper formset validation
-    validate_min=False, # Don't require minimum number of forms
+    can_delete=True,
+    validate_min=False,
     widgets={
         'job_description': forms.TextInput(attrs={
             'class': 'form-control',
             'placeholder': 'Job Performed',
-            'list': 'datalist-spares'  # Same suggestions as spare parts!
         }),
-        'amount': forms.TextInput(attrs={  # Changed to TextInput to remove spinner arrows
+        'amount': forms.TextInput(attrs={
             'class': 'form-control text-end',
             'placeholder': 'Amount'
         }),

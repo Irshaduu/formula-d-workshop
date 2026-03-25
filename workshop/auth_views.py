@@ -7,19 +7,52 @@ import time
 
 
 # ============================================================
+# Phone Number Normalization (Last 10 Digits Matching)
+# Matches +91, spaces, and different formats in .env vs input.
+# ============================================================
+def normalize_phone(phone_str):
+    """Keep only the last 10 digits to match Indian mobile numbers consistently."""
+    if not phone_str:
+        return ""
+    digits = "".join(filter(str.isdigit, phone_str))
+    return digits[-10:] if len(digits) >= 10 else digits
+
+# ============================================================
 # Owner Mobile Number Lookup (from .env — developer-registered)
 # ============================================================
-def get_owner_mobile(username):
+def get_owner_mobile(identifier):
     """
-    Returns the mobile number for the given owner username,
-    as registered in the .env file by the developer.
-    Returns None if the username is not a registered owner.
+    Returns the mobile number for the given identifier (can be username or mobile).
+    Checks against the owner map in .env.
     """
     owner_map = {
-        config('OWNER_1_USERNAME', default=''): config('OWNER_1_MOBILE', default=''),
-        config('OWNER_2_USERNAME', default=''): config('OWNER_2_MOBILE', default=''),
+        config('OWNER_1_USERNAME', default='').strip(' ='): config('OWNER_1_MOBILE', default='').strip(' ='),
+        config('OWNER_2_USERNAME', default='').strip(' ='): config('OWNER_2_MOBILE', default='').strip(' ='),
     }
-    return owner_map.get(username) or None
+    
+    # 1. Check if identifier is a registered username
+    if identifier in owner_map:
+        return owner_map[identifier]
+    
+    # 2. Check if identifier is a registered mobile number (using normalization)
+    target = normalize_phone(identifier)
+    for username, mobile in owner_map.items():
+        if target == normalize_phone(mobile) and mobile != '':
+            return mobile
+            
+    return None
+
+def get_owner_username_by_mobile(mobile_number):
+    """Returns the username associated with a mobile number in .env."""
+    target = normalize_phone(mobile_number)
+    owner_map = {
+        config('OWNER_1_USERNAME', default='').strip(' ='): config('OWNER_1_MOBILE', default='').strip(' ='),
+        config('OWNER_2_USERNAME', default='').strip(' ='): config('OWNER_2_MOBILE', default='').strip(' ='),
+    }
+    for username, mobile in owner_map.items():
+        if target == normalize_phone(mobile) and mobile != '':
+            return username
+    return None
 
 
 # ============================================================
@@ -56,7 +89,7 @@ def staff_login_view(request):
             auth_login(request, user)
             return redirect('home')
         else:
-            messages.error(request, "Invalid username or password.")
+            messages.error(request, "Invalid access attempt detected. Initiating security alert.")
 
     return render(request, 'workshop/auth/login.html')
 
@@ -87,7 +120,16 @@ def admin_login_view(request):
     if request.method == 'POST':
         u = request.POST.get('username', '').strip()
         p = request.POST.get('password', '').strip()
-        user = authenticate(request, username=u, password=p)
+        
+        # Identification Logic: If it looks like a phone number, resolve to username
+        login_username = u
+        norm_u = normalize_phone(u)
+        if len(norm_u) == 10:
+            resolved_u = get_owner_username_by_mobile(u)
+            if resolved_u:
+                login_username = resolved_u
+        
+        user = authenticate(request, username=login_username, password=p)
 
         if user is not None:
             # Must be an Owner or superuser
@@ -95,8 +137,8 @@ def admin_login_view(request):
                 messages.error(request, "Only Owners can access this portal.")
                 return redirect('admin_login')
 
-            # Look up mobile number from .env (developer-registered)
-            mobile = get_owner_mobile(u)
+            # Look up mobile number from .env (identifier could be username or mobile)
+            mobile = get_owner_mobile(login_username)
             if not mobile:
                 messages.error(
                     request,
@@ -118,7 +160,7 @@ def admin_login_view(request):
 
             return redirect('otp_verify')
         else:
-            messages.error(request, "Invalid username or password.")
+            messages.error(request, "Invalid access attempt detected. Initiating security alert.")
 
     return render(request, 'workshop/auth/admin_login.html')
 
@@ -206,20 +248,28 @@ def owner_forgot_password_view(request):
             request.session.pop('pwd_reset_blocked_until', None)
 
     if request.method == 'POST':
-        username = request.POST.get('username', '').strip()
+        identifier = request.POST.get('username', '').strip()
 
-        # Validate username exists in .env
-        mobile = get_owner_mobile(username)
+        # Identification Logic
+        target_username = identifier
+        norm_id = normalize_phone(identifier)
+        if len(norm_id) == 10:
+            resolved = get_owner_username_by_mobile(identifier)
+            if resolved:
+                target_username = resolved
+
+        # Validate existence in .env
+        mobile = get_owner_mobile(target_username)
         if not mobile:
-            messages.error(request, "No Owner account found with that username.")
+            messages.error(request, "No Owner account found with that identifier.")
             return redirect('owner_forgot_password')
 
         # Check the user actually exists in Django
         from django.contrib.auth.models import User
         try:
-            user = User.objects.get(username=username)
+            user = User.objects.get(username=target_username)
         except User.DoesNotExist:
-            messages.error(request, "No Owner account found with that username.")
+            messages.error(request, "No Owner account found with that identifier.")
             return redirect('owner_forgot_password')
 
         # Generate OTP

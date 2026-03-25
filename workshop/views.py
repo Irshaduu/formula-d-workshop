@@ -388,6 +388,23 @@ def brand_create(request):
     return render(request, 'workshop/master_lists/brand_form.html', {'form': form, 'title': 'Add Brand'})
 
 @office_required
+def brand_edit(request, pk):
+    brand = get_object_or_404(CarBrand, pk=pk)
+    form = CarBrandForm(request.POST or None, request.FILES or None, instance=brand)
+    if form.is_valid():
+        form.save()
+        return redirect('brand_list')
+    return render(request, 'workshop/master_lists/brand_form.html', {'form': form, 'title': 'Edit Brand'})
+
+@office_required
+def brand_delete(request, pk):
+    brand = get_object_or_404(CarBrand, pk=pk)
+    if request.method == 'POST':
+        brand.delete()
+        return redirect('brand_list')
+    return render(request, 'workshop/master_lists/brand_confirm_delete.html', {'brand': brand})
+
+@office_required
 def brand_model_list(request, brand_id):
     """
     Drilldown: Shows models for a specific brand.
@@ -424,6 +441,15 @@ def model_edit(request, pk):
         form.save()
         return redirect('brand_model_list', brand_id=model.brand.id)
     return render(request, 'workshop/master_lists/model_form.html', {'form': form, 'title': 'Edit Model'})
+
+@office_required
+def model_delete(request, pk):
+    model = get_object_or_404(CarModel, pk=pk)
+    brand_id = model.brand.id
+    if request.method == 'POST':
+        model.delete()
+        return redirect('brand_model_list', brand_id=brand_id)
+    return render(request, 'workshop/master_lists/model_confirm_delete.html', {'model': model})
 
 # --- SPARE PARTS ---
 

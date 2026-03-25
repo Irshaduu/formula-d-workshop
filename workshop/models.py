@@ -55,7 +55,6 @@ class CarModel(models.Model):
     """
     brand = models.ForeignKey(CarBrand, on_delete=models.CASCADE, related_name='models')
     name = models.CharField(max_length=100)
-    sample_image = models.ImageField(upload_to='models/', blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -337,10 +336,7 @@ class JobCardLabourItem(models.Model):
     """
     job_card = models.ForeignKey(JobCard, on_delete=models.CASCADE, related_name='labours')
     job_description = models.CharField(max_length=150)
-    amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)  # Removed default=0
+    amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True) 
 
     def __str__(self):
         return self.job_description
-
-
-

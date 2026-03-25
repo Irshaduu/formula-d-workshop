@@ -39,12 +39,15 @@ urlpatterns = [
     # 3A. Cars (Brand -> Models Drilldown)
     path('master-lists/brands/', views.brand_list, name='brand_list'),
     path('master-lists/brands/add/', views.brand_create, name='brand_add'),
+    path('master-lists/brands/<int:pk>/edit/', views.brand_edit, name='brand_edit'),
+    path('master-lists/brands/<int:pk>/delete/', views.brand_delete, name='brand_delete'),
     path('master-lists/brands/<int:brand_id>/models/', views.brand_model_list, name='brand_model_list'),
     
     # Model Management
     path('master-lists/models/add/', views.model_create, name='model_add_generic'), # Fallback
     path('master-lists/brands/<int:brand_id>/models/add/', views.model_create, name='model_add'), # Context aware
     path('master-lists/models/<int:pk>/edit/', views.model_edit, name='model_edit'),
+    path('master-lists/models/<int:pk>/delete/', views.model_delete, name='model_delete'),
 
     # 3B. Spares
     path('master-lists/spares/', views.spare_list, name='spare_list'),

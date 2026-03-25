@@ -20,26 +20,37 @@
     </div>
 </div>
 
-<div class="row g-3">
+<div class="row g-2">
     {% for model in models %}
     <div class="col-6 col-md-4 col-lg-3">
-        <div class="card shadow-sm border-0 h-100">
-            <!-- Image Wrapper -->
-            <div class="bg-light d-flex align-items-center justify-content-center"
-                style="height: 120px; overflow: hidden; border-radius: 8px 8px 0 0;">
-                {% if model.sample_image %}
-                <img src="{{ model.sample_image.url }}" alt="{{ model.name }}" class="w-100 h-100 object-fit-cover">
-                {% else %}
-                <span class="text-muted small">No Image</span>
-                {% endif %}
+        <div class="card shadow-sm border-0 hover-up position-relative group" style="background: var(--color-card); overflow: visible !important;">
+            <!-- Action Dropdown (3 Dots) -->
+            <div class="position-absolute top-0 end-0 p-2" style="z-index: 300;">
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-light rounded-circle shadow-sm border opacity-0 transition-all card-hover-show" 
+                            type="button" data-bs-toggle="dropdown" aria-expanded="false" 
+                            data-bs-boundary="viewport"
+                            style="width: 26px; height: 26px; padding: 0; font-size: 0.8rem; background: white;">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-1 small" style="min-width: 120px;">
+                        <li>
+                            <a class="dropdown-item py-2" href="{% url 'model_edit' model.id %}">
+                                <i class="bi bi-pencil me-2 text-primary"></i> Edit
+                            </a>
+                        </li>
+                        <li><hr class="dropdown-divider my-1"></li>
+                        <li>
+                            <a class="dropdown-item py-2 text-danger fw-bold" href="{% url 'model_delete' model.id %}">
+                                <i class="bi bi-trash me-2"></i> Delete
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </div>
 
-            <div class="card-body p-2 text-center">
-                <h6 class="fw-bold text-dark mb-2">{{ model.name }}</h6>
-                <a href="{% url 'model_edit' model.id %}" class="btn btn-xs btn-outline-secondary w-100 py-1"
-                    style="font-size: 0.8rem;">
-                    Edit
-                </a>
+            <div class="card-body p-3 text-center d-flex align-items-center justify-content-center" style="min-height: 80px;">
+                <h6 class="fw-bold mb-0">{{ model.name }}</h6>
             </div>
         </div>
     </div>
@@ -49,4 +60,27 @@
     </div>
     {% endfor %}
 </div>
+
+<style>
+    .transition-all {
+        transition: all 0.2s ease-in-out;
+    }
+    .hover-up:hover {
+        transform: translateY(-2px);
+        z-index: 50 !important; /* Ensure hovered card (and its dropdown) stays on top */
+    }
+    
+    /* Hover-to-visible logic */
+    @media (min-width: 992px) {
+        .card:hover .card-hover-show {
+            opacity: 1 !important;
+        }
+    }
+    /* Always show on mobile/tablet since hover is touch */
+    @media (max-width: 991.98px) {
+        .card-hover-show {
+            opacity: 1 !important;
+        }
+    }
+</style>
 {% endblock %}

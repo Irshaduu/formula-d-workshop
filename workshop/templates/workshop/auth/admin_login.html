@@ -9,13 +9,15 @@
         <div class="card shadow-lg border-primary mt-5" style="border-width: 2px;">
             <div class="card-body p-4 bg-dark text-light rounded">
                 <h3 class="text-center mb-2"><i class="bi bi-diagram-3-fill text-primary"></i></h3>
-                <h4 class="text-center mb-4">HQ Admin Portal</h4>
-                <p class="text-center text-muted small mb-4">Authorized Owners Only. Mobile Verification Required.</p>
+                <h4 class="text-center mb-4">HQ Portal</h4>
 
                 {% if messages %}
                     {% for message in messages %}
-                        <div class="alert alert-{{ message.tags }} bg-danger text-white border-0">
-                            {{ message }}
+                        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} bg-danger text-white border-0 d-flex align-items-center">
+                            {% if message.tags == 'error' %}
+                                <i class="bi bi-exclamation-triangle-fill me-2 fs-5"></i>
+                            {% endif %}
+                            <div>{{ message }}</div>
                         </div>
                     {% endfor %}
                 {% endif %}
@@ -24,20 +26,20 @@
                     {% csrf_token %}
 
                     <div class="mb-3">
-                        <label for="id_username" class="form-label text-light">Username</label>
-                        <input type="text" name="username" class="form-control bg-secondary text-light border-dark" id="id_username" required autofocus>
+                        <label for="id_username" class="form-label text-light">HQ Number</label>
+                        <input type="tel" name="username" class="form-control bg-secondary text-light border-dark" id="id_username" required autofocus>
                     </div>
 
                     <div class="mb-4">
-                        <label for="id_password" class="form-label text-light">Password</label>
+                        <label for="id_password" class="form-label text-light">Pass</label>
                         <input type="password" name="password" class="form-control bg-secondary text-light border-dark" id="id_password" required>
                     </div>
 
                     <div class="d-grid mt-4">
-                        <button type="submit" class="btn btn-primary btn-lg fw-bold">Proceed to Verification</button>
+                        <button type="submit" class="btn btn-primary btn-lg fw-bold">Proceed</button>
                     </div>
                     <div class="text-center mt-3">
-                        <a href="{% url 'owner_forgot_password' %}" class="text-muted small">Forgot Password?</a>
+                        <a href="{% url 'owner_forgot_password' %}" class="text-muted small">Forgot Pass?</a>
                     </div>
                 </form>
             </div>

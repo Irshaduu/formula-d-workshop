@@ -1,19 +1,28 @@
-{% extends "base.html" %}
-{% block title %}Delete Model | Formula D{% endblock %}
+{% extends 'workshop/base.html' %}
+
+{% block title %}Delete Model{% endblock %}
 
 {% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6">
+        <div class="card shadow-lg border-danger mt-5" style="border-width: 2px;">
+            <div class="card-body p-4 text-center">
+                <i class="bi bi-exclamation-triangle-fill text-danger display-1 mb-4"></i>
+                <h4 class="mb-3">Delete Model?</h4>
+                <p class="text-muted mb-4">
+                    Are you sure you want to delete the model <strong>"{{ model.name }}"</strong> 
+                    of <strong>{{ model.brand.name }}</strong>?
+                </p>
 
-<h5>Delete Model</h5>
-
-<p>
-    Are you sure you want to delete
-    <strong>{{ model.brand.name }} {{ model.name }}</strong>?
-</p>
-
-<form method="post">
-    {% csrf_token %}
-    <button class="btn btn-danger">Yes, Delete</button>
-    <a href="{% url 'model_list' %}" class="btn btn-secondary">Cancel</a>
-</form>
-
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-danger btn-lg fw-bold">Yes, Delete Model</button>
+                        <a href="{% url 'brand_model_list' model.brand.id %}" class="btn btn-outline-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
