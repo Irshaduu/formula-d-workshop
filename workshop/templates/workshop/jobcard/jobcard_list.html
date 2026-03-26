@@ -33,8 +33,8 @@
                         <h5 class="card-title fw-bold mb-0 text-truncate"
                             style="letter-spacing: -0.5px; color: var(--color-primary);">
                             {% if job.car_color %}
-                            <span class="d-inline-block rounded-circle me-1" 
-                                  style="width: 10px; height: 10px; background-color: {{ job.get_car_color_hex }}; vertical-align: middle; border: 1px solid rgba(0,0,0,0.1); margin-top: -3px;"></span>
+                            <span class="d-inline-block rounded-1 me-2" 
+                                  style="width: 14px; height: 14px; background-color: {{ job.get_car_color_hex }}; vertical-align: middle; border: 1px solid rgba(0,0,0,0.1); margin-top: -3px;"></span>
                             {% endif %}
                             {{ job.brand_name }} {{ job.model_name }}
                         </h5>

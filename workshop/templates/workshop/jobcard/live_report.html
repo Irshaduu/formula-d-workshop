@@ -1,6 +1,6 @@
 {% extends 'workshop/base.html' %}
 
-{% block title %}Live Floor Report{% endblock %}
+{% block title %}Mini Report{% endblock %}
 
 {% block extra_css %}
 <style>
@@ -131,7 +131,7 @@
 
 {% block content %}
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h2 class="mb-0">Live Floor Report</h2>
+    <h5 class="mb-0 fw-bold">Mini Report</h5>
     <span class="badge bg-primary rounded-pill">{{ active_jobs.count }} Vehicles</span>
 </div>
 
@@ -144,8 +144,8 @@
                     <div class="car-info">
                         <!-- Color Indicator -->
                         {% if job.car_color %}
-                        <span class="d-inline-block rounded-circle me-1" 
-                              style="width: 12px; height: 12px; background-color: {{ job.get_car_color_hex }}; vertical-align: middle; border: 1px solid rgba(0,0,0,0.1); margin-top: -2px;"></span>
+                        <span class="d-inline-block rounded-1 me-2" 
+                              style="width: 15px; height: 15px; background-color: {{ job.get_car_color_hex }}; vertical-align: middle; border: 1px solid rgba(0,0,0,0.1); margin-top: -3px;"></span>
                         {% endif %}
                         <span class="me-2">{{ job.brand_name }} {{ job.model_name }}</span>
                         <span class="reg-tag">{{ job.registration_number }}</span>

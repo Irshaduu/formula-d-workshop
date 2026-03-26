@@ -35,7 +35,7 @@ def home(request):
     active_jobcards = JobCard.objects.filter(delivered=False).annotate(
         total_concerns=Count('concerns'),
         fixed_concerns=Count('concerns', filter=Q(concerns__status='FIXED'))
-    ).order_by('admitted_date')
+    ).order_by('-updated_at')
     
     # Count delivered today
     delivered_count = JobCard.objects.filter(
@@ -179,7 +179,7 @@ def live_report(request):
     SECTION 2.1: LIVE REPORT - Quick scroll for all roles.
     Shows active jobs, concerns, and spares status.
     """
-    active_jobs = JobCard.objects.filter(delivered=False).prefetch_related('concerns', 'spares')
+    active_jobs = JobCard.objects.filter(delivered=False).prefetch_related('concerns', 'spares').order_by('-updated_at')
     
     return render(request, 'workshop/jobcard/live_report.html', {
         'active_jobs': active_jobs,
