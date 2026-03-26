@@ -297,6 +297,11 @@ class JobCardConcern(models.Model):
     concern_text = models.TextField()
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='PENDING')
 
+    def save(self, *args, **kwargs):
+        if self.concern_text:
+            self.concern_text = self.concern_text.strip()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.concern_text[:50]} ({self.get_status_display()})"
 
@@ -325,6 +330,11 @@ class JobCardSpareItem(models.Model):
     shop_name = models.CharField(max_length=100, blank=True, null=True, help_text="Shop where part was ordered")
     ordered_date = models.DateField(blank=True, null=True, help_text="Auto-filled when status → ORDERED")
     received_date = models.DateField(blank=True, null=True, help_text="Auto-filled when status → RECEIVED")
+
+    def save(self, *args, **kwargs):
+        if self.spare_part_name:
+            self.spare_part_name = self.spare_part_name.strip()
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.spare_part_name} ({self.quantity})"

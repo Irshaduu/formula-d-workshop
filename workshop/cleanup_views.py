@@ -1,7 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
-from django.db.models import Count
-from django.db.models.functions import Lower
+from django.db.models import Count, Q
+from django.db.models.functions import Lower, Trim
 from .decorators import office_required
 from .models import SparePart, ConcernSolution, JobCardSpareItem, JobCardConcern
 
@@ -12,18 +12,20 @@ def data_cleanup_view(request):
     Data Cleanup Tool for Office/Owner.
     Optimized: uses 2 DB queries total via annotation instead of N+1 loop.
     """
-    # Build usage lookup in a single aggregated query
+    # Build usage lookup in a single aggregated query 
+    # Using Trim() + Lower() ensures "ABS " and "abs" are counted together
     spare_usage = {
-        item['spare_part_name_lower']: item['count']
+        item['spare_part_name_clean']: item['count']
         for item in JobCardSpareItem.objects.annotate(
-            spare_part_name_lower=Lower('spare_part_name')
-        ).values('spare_part_name_lower').annotate(count=Count('id'))
+            spare_part_name_clean=Lower(Trim('spare_part_name'))
+        ).values('spare_part_name_clean').annotate(count=Count('id'))
     }
+    # Build concern usage lookup
     concern_usage = {
-        item['concern_text_lower']: item['count']
+        item['concern_text_clean']: item['count']
         for item in JobCardConcern.objects.annotate(
-            concern_text_lower=Lower('concern_text')
-        ).values('concern_text_lower').annotate(count=Count('id'))
+            concern_text_clean=Lower(Trim('concern_text'))
+        ).values('concern_text_clean').annotate(count=Count('id'))
     }
 
     # Attach usage counts from the lookup dict (no extra DB hits)

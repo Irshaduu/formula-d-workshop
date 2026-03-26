@@ -134,19 +134,19 @@ def jobcard_create(request):
                 saved_spares = spare_formset.save()
                 labour_formset.save()
                 
-                # Auto-learn: Add new concerns to master lists
+                # Auto-learn: Add new concerns to master lists (Case-Insensitive)
                 for concern in saved_concerns:
-                    if concern.concern_text and concern.concern_text.strip():
-                        ConcernSolution.objects.get_or_create(
-                            concern=concern.concern_text.strip()
-                        )
+                    if concern.concern_text:
+                        text = concern.concern_text.strip()
+                        if text and not ConcernSolution.objects.filter(concern__iexact=text).exists():
+                            ConcernSolution.objects.create(concern=text)
                 
-                # Auto-learn: Add new spare parts to master lists
+                # Auto-learn: Add new spare parts to master lists (Case-Insensitive)
                 for spare in saved_spares:
-                    if spare.spare_part_name and spare.spare_part_name.strip():
-                        SparePart.objects.get_or_create(
-                            name=spare.spare_part_name.strip()
-                        )
+                    if spare.spare_part_name:
+                        name = spare.spare_part_name.strip()
+                        if name and not SparePart.objects.filter(name__iexact=name).exists():
+                            SparePart.objects.create(name=name)
                 
                 messages.success(request, f'Job card for {jobcard.registration_number} created successfully!')
                 return redirect('jobcard_edit', pk=jobcard.pk)
@@ -223,19 +223,19 @@ def jobcard_edit(request, pk):
             saved_spares = spare_formset.save()
             labour_formset.save()
             
-            # Auto-learn: Add new concerns to master lists
+            # Auto-learn: Add new concerns to master lists (Case-Insensitive)
             for concern in saved_concerns:
-                if concern.concern_text and concern.concern_text.strip():
-                    ConcernSolution.objects.get_or_create(
-                        concern=concern.concern_text.strip()
-                    )
+                if concern.concern_text:
+                    text = concern.concern_text.strip()
+                    if text and not ConcernSolution.objects.filter(concern__iexact=text).exists():
+                        ConcernSolution.objects.create(concern=text)
             
-            # Auto-learn: Add new spare parts to master lists
+            # Auto-learn: Add new spare parts to master lists (Case-Insensitive)
             for spare in saved_spares:
-                if spare.spare_part_name and spare.spare_part_name.strip():
-                    SparePart.objects.get_or_create(
-                        name=spare.spare_part_name.strip()
-                    )
+                if spare.spare_part_name:
+                    name = spare.spare_part_name.strip()
+                    if name and not SparePart.objects.filter(name__iexact=name).exists():
+                        SparePart.objects.create(name=name)
             
             messages.success(request, f'Job card for {jobcard.registration_number} updated successfully!')
             return redirect('jobcard_edit', pk=jobcard.pk)

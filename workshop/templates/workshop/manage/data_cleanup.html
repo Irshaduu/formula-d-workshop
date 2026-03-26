@@ -148,16 +148,20 @@
                                     </div>
                                     <div class="modal-body">
                                         <div class="alert alert-warning py-2 small mb-2">
-                                            <i class="bi bi-exclamation-triangle-fill"></i> <strong>Caution:</strong> This will rename "{{ spare.name }}" on <strong>{{ spare.usage_count }} existing job cards</strong>.
+                                            <i class="bi bi-exclamation-triangle-fill"></i> <strong>Caution:</strong> This will rename "{{ spare.name }}" on <strong>{{ spare.usage_count }} existing job cards</strong>. This action <strong>cannot be undone</strong>.
                                         </div>
                                         <p class="small text-muted mb-2">
                                             If the new name exists, they will be <strong>merged</strong>.
                                         </p>
-                                        <form method="post" action="{% url 'cleanup_rename_spare' spare.id %}" onsubmit="return confirm('Confirm permanent update to all historical job cards?');">
+                                        <div class="alert alert-danger py-2 small mb-2 d-none merge-warning-box">
+                                            <i class="bi bi-intersect"></i> <strong>Merge Alert:</strong> This name already exists! Records will be joined. <strong>Cannot be undone.</strong>
+                                        </div>
+                                        <form method="post" action="{% url 'cleanup_rename_spare' spare.id %}">
                                             {% csrf_token %}
-                                            <input type="text" name="new_name" class="form-control mb-2"
+                                            <input type="text" name="new_name" class="form-control mb-2 rename-input-spare"
+                                                   data-original="{{ spare.name|lower }}"
                                                    value="{{ spare.name }}" required>
-                                            <button type="submit" class="btn btn-warning w-100 fw-bold">Rename & Update History</button>
+                                            <button type="submit" class="btn btn-warning w-100 fw-bold submit-btn">Rename & Update History</button>
                                         </form>
                                     </div>
                                 </div>
@@ -244,13 +248,18 @@
                                     </div>
                                     <div class="modal-body">
                                         <div class="alert alert-warning py-2 small mb-2">
-                                            <i class="bi bi-exclamation-triangle-fill"></i> <strong>Caution:</strong> This updates <strong>{{ concern.usage_count }} existing records</strong>.
+                                            <i class="bi bi-exclamation-triangle-fill"></i> <strong>Caution:</strong> This updates <strong>{{ concern.usage_count }} existing records</strong>. This action <strong>cannot be undone</strong>.
                                         </div>
                                         <p class="small text-muted mb-2">If the new text matches another entry, they'll be <strong>merged</strong>.</p>
-                                        <form method="post" action="{% url 'cleanup_rename_concern' concern.id %}" onsubmit="return confirm('Confirm permanent update to all historical job cards?');">
+                                        <div class="alert alert-danger py-2 small mb-2 d-none merge-warning-box">
+                                            <i class="bi bi-intersect"></i> <strong>Merge Alert:</strong> This exact concern already exists! Records will be joined. <strong>Cannot be undone.</strong>
+                                        </div>
+                                        <form method="post" action="{% url 'cleanup_rename_concern' concern.id %}">
                                             {% csrf_token %}
-                                            <textarea name="new_name" class="form-control mb-2" rows="2" required>{{ concern.concern }}</textarea>
-                                            <button type="submit" class="btn btn-warning w-100 fw-bold">Rename & Update History</button>
+                                            <textarea name="new_name" class="form-control mb-2 rename-input-concern" 
+                                                      data-original="{{ concern.concern|lower }}"
+                                                      rows="2" required>{{ concern.concern }}</textarea>
+                                            <button type="submit" class="btn btn-warning w-100 fw-bold submit-btn">Rename & Update History</button>
                                         </form>
                                     </div>
                                 </div>
@@ -300,6 +309,52 @@
                 setTimeout(function () { real.style.opacity = '1'; }, 20);
             }, 300);
         }, 100);
+
+        // --- MERGE DETECTION LOGIC ---
+        // Prepare lists of existing names for instant lookup
+        const existingSpares = [{% for s in spares %}"{{ s.name|lower|escapejs }}",{% endfor %}];
+        const existingConcerns = [{% for c in concerns %}"{{ c.concern|lower|escapejs }}",{% endfor %}];
+
+        function handleMergeCheck(inputClass, existingList) {
+            document.querySelectorAll(inputClass).forEach(input => {
+                const form = input.closest('form');
+                let isMerge = false;
+
+                input.addEventListener('input', function() {
+                    const val = this.value.trim().toLowerCase();
+                    const original = this.getAttribute('data-original');
+                    const modalBody = this.closest('.modal-body');
+                    const alertBox = modalBody.querySelector('.merge-warning-box');
+                    const submitBtn = modalBody.querySelector('.submit-btn');
+
+                    // If typed name exists in list AND it's not its own original name
+                    if (val && val !== original && existingList.includes(val)) {
+                        isMerge = true;
+                        alertBox.classList.remove('d-none');
+                        submitBtn.classList.replace('btn-warning', 'btn-danger');
+                        submitBtn.textContent = "MERGE & UPDATE HISTORY";
+                    } else {
+                        isMerge = false;
+                        alertBox.classList.add('d-none');
+                        submitBtn.classList.replace('btn-danger', 'btn-warning');
+                        submitBtn.textContent = "Rename & Update History";
+                    }
+                });
+
+                form.addEventListener('submit', function(e) {
+                    const msg = isMerge 
+                        ? "CAUTION: This name already exists. This will PERMANENTLY MERGE these records into the existing one. Continue?"
+                        : "Confirm permanent update to all historical job cards?";
+                    
+                    if (!confirm(msg)) {
+                        e.preventDefault();
+                    }
+                });
+            });
+        }
+
+        handleMergeCheck('.rename-input-spare', existingSpares);
+        handleMergeCheck('.rename-input-concern', existingConcerns);
     });
 </script>
 {% endblock %}

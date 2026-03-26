@@ -1,54 +1,47 @@
-# Formula D Workshop Management System
+# WorkshopOS - Workshop Management System
 
-A comprehensive Django-based workshop management system designed to streamline automotive service operations. Manage job cards, inventory, customer vehicles, and invoicing all in one platform.
+A premium, comprehensive Django-based workshop management system designed to streamline automotive service operations. Manage job cards, inventory, customer vehicles, and invoicing all in one professional platform.
 
 ## Features
 
+### Role-Based Access Control (RBAC)
+- **Multi-Tenant Permissions** - Dedicated access levels for **Owner**, **Office**, and **Floor (Mechanic)** roles.
+- **Secure Admin Hub** - OTP-protected login for Owners and restricted management views.
+- **Role-specific UI** - Dynamic navigation and information visibility based on user groups.
+
 ### Job Card Management
-- **Digital Job Cards** - Create and manage service records with customer details, vehicle information, and work performed
-- **Customer Concerns Tracking** - Document and track customer-reported issues with status updates (Pending/Working/Fixed)
-- **Spare Parts Integration** - Add parts used with quantities, pricing, and availability status
-- **Labour Tracking** - Record services performed with costs
-- **Auto-Learning Database** - System automatically adds new concerns and spare parts to master data for future suggestions
+- **Digital Job Cards** - Create and manage service records with customer details, vehicle information, and work performed.
+- **Real-time Status Tracking** - Progress bars and visual status cues on the "Live Report" dashboard.
+- **Auto-Learning Database** - System automatically captures new concerns and spare parts for future smart-suggestions (Case-insensitive & Whitespace Normalized).
+- **Safety Hardened** - Double-confirmation modals for renames and deletes, and Dynamic Merge Alerts to protect historical data.
 
-### Dashboard & Workflow
-- **Real-time Dashboard** - View all active vehicles in the workshop with progress tracking
-- **Status Indicators** - Visual cues for on-hold jobs and delivery readiness
-- **Delivery Management** - Mark jobs as delivered with automatic date stamping
-- **Date Filtering** - Filter delivered vehicles by time period (today, week, month, year, custom range)
-- **Role-based Access** - Different permissions for admin users and workshop staff
+### Inventory System
+- **Stock Management** - Track parts and consumables with low-stock alerts and percentage-based color coding.
+- **Consumption Tracking** - Automatically record part usage from job cards.
+- **Category Organization** - Group inventory items for easier management and restocking.
 
-### Invoice Generation
-- **Professional Invoices** - Auto-generated invoices with itemized breakdown
-- **PDF Export** - Print-ready invoice format with company branding
-- **Automatic Billing Numbers** - Sequential billing number generation (e.g., JB-26-001)
-- **Cost Calculations** - Automatic totals for parts, labour, and overall costs
+### Dashboard & Layout
+- **Live Report Dashboard** - High-visibility "Floor" view for mechanics and "Live Report" for office staff.
+- **Mobile Optimized** - Premium responsive design with a native-app feel and bottom navigation on mobile.
+- **Skeleton Loading** - Professional shimmer animations for a smooth, high-performance user experience.
 
-### Inventory & Master Data
-- **Car Brands & Models** - Maintain database of vehicle makes and models
-- **Spare Parts Library** - Master list of available parts with autocomplete
-- **Concerns & Solutions** - Knowledge base of common issues and fixes
-- **Smart Suggestions** - Brand-filtered model suggestions and concern/parts autocomplete
-
-### User Experience
-- **Dark/Light Theme** - Automatic theme switching based on system preferences
-- **Mobile Responsive** - Works seamlessly on desktop, tablet, and mobile devices
-- **Toast Notifications** - Non-intrusive success messages that auto-dismiss
-- **Professional UI** - Clean, modern interface with intuitive navigation
+### Invoice & Billing
+- **Professional Invoices** - Auto-generated, itemized invoices with company branding.
+- **Cost Analytics** - Automatic calculations for parts, labour, and tax.
+- **Sequential Billing** - Standardized billing numbers (e.g., WOS-26-001).
 
 ## Tech Stack
 
-- **Backend**: Django 4.2+
-- **Database**: SQLite (development) / PostgreSQL (production-ready)
-- **Frontend**: Bootstrap 5, Vanilla JavaScript
-- **Authentication**: Django's built-in auth system
-- **File Handling**: Django media files for images
+- **Backend**: Python 3.13 / Django 5.2.12 LTS
+- **Database**: SQLite (personal backup enabled) / PostgreSQL (production)
+- **Frontend**: Bootstrap 5, Vanilla JavaScript, CSS3
+- **Security**: python-decouple for environment variables, role-based decorators, OTP Auth.
 
 ## Installation
 
 ### Prerequisites
-- Python 3.8+
-- pip (Python package manager)
+- Python 3.13+
+- pip
 
 ### Setup
 
@@ -70,10 +63,8 @@ A comprehensive Django-based workshop management system designed to streamline a
    ```
 
 4. **Configure environment**
-   ```bash
-   cp .env.example .env
-   # Edit .env with your settings
-   ```
+   - Rename `.env.example` to `.env`
+   - Set your `SECRET_KEY`, `DEBUG`, and `TIME_ZONE="Asia/Kolkata"`.
 
 5. **Run migrations**
    ```bash
@@ -90,75 +81,26 @@ A comprehensive Django-based workshop management system designed to streamline a
    python manage.py runserver
    ```
 
-8. **Access the application**
-   - Open browser to `http://127.0.0.1:8000`
-   - Admin panel: `http://127.0.0.1:8000/admin`
-
-## Usage
-
-### For Workshop Staff
-- Create job cards for incoming vehicles
-- Update job status and add work performed
-- Mark vehicles as delivered when ready
-
-### For Administrators
-- Access full dashboard with delivery controls
-- Manage master data (brands, models, parts, concerns)
-- Generate and view invoices
-- Manage user accounts and permissions
-
 ## Project Structure
 
 ```
-formulad_workshop/
-├── workshop/               # Main application
-│   ├── models.py          # Database models
-│   ├── views.py           # View logic
-│   ├── forms.py           # Django forms
-│   ├── urls.py            # URL routing
-│   ├── templates/         # HTML templates
-│   ├── static/            # CSS, JS, images
-│   └── migrations/        # Database migrations
-├── formulad_workshop/     # Project settings
-├── static/                # Collected static files
-├── media/                 # User uploaded files
-├── requirements.txt       # Python dependencies
-└── manage.py             # Django management script
+WorkshopOS/
+├── workshop/               # Core application (Job cards, Auth, Management)
+├── inventory/              # Inventory & Stock management app
+├── formulad_workshop/      # Project configuration & settings
+├── static/                 # Global assets & collected static files
+├── media/                  # User uploaded vehicle images/profiles
+├── requirements.txt        # Python dependencies
+└── manage.py               # Django management script
 ```
 
-## Key Models
-
-- **JobCard** - Service records with customer and vehicle details
-- **JobCardConcern** - Customer-reported issues per job card
-- **JobCardSpare** - Parts used in each job
-- **JobCardLabour** - Services performed
-- **CarBrand** / **CarModel** - Vehicle make/model database
-- **SparePart** - Master parts inventory
-- **ConcernSolution** - Knowledge base of common issues
-- **CarProfile** - Vehicle history and profiles
-
-## Configuration
-
-Key settings in `.env`:
-- `SECRET_KEY` - Django secret key
-- `DEBUG` - Debug mode (set to False in production)
-- `ALLOWED_HOSTS` - Comma-separated list of allowed hostnames
-- Database configuration (if using PostgreSQL)
-
-## Contributing
-
-This is a production workshop management system. For feature requests or bug reports, please contact the development team.
-
-## License
-
-Proprietary - All rights reserved
-
-## Support
-
-For technical support or feature requests, contact the system administrator.
+## Maintenance & Optimization
+- **Database Optimization** - Aggregate queries used to prevent N+1 performance bottlenecks.
+- **Log Rotation** - Automatic error log rotation (5MB limit, 5-file history).
+- **Security** - Custom decorators protect sensitive administrative routes.
 
 ---
 
-**Version**: 2.0  
-**Last Updated**: January 2026  
-**Status**: Production
+**Version**: 3.0  
+**Last Updated**: March 2026  
+**Status**: Production Ready

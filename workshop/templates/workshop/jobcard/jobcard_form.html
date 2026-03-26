@@ -286,7 +286,6 @@
                 }
             </style>
 
-            <!-- Compact Color JS -->
             <script>
                 document.addEventListener('DOMContentLoaded', function() {
                     const colorDots = document.querySelectorAll('.color-dot-item');
@@ -304,7 +303,7 @@
                             
                             if (val === 'Other') {
                                 // Trigger native color picker
-                                nativePicker.click();
+                                if (nativePicker) nativePicker.click();
                             } else {
                                 const hex = this.style.backgroundColor;
                                 updateColorSelection(val, hex);
@@ -313,25 +312,37 @@
                     });
 
                     // Listen for native color picker changes
-                    nativePicker.addEventListener('input', function() {
-                        const hex = this.value;
-                        updateColorSelection('Other', hex);
-                    });
+                    if (nativePicker) {
+                        nativePicker.addEventListener('input', function() {
+                            const hex = this.value;
+                            updateColorSelection('Other', hex);
+                        });
+                    }
 
                     function updateColorSelection(val, hex) {
                         // Update hidden fields
                         hiddenColorInput.value = val;
                         if (val === 'Other') {
-                            otherInput.value = hex;
+                            if (otherInput) otherInput.value = hex;
                         } else {
-                            otherInput.value = '';
+                            if (otherInput) otherInput.value = '';
                         }
 
                         // Update UI Trigger and Header
                         colorTrigger.style.backgroundColor = hex;
+                        
+                        // IMPORTANT: Remove rainbow-dot class to allow background-color to show!
+                        if (val) {
+                            colorTrigger.classList.remove('rainbow-dot');
+                        } else {
+                            // If clearing color (if we ever allow it), re-add rainbow-dot
+                            colorTrigger.classList.add('rainbow-dot');
+                        }
+
                         if (headerDot) {
                             headerDot.style.backgroundColor = hex;
                             headerDot.classList.remove('d-none');
+                            headerDot.classList.remove('rainbow-dot');
                         }
 
                         // Close dropdown (Bootstrap)
@@ -351,39 +362,6 @@
                         if (activeDot) {
                              activeDot.classList.add('active');
                         }
-                    }
-
-                    colorDots.forEach(dot => {
-                        dot.addEventListener('click', function() {
-                            const val = this.getAttribute('data-value');
-                            hiddenColorSelect.value = val;
-                            
-                            // Visual update
-                            colorDots.forEach(d => d.classList.remove('active'));
-                            this.classList.add('active');
-                            
-                            updateUI(val, this.style.backgroundColor);
-                            
-                            // Trigger change
-                            hiddenColorSelect.dispatchEvent(new Event('change'));
-                        });
-                    });
-
-                    if (otherToggle) {
-                        otherToggle.addEventListener('click', function() {
-                            hiddenColorSelect.value = 'Other';
-                            colorDots.forEach(d => d.classList.remove('active'));
-                            updateUI('Other', '#CED4DA');
-                        });
-                    }
-
-                    if (clearOther) {
-                        clearOther.addEventListener('click', function() {
-                            otherInput.value = '';
-                            hiddenColorSelect.value = '';
-                            colorDots.forEach(d => d.classList.remove('active'));
-                            updateUI('', '#CED4DA');
-                        });
                     }
                 });
             </script>
