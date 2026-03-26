@@ -1,6 +1,7 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.db.models import Count
+from django.db.models.functions import Lower
 from .decorators import office_required
 from .models import SparePart, ConcernSolution, JobCardSpareItem, JobCardConcern
 
@@ -9,21 +10,30 @@ from .models import SparePart, ConcernSolution, JobCardSpareItem, JobCardConcern
 def data_cleanup_view(request):
     """
     Data Cleanup Tool for Office/Owner.
-    Shows all spare parts and concerns with their usage counts.
+    Optimized: uses 2 DB queries total via annotation instead of N+1 loop.
     """
-    # Spare Parts: attach usage count directly onto each object
+    # Build usage lookup in a single aggregated query
+    spare_usage = {
+        item['spare_part_name_lower']: item['count']
+        for item in JobCardSpareItem.objects.annotate(
+            spare_part_name_lower=Lower('spare_part_name')
+        ).values('spare_part_name_lower').annotate(count=Count('id'))
+    }
+    concern_usage = {
+        item['concern_text_lower']: item['count']
+        for item in JobCardConcern.objects.annotate(
+            concern_text_lower=Lower('concern_text')
+        ).values('concern_text_lower').annotate(count=Count('id'))
+    }
+
+    # Attach usage counts from the lookup dict (no extra DB hits)
     spares = list(SparePart.objects.all().order_by('name'))
     for spare in spares:
-        spare.usage_count = JobCardSpareItem.objects.filter(
-            spare_part_name__iexact=spare.name
-        ).count()
+        spare.usage_count = spare_usage.get(spare.name.lower(), 0)
 
-    # Concerns: attach usage count directly onto each object
     concerns = list(ConcernSolution.objects.all().order_by('concern'))
     for concern in concerns:
-        concern.usage_count = JobCardConcern.objects.filter(
-            concern_text__iexact=concern.concern
-        ).count()
+        concern.usage_count = concern_usage.get(concern.concern.lower(), 0)
 
     return render(request, 'workshop/manage/data_cleanup.html', {
         'spares': spares,

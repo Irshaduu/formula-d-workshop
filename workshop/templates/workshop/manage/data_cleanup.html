@@ -2,6 +2,31 @@
 
 {% block title %}Parts & Concerns{% endblock %}
 
+{% block extra_css %}
+<style>
+    /* Skeleton shimmer animation */
+    @keyframes shimmer {
+        0% { background-position: -600px 0; }
+        100% { background-position: 600px 0; }
+    }
+    .skeleton-box {
+        background: linear-gradient(90deg, var(--color-card, #1e2530) 30%, rgba(255,255,255,0.06) 50%, var(--color-card, #1e2530) 70%);
+        background-size: 600px 100%;
+        animation: shimmer 1.4s infinite linear;
+        border-radius: 6px;
+        display: block;
+    }
+    .skeleton-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    #content-real { display: none; }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid py-3" style="max-width: 960px;">
 
@@ -22,6 +47,32 @@
     </div>
     {% endif %}
 
+    <!-- SKELETON LOADER (shown instantly, hidden after content loads) -->
+    <div id="content-skeleton">
+        <div class="row g-4">
+            {% for col in "12" %}
+            <div class="col-12 col-lg-6">
+                <div class="card shadow-sm border-0">
+                    <div class="card-header py-3 d-flex justify-content-between align-items-center">
+                        <span class="skeleton-box" style="width:140px; height:18px;"></span>
+                        <span class="skeleton-box" style="width:60px; height:18px;"></span>
+                    </div>
+                    <div class="card-body p-0">
+                        {% for i in "12345678" %}
+                        <div class="skeleton-row">
+                            <span class="skeleton-box" style="width:55%; height:14px;"></span>
+                            <span class="skeleton-box" style="width:20%; height:14px;"></span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- REAL CONTENT (hidden until JS reveals it) -->
+    <div id="content-real">
     <div class="row g-4">
 
         <!-- ================================================ -->
@@ -56,16 +107,36 @@
                                         <i class="bi bi-pencil"></i>
                                     </button>
                                     <!-- Delete -->
-                                    <form method="post" action="{% url 'cleanup_delete_spare' spare.id %}"
-                                          onsubmit="return confirm('Delete \'{{ spare.name }}\'? This only removes it from the master list, not from existing job cards.');">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
+                                    <button class="btn btn-sm btn-outline-danger"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#deleteSpare{{ spare.id }}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
                                 </div>
                             </div>
                         </li>
+
+                        <!-- Delete Confirmation Modal -->
+                        <div class="modal fade" id="deleteSpare{{ spare.id }}" tabindex="-1">
+                            <div class="modal-dialog modal-sm">
+                                <div class="modal-content border-danger shadow">
+                                    <div class="modal-header py-2 bg-danger text-white">
+                                        <h6 class="modal-title">Confirm Deletion</h6>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body text-center">
+                                        <p class="mb-3">Delete <strong>{{ spare.name }}</strong>?</p>
+                                        <div class="alert alert-info py-2 small mb-3 text-start">
+                                            <i class="bi bi-info-circle-fill"></i> This only removes it from the <strong>master list</strong>. Existing job cards keep this data.
+                                        </div>
+                                        <form method="post" action="{% url 'cleanup_delete_spare' spare.id %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger w-100 fw-bold">Permanently Delete</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                         <!-- Rename Modal -->
                         <div class="modal fade" id="renameSpare{{ spare.id }}" tabindex="-1">
@@ -76,15 +147,17 @@
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
                                     <div class="modal-body">
+                                        <div class="alert alert-warning py-2 small mb-2">
+                                            <i class="bi bi-exclamation-triangle-fill"></i> <strong>Caution:</strong> This will rename "{{ spare.name }}" on <strong>{{ spare.usage_count }} existing job cards</strong>.
+                                        </div>
                                         <p class="small text-muted mb-2">
-                                            Current: <strong>{{ spare.name }}</strong><br>
-                                            If the new name already exists, they will be <strong>merged</strong>.
+                                            If the new name exists, they will be <strong>merged</strong>.
                                         </p>
-                                        <form method="post" action="{% url 'cleanup_rename_spare' spare.id %}">
+                                        <form method="post" action="{% url 'cleanup_rename_spare' spare.id %}" onsubmit="return confirm('Confirm permanent update to all historical job cards?');">
                                             {% csrf_token %}
                                             <input type="text" name="new_name" class="form-control mb-2"
                                                    value="{{ spare.name }}" required>
-                                            <button type="submit" class="btn btn-primary w-100">Save / Merge</button>
+                                            <button type="submit" class="btn btn-warning w-100 fw-bold">Rename & Update History</button>
                                         </form>
                                     </div>
                                 </div>
@@ -129,16 +202,37 @@
                                             data-bs-target="#renameConcern{{ concern.id }}">
                                         <i class="bi bi-pencil"></i>
                                     </button>
-                                    <form method="post" action="{% url 'cleanup_delete_concern' concern.id %}"
-                                          onsubmit="return confirm('Delete this concern from the master list?');">
-                                        {% csrf_token %}
-                                        <button type="submit" class="btn btn-sm btn-outline-danger">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </form>
+                                    <!-- Delete -->
+                                    <button class="btn btn-sm btn-outline-danger"
+                                            data-bs-toggle="modal"
+                                            data-bs-target="#deleteConcern{{ concern.id }}">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
                                 </div>
                             </div>
                         </li>
+
+                        <!-- Delete Concern Modal -->
+                        <div class="modal fade" id="deleteConcern{{ concern.id }}" tabindex="-1">
+                            <div class="modal-dialog modal-sm">
+                                <div class="modal-content border-danger shadow">
+                                    <div class="modal-header py-2 bg-danger text-white">
+                                        <h6 class="modal-title">Confirm Deletion</h6>
+                                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <div class="modal-body text-center">
+                                        <p class="mb-3">Delete this concern?</p>
+                                        <div class="alert alert-info py-2 small mb-3 text-start">
+                                            <i class="bi bi-info-circle-fill"></i> This only removes it from the <strong>master list</strong>. Existing records stay.
+                                        </div>
+                                        <form method="post" action="{% url 'cleanup_delete_concern' concern.id %}">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-danger w-100 fw-bold">Permanently Delete</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
 
                         <!-- Rename Concern Modal -->
                         <div class="modal fade" id="renameConcern{{ concern.id }}" tabindex="-1">
@@ -149,11 +243,14 @@
                                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                                     </div>
                                     <div class="modal-body">
+                                        <div class="alert alert-warning py-2 small mb-2">
+                                            <i class="bi bi-exclamation-triangle-fill"></i> <strong>Caution:</strong> This updates <strong>{{ concern.usage_count }} existing records</strong>.
+                                        </div>
                                         <p class="small text-muted mb-2">If the new text matches another entry, they'll be <strong>merged</strong>.</p>
-                                        <form method="post" action="{% url 'cleanup_rename_concern' concern.id %}">
+                                        <form method="post" action="{% url 'cleanup_rename_concern' concern.id %}" onsubmit="return confirm('Confirm permanent update to all historical job cards?');">
                                             {% csrf_token %}
                                             <textarea name="new_name" class="form-control mb-2" rows="2" required>{{ concern.concern }}</textarea>
-                                            <button type="submit" class="btn btn-primary w-100">Save / Merge</button>
+                                            <button type="submit" class="btn btn-warning w-100 fw-bold">Rename & Update History</button>
                                         </form>
                                     </div>
                                 </div>
@@ -183,5 +280,26 @@
         </a>
     </div>
 
+    </div><!-- end #content-real -->
+
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const skeleton = document.getElementById('content-skeleton');
+        const real = document.getElementById('content-real');
+        // Slight delay to make the transition feel polished, not jarring
+        setTimeout(function () {
+            skeleton.style.transition = 'opacity 0.3s ease';
+            skeleton.style.opacity = '0';
+            setTimeout(function () {
+                skeleton.style.display = 'none';
+                real.style.display = 'block';
+                real.style.opacity = '0';
+                real.style.transition = 'opacity 0.3s ease';
+                setTimeout(function () { real.style.opacity = '1'; }, 20);
+            }, 300);
+        }, 100);
+    });
+</script>
 {% endblock %}
