@@ -115,7 +115,7 @@ class JobCard(models.Model):
     
     # Dates
     admitted_date = models.DateField()
-    discharged_date = models.DateField(blank=True, null=True, help_text="Auto-filled when job is marked as delivered")
+    discharged_date = models.DateField(db_index=True, blank=True, null=True, help_text="Auto-filled when job is marked as delivered")
     
     # Delivery Status (separate from planning date)
     delivered = models.BooleanField(default=False, help_text="Actually delivered (marked via Delivered button)")
@@ -127,7 +127,7 @@ class JobCard(models.Model):
     # Vehicle Details (Text fields with Autocomplete)
     brand_name = models.CharField(max_length=100)
     model_name = models.CharField(max_length=100)
-    registration_number = models.CharField(max_length=50)
+    registration_number = models.CharField(max_length=50, db_index=True)
     mileage = models.CharField(max_length=20, blank=True, null=True, help_text="e.g. 50000 or 50k")
 
     # NEW: Car Color
@@ -152,7 +152,7 @@ class JobCard(models.Model):
     car_color_other = models.CharField(max_length=100, blank=True, null=True, help_text="Specific color name if 'Other' is selected")
 
     # Customer Details
-    customer_name = models.CharField(max_length=150, blank=True, null=True)
+    customer_name = models.CharField(max_length=150, db_index=True, blank=True, null=True)
     customer_contact = models.CharField(max_length=20, blank=True, null=True)
 
     # Assignment
