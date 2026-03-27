@@ -3,48 +3,53 @@
 {% block title %}Delivered Vehicles{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2>Delivered Vehicles</h2>
-        <div class="d-flex gap-2 align-items-center">
+<div class="inventory-dark-wrapper" style="background: transparent; padding: 0;">
+    <div class="d-flex justify-content-between align-items-center mb-4 gap-3">
+        <h1 class="mb-0 fw-bold h4">Delivered Vehicles</h1>
+        
+        <!-- Tiny Search -->
+        <div class="flex-grow-1" style="max-width: 400px;">
+            <div class="position-relative">
+                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted opacity-50"></i>
+                <input type="text" id="deliveredSearch" class="form-control form-control-lg border-0 shadow-sm ps-5" 
+                    placeholder="Search Registration, Brand, or Customer..." 
+                    style="border-radius: 999px; background: var(--color-card); font-size: 0.85rem;" 
+                    value="{{ q }}">
+            </div>
+        </div>
+
+        <div class="d-flex gap-2">
             <!-- Date Filter Dropdown -->
             <div class="dropdown">
-                <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button"
-                    data-bs-toggle="dropdown">
+                <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center gap-2 px-3 py-2 border-0 shadow-sm" type="button"
+                    data-bs-toggle="dropdown" style="border-radius: 999px; background: var(--color-card);">
                     <i class="bi bi-funnel"></i>
-                    {% if filter_type == 'today' %}Today
-                    {% elif filter_type == 'week' %}1 Week
-                    {% elif filter_type == 'month' %}1 Month
-                    {% elif filter_type == 'year' %}1 Year
-                    {% elif filter_type == 'custom' %}Custom
-                    {% else %}All{% endif %}
+                    <span id="filterLabel">
+                        {% if filter_type == 'today' %}Today
+                        {% elif filter_type == 'week' %}1 Week
+                        {% elif filter_type == 'month' %}1 Month
+                        {% elif filter_type == 'year' %}1 Year
+                        {% elif filter_type == 'custom' %}Custom
+                        {% else %}All{% endif %}
+                    </span>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item {% if filter_type == 'today' %}active{% endif %}"
-                            href="?filter=today">Today</a></li>
-                    <li><a class="dropdown-item {% if filter_type == 'week' %}active{% endif %}" href="?filter=week">1
-                            Week</a></li>
-                    <li><a class="dropdown-item {% if filter_type == 'month' %}active{% endif %}" href="?filter=month">1
-                            Month</a></li>
-                    <li><a class="dropdown-item {% if filter_type == 'year' %}active{% endif %}" href="?filter=year">1
-                            Year</a></li>
-                    <li><a class="dropdown-item {% if filter_type == 'all' %}active{% endif %}"
-                            href="?filter=all">All</a></li>
+                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-2" style="border-radius: 16px;">
+                    <li><a class="dropdown-item py-2 px-3 {% if filter_type == 'today' %}active{% endif %}" href="?filter=today">Today</a></li>
+                    <li><a class="dropdown-item py-2 px-3 {% if filter_type == 'week' %}active{% endif %}" href="?filter=week">1 Week</a></li>
+                    <li><a class="dropdown-item py-2 px-3 {% if filter_type == 'month' %}active{% endif %}" href="?filter=month">1 Month</a></li>
+                    <li><a class="dropdown-item py-2 px-3 {% if filter_type == 'year' %}active{% endif %}" href="?filter=year">1 Year</a></li>
+                    <li><a class="dropdown-item py-2 px-3 {% if filter_type == 'all' %}active{% endif %}" href="?filter=all">All</a></li>
+                    <li><hr class="dropdown-divider mx-3"></li>
                     <li>
-                        <hr class="dropdown-divider">
+                        <a class="dropdown-item py-2 px-3 {% if filter_type == 'custom' %}active{% endif %}" href="#" onclick="toggleCustomDatePicker(event)">Custom Range</a>
                     </li>
-                    <li>
-                        <a class="dropdown-item {% if filter_type == 'custom' %}active{% endif %}" href="#"
-                            onclick="toggleCustomDatePicker(event)">Custom</a>
-                    </li>
-                    <li id="customDatePicker"
-                        style="display: {% if filter_type == 'custom' %}block{% else %}none{% endif %};">
+                    <li id="customDatePicker" style="display: {% if filter_type == 'custom' %}block{% else %}none{% endif %};">
                         <div class="px-3 py-2">
-                            <form method="get" class="d-flex flex-column gap-2">
+                            <form method="get" class="d-flex flex-column gap-2" onsubmit="handleCustomDate(event)">
                                 <input type="hidden" name="filter" value="custom">
-                                <input type="date" name="start_date" class="form-control form-control-sm" required>
-                                <input type="date" name="end_date" class="form-control form-control-sm" required>
-                                <button type="submit" class="btn btn-primary btn-sm">Apply</button>
+                                <input type="date" name="start_date" id="start_date" class="form-control form-control-sm" required>
+                                <input type="date" name="end_date" id="end_date" class="form-control form-control-sm" required>
+                                <button type="submit" class="btn btn-primary btn-sm rounded-pill">Apply</button>
                             </form>
                         </div>
                     </li>
@@ -53,101 +58,158 @@
         </div>
     </div>
 
-    {% if delivered_jobcards %}
-    <div class="row g-3">
-        {% for jobcard in delivered_jobcards %}
-        <div class="col-12 col-md-6 col-lg-4">
-            <div class="card shadow-sm border-0 hover-up">
-                <div class="card-body">
-                    <h5 class="card-title">{{ jobcard.brand_name }} {{ jobcard.model_name }}</h5>
-                    <p class="mb-2">
-                        <span class="badge reg-badge">{{ jobcard.registration_number }}</span>
-                    </p>
-                    <p class="text-muted small mb-2">
-                        <i class="bi bi-person"></i> {{ jobcard.customer_name|default:"No name" }}
-                    </p>
-                    <p class="text-muted small mb-3">
-                        <i class="bi bi-calendar-check"></i> Delivered: {{ jobcard.discharged_date|date:"d M Y" }}
-                    </p>
-
-                    <div class="d-flex gap-2">
-                        <a href="{% url 'jobcard_edit' jobcard.pk %}" class="btn btn-sm btn-outline-primary flex-fill">
-                            <i class="bi bi-eye"></i> View
-                        </a>
-                        <form method="post" action="{% url 'undo_delivered' jobcard.pk %}" class="flex-fill">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-sm btn-outline-secondary w-100"
-                                onclick="return confirm('Move this car back to active workshop?');">
-                                <i class="bi bi-arrow-counterclockwise"></i> Undo
-                            </button>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-        {% endfor %}
+    <!-- Results Container -->
+    <div id="resultsContainer">
+        {% include "workshop/delivered/delivered_list_partial.html" %}
     </div>
-
-    <!-- Pagination Controls -->
-    {% if delivered_jobcards.has_other_pages %}
-    <div class="mt-4 d-flex justify-content-center">
-        <nav>
-            <ul class="pagination pagination-sm mb-0 shadow-sm">
-                <!-- PREV BUTTON -->
-                {% if delivered_jobcards.has_previous %}
-                <li class="page-item">
-                    <a class="page-link text-primary" href="?page={{ delivered_jobcards.previous_page_number }}{% if filter_type %}&filter={{ filter_type }}{% endif %}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}">&laquo; Prev</a>
-                </li>
-                {% else %}
-                <li class="page-item disabled"><span class="page-link">&laquo; Prev</span></li>
-                {% endif %}
-                
-                <!-- CURRENT PAGE -->
-                <li class="page-item disabled"><span class="page-link text-muted fw-bold">Page {{ delivered_jobcards.number }} of {{ delivered_jobcards.paginator.num_pages }}</span></li>
-                
-                <!-- NEXT BUTTON -->
-                {% if delivered_jobcards.has_next %}
-                <li class="page-item">
-                    <a class="page-link text-primary" href="?page={{ delivered_jobcards.next_page_number }}{% if filter_type %}&filter={{ filter_type }}{% endif %}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}">Next &raquo;</a>
-                </li>
-                {% else %}
-                <li class="page-item disabled"><span class="page-link">Next &raquo;</span></li>
-                {% endif %}
-            </ul>
-        </nav>
-    </div>
-    {% endif %}
-
-    {% else %}
-    <div class="text-center py-5">
-        <i class="bi bi-check-circle empty-state-icon"></i>
-        <p class="text-muted mt-3">No delivered vehicles yet</p>
-    </div>
-    {% endif %}
 </div>
 
 <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const input = document.getElementById('deliveredSearch');
+        const resultsContainer = document.getElementById('resultsContainer');
+        let currentFilter = '{{ filter_type }}';
+        let debounceTimer;
+
+        function updateResults(q, page = 1) {
+            const url = new URL(window.location.href);
+            url.searchParams.set('q', q);
+            url.searchParams.set('filter', currentFilter);
+            url.searchParams.set('page', page);
+
+            // Preserve custom date range if active
+            if (currentFilter === 'custom') {
+                const startDate = document.getElementById('start_date').value;
+                const endDate = document.getElementById('end_date').value;
+                if (startDate) url.searchParams.set('start_date', startDate);
+                if (endDate) url.searchParams.set('end_date', endDate);
+            } else {
+                url.searchParams.delete('start_date');
+                url.searchParams.delete('end_date');
+            }
+
+            // Update Label text
+            const labelMap = {
+                'today': 'Today',
+                'week': '1 Week',
+                'month': '1 Month',
+                'year': '1 Year',
+                'all': 'All',
+                'custom': 'Custom Range'
+            };
+            const label = document.getElementById('filterLabel');
+            if (label && labelMap[currentFilter]) {
+                label.textContent = labelMap[currentFilter];
+            }
+
+            // Sync Dropdown Active Class
+            document.querySelectorAll('.dropdown-menu a.dropdown-item').forEach(item => {
+                const href = item.getAttribute('href');
+                if (href && href.includes('filter=')) {
+                    const params = new URLSearchParams(href.split('?')[1]);
+                    if (params.get('filter') === currentFilter) {
+                        item.classList.add('active');
+                    } else {
+                        item.classList.remove('active');
+                    }
+                }
+            });
+
+            fetch(url, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newContent = doc.body.innerHTML;
+                resultsContainer.innerHTML = newContent;
+                
+                // Update URL without reload
+                window.history.pushState({}, '', url);
+            })
+            .catch(err => console.error('Search error:', err));
+        }
+
+        input.addEventListener('input', function() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => {
+                updateResults(this.value);
+            }, 300);
+        });
+
+        // Handle pagination clicks within the partial
+        resultsContainer.addEventListener('click', function(e) {
+            const link = e.target.closest('.page-link');
+            if (link && !link.parentElement.classList.contains('disabled')) {
+                e.preventDefault();
+                const url = new URL(link.href);
+                const page = url.searchParams.get('page');
+                const q = input.value || ''; // Get current search query
+                updateResults(q, page);
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+        });
+
+        // Update currentFilter when filter dropdown items are clicked
+        document.querySelectorAll('.dropdown-menu a.dropdown-item').forEach(item => {
+            item.addEventListener('click', function(e) {
+                const href = this.getAttribute('href');
+                if (href && href.includes('filter=')) {
+                    const params = new URLSearchParams(href.split('?')[1]);
+                    const newFilter = params.get('filter');
+                    
+                    if (newFilter && newFilter !== 'custom') { 
+                        e.preventDefault();
+                        currentFilter = newFilter;
+                        updateResults(input.value);
+                    }
+                }
+            });
+        });
+    });
+
     function toggleCustomDatePicker(event) {
         event.preventDefault();
         const picker = document.getElementById('customDatePicker');
         picker.style.display = (picker.style.display === 'none') ? 'block' : 'none';
     }
+
+    function handleCustomDate(event) {
+        event.preventDefault();
+        const startDate = document.getElementById('start_date').value;
+        const endDate = document.getElementById('end_date').value;
+        
+        if (startDate && endDate) {
+            currentFilter = 'custom';
+            // Explicitly call updateResults with current search and dates
+            updateResults(document.getElementById('deliveredSearch').value, 1);
+            
+            // Close the dropdown (Bootstrap 5 way)
+            const dropdown = bootstrap.Dropdown.getInstance(document.querySelector('.dropdown-toggle'));
+            if (dropdown) dropdown.hide();
+        }
+    }
 </script>
 
 <style>
-    /* Light mode fixes - add visible borders */
     .card {
         border: 1px solid var(--color-border) !important;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border-radius: 16px;
     }
-
-    /* Registration badge - ensure visibility in all modes */
+    .hover-up:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
+    }
     .reg-badge {
         background-color: var(--color-primary) !important;
         color: white !important;
-        border: 2px solid var(--color-primary) !important;
-        padding: 0.35rem 0.75rem !important;
+        padding: 0.25rem 0.6rem !important;
         font-weight: 700 !important;
-        letter-spacing: 1px !important;
+        font-size: 0.75rem !important;
+        letter-spacing: 0.5px !important;
+        border-radius: 6px;
     }
 </style>
 {% endblock %}

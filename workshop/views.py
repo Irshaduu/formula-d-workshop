@@ -299,21 +299,26 @@ def jobcard_delete(request, pk):
 @office_required
 def delivered_list(request):
     """
-    Show delivered vehicles with date range filtering.
-    Default: Today's deliveries
-    Options: today, week, month, year, all, custom
+    Show delivered vehicles with date range filtering and AJAX search.
     """
     from datetime import date, timedelta
     
-    # Get filter parameter (default to 'today')
-    filter_type = request.GET.get('filter', 'today')
-    
-    # Base queryset
+    # 1. Base Query
     delivered_jobcards = JobCard.objects.filter(delivered=True).order_by('-discharged_date')
     
-    # Apply date filters
-    today = date.today()
+    # 2. Apply AJAX Search Filters (Registration, Customer, Brand, Model)
+    q = request.GET.get('q', '').strip()
+    if q:
+        delivered_jobcards = delivered_jobcards.filter(
+            Q(registration_number__icontains=q) |
+            Q(customer_name__icontains=q) |
+            Q(brand_name__icontains=q) |
+            Q(model_name__icontains=q)
+        )
     
+    # 3. Apply Date Filters
+    filter_type = request.GET.get('filter', 'today')
+    today = date.today()
     if filter_type == 'today':
         delivered_jobcards = delivered_jobcards.filter(discharged_date=today)
     elif filter_type == 'week':
@@ -333,16 +338,23 @@ def delivered_list(request):
                 discharged_date__gte=start_date,
                 discharged_date__lte=end_date
             )
-    # 'all' - no filtering
     
-    paginator = Paginator(delivered_jobcards, 21)  # Show 21 deliveries per page (perfect 3-column grid)
+    # 4. Pagination
+    paginator = Paginator(delivered_jobcards, 21) 
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    return render(request, 'workshop/delivered/delivered_list.html', {
+    context = {
         'delivered_jobcards': page_obj,
         'filter_type': filter_type,
-    })
+        'q': q,
+    }
+    
+    # 5. AJAX Return Partial
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, 'workshop/delivered/delivered_list_partial.html', context)
+        
+    return render(request, 'workshop/delivered/delivered_list.html', context)
 
 @office_required
 def mark_delivered(request, pk):

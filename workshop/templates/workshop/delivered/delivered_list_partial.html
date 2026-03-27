@@ -1,0 +1,80 @@
+{% load static %}
+
+{% if delivered_jobcards %}
+<div class="row g-3">
+    {% for jobcard in delivered_jobcards %}
+    <div class="col-12 col-md-6 col-lg-4">
+        <div class="card shadow-sm border-0 hover-up">
+            <div class="card-body">
+                <h6 class="card-title fw-bold mb-2">{{ jobcard.brand_name }} {{ jobcard.model_name }}</h6>
+                <p class="mb-2">
+                    <span class="badge reg-badge">{{ jobcard.registration_number }}</span>
+                </p>
+                <div class="text-muted small mb-1">
+                    <i class="bi bi-person me-1"></i> {{ jobcard.customer_name|default:"No name" }}
+                </div>
+                <div class="text-muted small mb-3">
+                    <i class="bi bi-calendar-check me-1"></i> Delivered: {{ jobcard.discharged_date|date:"d M Y" }}
+                </div>
+
+                <div class="d-flex gap-2">
+                    <a href="{% url 'jobcard_edit' jobcard.pk %}" class="btn btn-sm btn-outline-primary flex-fill">
+                        <i class="bi bi-eye"></i> View
+                    </a>
+                    <form method="post" action="{% url 'undo_delivered' jobcard.pk %}" class="flex-fill">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-sm btn-outline-secondary w-100"
+                            onclick="return confirm('Move this car back to active workshop?');">
+                            <i class="bi bi-arrow-counterclockwise"></i> Undo
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination Controls -->
+{% if delivered_jobcards.has_other_pages %}
+<div class="mt-4 d-flex justify-content-center">
+    <nav>
+        <ul class="pagination pagination-sm mb-0 shadow-sm">
+            <!-- PREV BUTTON -->
+            {% if delivered_jobcards.has_previous %}
+            <li class="page-item">
+                <a class="page-link text-primary" href="?page={{ delivered_jobcards.previous_page_number }}{% if filter_type %}&filter={{ filter_type }}{% endif %}{% if q %}&q={{ q }}{% endif %}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}">&laquo; Prev</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">&laquo; Prev</span></li>
+            {% endif %}
+            
+            <!-- CURRENT PAGE -->
+            <li class="page-item disabled">
+                <span class="page-link text-muted fw-bold">
+                    {{ delivered_jobcards.number }} / {{ delivered_jobcards.paginator.num_pages }}
+                </span>
+            </li>
+            
+            <!-- NEXT BUTTON -->
+            {% if delivered_jobcards.has_next %}
+            <li class="page-item">
+                <a class="page-link text-primary" href="?page={{ delivered_jobcards.next_page_number }}{% if filter_type %}&filter={{ filter_type }}{% endif %}{% if q %}&q={{ q }}{% endif %}{% if request.GET.start_date %}&start_date={{ request.GET.start_date }}{% endif %}{% if request.GET.end_date %}&end_date={{ request.GET.end_date }}{% endif %}">Next &raquo;</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">Next &raquo;</span></li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endif %}
+
+{% else %}
+<div class="text-center py-5">
+    <i class="bi bi-search text-muted opacity-25" style="font-size: 3rem;"></i>
+    <p class="text-muted mt-3">No matching delivered vehicles found</p>
+    {% if q %}
+    <button onclick="document.getElementById('deliveredSearch').value=''; document.getElementById('deliveredSearch').dispatchEvent(new Event('input'));" class="btn btn-sm btn-link text-primary">Clear Search</button>
+    {% endif %}
+</div>
+{% endif %}
