@@ -168,6 +168,25 @@
         </a>
     </div>
 
+    <div class="search-container mb-4">
+        <div class="position-relative">
+            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
+            <input id="manageSearch" class="form-control border-0 shadow-sm ps-5" 
+                   type="text" placeholder="Search categories..." 
+                   style="border-radius: 12px; height: 48px; background: white;">
+        </div>
+    </div>
+
+    <!-- No results found placeholder -->
+    <div id="noResults" style="display: none; text-align: center; padding: 40px; color: var(--text-secondary);">
+        <i class="bi bi-search" style="font-size: 2.5rem; opacity: 0.3; display: block; margin-bottom: 10px;"></i>
+        <p style="font-size: 1rem; margin-bottom: 10px;">No categories found</p>
+        <button onclick="const s=document.getElementById('manageSearch'); s.value=''; s.dispatchEvent(new Event('input'));" 
+                class="btn btn-sm btn-outline-primary rounded-pill px-3">
+            Clear Search
+        </button>
+    </div>
+
     {% if messages %}
         {% for message in messages %}
             <div style="background: rgba(14, 165, 233, 0.1); color: #0284c7; padding: 12px 16px; border-radius: 8px; margin-bottom: 20px; border: 1px solid rgba(14, 165, 233, 0.2); font-weight: 500; font-size: 0.9rem;">
@@ -180,7 +199,7 @@
     <div class="item-card">
         <!-- In Phase 5, clicking the card directs to category detail page -->
         <a href="{% url 'inventory_category_detail' category.id %}" class="item-link">
-            <div class="item-name">{{ category.name }}</div>
+            <div class="item-name searchable-text">{{ category.name }}</div>
             <div class="item-stock">{{ category.items.count }} items</div>
         </a>
 
@@ -264,6 +283,37 @@
                 details.removeAttribute('open');
             }
         });
+    });
+
+    // Search Logic
+    document.addEventListener('DOMContentLoaded', function () {
+        const input = document.getElementById('manageSearch');
+        const cards = [...document.querySelectorAll('.item-card')];
+        const noResults = document.getElementById('noResults');
+
+        function debounce(fn, ms) {
+            let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }
+        }
+
+        function filter() {
+            const q = input.value.toLowerCase().trim();
+            let totalVisible = 0;
+
+            cards.forEach(card => {
+                const nameNode = card.querySelector('.searchable-text');
+                const name = nameNode ? nameNode.textContent.toLowerCase() : "";
+                const matches = !q || name.includes(q);
+                
+                card.style.display = matches ? 'flex' : 'none';
+                if (matches) totalVisible++;
+            });
+
+            noResults.style.display = (totalVisible === 0 && q !== '') ? 'block' : 'none';
+        }
+
+        if (input) {
+            input.addEventListener('input', debounce(filter, 150));
+        }
     });
 </script>
 {% endblock %}

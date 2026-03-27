@@ -138,7 +138,7 @@
 {% if active_jobs %}
     <div class="live-list">
         {% for job in active_jobs %}
-        <a href="{% url 'jobcard_edit' job.pk %}" class="text-decoration-none text-reset">
+        <a href="{% url 'jobcard_edit' job.pk %}?next=mini" class="text-decoration-none text-reset">
             <div class="live-card">
                 <div class="car-header">
                     <div class="car-info">

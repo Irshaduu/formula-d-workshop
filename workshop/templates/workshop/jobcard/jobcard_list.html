@@ -4,102 +4,32 @@
 
 {% block content %}
 <!-- Header Section -->
-<div class="d-flex justify-content-between align-items-center mb-3">
-    <h6 class="mb-0 text-primary fw-bold" style="font-size: 0.85rem;">
-        <i class="bi bi-card-checklist"></i> Jobs ({{ jobcards.count }})
+<div class="d-flex justify-content-between align-items-center mb-3 gap-3">
+    <h6 class="mb-0 text-primary fw-bold flex-shrink-0" style="font-size: 0.85rem;">
+        <i class="bi bi-card-checklist"></i> Jobs ({{ jobcards.paginator.count }})
     </h6>
-    <a href="{% url 'jobcard_create' %}" class="btn btn-primary btn-sm py-0 px-2" style="font-size: 0.85rem;">
-        <i class="bi bi-plus-circle"></i> New
-    </a>
-</div>
-
-<div class="row g-3">
-    {% for job in jobcards %}
-    <div class="col-12 col-md-6 col-lg-4">
-        <div class="job-card shadow-sm h-100 position-relative">
-
-            <!-- DELETE ICON (Absolute Top Right) -->
-            <a href="{% url 'jobcard_delete' job.pk %}" class="position-absolute top-0 end-0 p-3 delete-icon"
-                style="z-index: 10;" title="Delete">
-                <i class="bi bi-trash"></i>
+    
+    <!-- Jobs Search Bar -->
+    <form id="jobsSearchForm" method="get" class="flex-grow-1" style="max-width: 400px;">
+        <div class="position-relative">
+            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-2 text-muted" style="font-size: 0.8rem;"></i>
+            <input type="text" name="q" id="jobsSearchInput" value="{{ request.GET.q|default:'' }}" 
+                   placeholder="Search Reg, Brand, Model..." 
+                   class="form-control form-control-sm ps-4 rounded-pill border-0 shadow-sm"
+                   style="font-size: 0.85rem; height: 32px; background: var(--color-card);"
+                   autocomplete="off">
+            {% if request.GET.q %}
+            <a href="{% url 'jobcard_list' %}" class="position-absolute top-50 end-0 translate-middle-y me-2 text-muted text-decoration-none">
+                <i class="bi bi-x-circle-fill" style="font-size: 0.8rem;"></i>
             </a>
-
-            <!-- MAIN CLICKABLE AREA -->
-            <a href="{% url 'jobcard_edit' job.pk %}" class="text-decoration-none card-link">
-                <div class="card-body d-flex flex-column h-100">
-
-                    <!-- 1. MAIN: Brand & Model + Date -->
-                    <div class="d-flex justify-content-between align-items-start mb-1 pe-4">
-                        <h5 class="card-title fw-bold mb-0 text-truncate"
-                            style="letter-spacing: -0.5px; color: var(--color-primary);">
-                            {% if job.car_color %}
-                            <span class="d-inline-block rounded-1 me-2" 
-                                  style="width: 14px; height: 14px; background-color: {{ job.get_car_color_hex }}; vertical-align: middle; border: 1px solid rgba(0,0,0,0.1); margin-top: -3px;"></span>
-                            {% endif %}
-                            {{ job.brand_name }} {{ job.model_name }}
-                        </h5>
-                        <small class="job-date ms-2 pt-1" style="font-size: 0.75rem; white-space: nowrap;">
-                            {{ job.updated_at|date:"d M" }}
-                        </small>
-                    </div>
-
-                    <!-- 2. SECONDARY: Customer Name -->
-                    <div class="mb-3 customer-name">
-                        <i class="bi bi-person me-1 small" style="color: var(--color-text-muted);"></i>
-                        {{ job.customer_name }}
-                    </div>
-
-                    <!-- 3. TERTIARY: Registration Number (Pushed to bottom) -->
-                    <div class="mt-auto pt-2" style="border-top: 1px solid var(--color-border-light);">
-                        <span class="reg-badge fw-bold px-2 py-1" style="font-size: 0.85rem; letter-spacing: 1px;">
-                            {{ job.registration_number }}
-                        </span>
-                    </div>
-
-                </div>
-            </a>
+            {% endif %}
         </div>
-    </div>
-    {% empty %}
-    <div class="col-12 text-center py-5">
-        <div class="mb-3" style="color: var(--color-text-muted); opacity: 0.5;">
-            <i class="bi bi-clipboard-data display-1"></i>
-        </div>
-        <p style="color: var(--color-text-muted);" class="mb-3">No job cards found.</p>
-        <a href="{% url 'home' %}" class="btn btn-lg btn-primary">Create First Job</a>
-    </div>
-    {% endfor %}
+    </form>
 </div>
 
-<!-- Pagination Controls -->
-{% if jobcards.has_other_pages %}
-<div class="mt-4 d-flex justify-content-center">
-    <nav>
-        <ul class="pagination pagination-sm mb-5 shadow-sm">
-            <!-- PREV BUTTON -->
-            {% if jobcards.has_previous %}
-            <li class="page-item">
-                <a class="page-link text-primary" href="?page={{ jobcards.previous_page_number }}">&laquo; Prev</a>
-            </li>
-            {% else %}
-            <li class="page-item disabled"><span class="page-link">&laquo; Prev</span></li>
-            {% endif %}
-            
-            <!-- CURRENT PAGE -->
-            <li class="page-item disabled"><span class="page-link text-muted fw-bold">Page {{ jobcards.number }} of {{ jobcards.paginator.num_pages }}</span></li>
-            
-            <!-- NEXT BUTTON -->
-            {% if jobcards.has_next %}
-            <li class="page-item">
-                <a class="page-link text-primary" href="?page={{ jobcards.next_page_number }}">Next &raquo;</a>
-            </li>
-            {% else %}
-            <li class="page-item disabled"><span class="page-link">Next &raquo;</span></li>
-            {% endif %}
-        </ul>
-    </nav>
+<div id="job-list-container" class="position-relative">
+    {% include 'workshop/jobcard/job_list_partial.html' %}
 </div>
-{% endif %}
 
 <style>
     /* Job Card Styling - Premium Polish */
@@ -214,4 +144,60 @@
         }
     }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('jobsSearchInput');
+    const container = document.getElementById('job-list-container');
+    let timeout = null;
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = this.value.trim();
+            
+            if (timeout) clearTimeout(timeout);
+            
+            timeout = setTimeout(() => {
+                const url = new URL(window.location.href);
+                url.searchParams.set('q', query);
+                url.searchParams.set('page', '1'); // Reset to first page on new search
+                
+                // Show subtle loading state
+                container.style.opacity = '0.5';
+                
+                fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(response => response.text())
+                    .then(html => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const newContent = doc.getElementById('job-list-container') || doc.body;
+                        const newHeaderCount = doc.querySelector('h6 i.bi-card-checklist').parentElement;
+                        
+                        if (newContent) {
+                            container.innerHTML = newContent.innerHTML;
+                            
+                            // Update the job count in the header from the hidden data element in partial
+                            const newCountEl = doc.getElementById('job-count-data');
+                            if (newCountEl) {
+                                const newCount = newCountEl.getAttribute('data-count');
+                                const countHeader = document.querySelector('h6 i.bi-card-checklist').parentElement;
+                                if (countHeader) {
+                                    countHeader.innerHTML = `<i class="bi bi-card-checklist"></i> Jobs (${newCount})`;
+                                }
+                            }
+                        }
+                        container.style.opacity = '1';
+                        
+                        // Update URL without reload
+                        window.history.pushState({}, '', url);
+                    })
+                    .catch(err => {
+                        console.error('Search failed:', err);
+                        container.style.opacity = '1';
+                    });
+            }, 300);
+        });
+    }
+});
+</script>
 {% endblock %}

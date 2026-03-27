@@ -243,18 +243,18 @@
             <input type="hidden" name="next" value="{{ request.path }}">
             <div class="item-info">
                 <div class="item-name" onclick="this.classList.toggle('expanded')">
-                    {{ item.name }}
-                    <span style="display:none">{{ category.name }}</span>
+                    <span class="searchable-text text-white">{{ item.name }}</span>
+                    <span class="searchable-text" style="display:none">{{ category.name }}</span>
                 </div>
                 <div class="item-stock">
-                    <span class="stock-badge avg-badge">Avg {{ item.average_stock|floatformat:1 }}</span>
+                    <span class="stock-badge avg-badge">Avg {{ item.average_stock|floatformat:"-1" }}</span>
                     <span class="stock-badge cur-badge" style="color:{{ item.stock_status_color }}">
-                        Cur <span style="font-weight: 800;">{{ item.current_stock|floatformat:1 }}</span>
+                        Cur <span style="font-weight: 800;">{{ item.current_stock|floatformat:"-1" }}</span>
                     </span>
                 </div>
             </div>
             <div class="controls">
-                <input type="number" name="current_stock" value="{{ item.current_stock }}" inputmode="decimal" step="0.5"
+                <input type="number" name="current_stock" value="{{ item.current_stock|floatformat:"-1" }}" inputmode="decimal" step="0.5"
                     style="border-color: {{ item.stock_status_color }};">
                 <button type="submit" class="btn-save">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -274,6 +274,16 @@
         <a href="{% url 'inventory_manage' %}" style="color: var(--accent-blue); text-decoration: none;">Go Setup</a>
     </div>
     {% endfor %}
+
+    <!-- No results found placeholder -->
+    <div id="noResults" style="display: none; text-align: center; padding: 40px; color: var(--muted);">
+        <i class="bi bi-search" style="font-size: 2.5rem; opacity: 0.3; display: block; margin-bottom: 10px;"></i>
+        <p style="font-size: 1rem; margin-bottom: 10px;">No matching items found</p>
+        <button onclick="document.getElementById('restockSearch').value=''; document.getElementById('restockSearch').dispatchEvent(new Event('input'));" 
+                class="btn btn-sm btn-outline-primary rounded-pill px-3">
+            Clear Search
+        </button>
+    </div>
 </div>
 
 <script>
@@ -281,32 +291,37 @@
         const input = document.getElementById('restockSearch');
         const cards = [...document.querySelectorAll('.item-card')];
         const categories = [...document.querySelectorAll('.category-section')];
-
-        cards.forEach(c => {
-            c.dataset.defaultDisplay = getComputedStyle(c).display || 'flex';
-        });
-
+        const noResults = document.getElementById('noResults');
+ 
         function debounce(fn, ms) {
             let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }
         }
-
+ 
         function filter() {
             const q = input.value.toLowerCase().trim();
+            let totalVisible = 0;
+
             cards.forEach(card => {
-                card.style.display =
-                    !q || card.textContent.toLowerCase().includes(q)
-                        ? card.dataset.defaultDisplay
-                        : 'none';
+                // Precise match: check only elements with .searchable-text class
+                const searchableText = [...card.querySelectorAll('.searchable-text')]
+                    .map(el => el.textContent.toLowerCase())
+                    .join(' ');
+                
+                const matches = !q || searchableText.includes(q);
+                card.style.display = matches ? 'flex' : 'none';
+                if (matches) totalVisible++;
             });
-
+ 
             categories.forEach(cat => {
-                cat.style.display =
-                    [...cat.querySelectorAll('.item-card')]
-                        .some(c => c.style.display !== 'none')
-                        ? 'block' : 'none';
+                const hasVisibleItems = [...cat.querySelectorAll('.item-card')]
+                    .some(c => c.style.display !== 'none');
+                cat.style.display = hasVisibleItems ? 'block' : 'none';
             });
-        }
 
+            // Show 'No results' if nothing matches
+            noResults.style.display = (totalVisible === 0 && q !== '') ? 'block' : 'none';
+        }
+ 
         if (input) {
             input.addEventListener('input', debounce(filter, 180));
         }

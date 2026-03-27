@@ -192,11 +192,28 @@ def jobcard_list(request):
     SECTION 2: JOBS - List of saved job cards.
     Newest first is handled by Model Meta ordering.
     """
-    jobcard_list_query = JobCard.objects.all() 
-    paginator = Paginator(jobcard_list_query, 21)  # Show 21 jobs per page (perfect 3-column grid)
+    jobcard_list_query = JobCard.objects.all()
+    
+    q = request.GET.get('q')
+    if q:
+        jobcard_list_query = jobcard_list_query.filter(
+            Q(registration_number__icontains=q) |
+            Q(bill_number__icontains=q) |
+            Q(brand_name__icontains=q) |
+            Q(model_name__icontains=q) |
+            Q(customer_name__icontains=q) |
+            Q(customer_contact__icontains=q) |
+            Q(lead_mechanic__name__icontains=q)
+        )
+        
+    paginator = Paginator(jobcard_list_query, 21)  # Show 21 jobs per page
     
     page_number = request.GET.get('page')
     jobcards = paginator.get_page(page_number)
+    
+    # AJAX Search: Return only the partial template for thousands-ready performance
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, 'workshop/jobcard/job_list_partial.html', {'jobcards': jobcards})
     
     return render(request, 'workshop/jobcard/jobcard_list.html', {'jobcards': jobcards})
 
@@ -238,6 +255,12 @@ def jobcard_edit(request, pk):
                         SparePart.objects.create(name=name)
             
             messages.success(request, f'Job card for {jobcard.registration_number} updated successfully!')
+            
+            # Smart Redirect based on original context
+            next_url = request.GET.get('next')
+            if next_url == 'mini':
+                return redirect('live_report')
+                
             return redirect('jobcard_edit', pk=jobcard.pk)
     else:
         form = JobCardForm(instance=jobcard)
@@ -252,6 +275,7 @@ def jobcard_edit(request, pk):
         'labour_formset': labour_formset,
         'jobcard': jobcard,
         'is_edit': True,
+        'next_url': request.GET.get('next'),
     }
     return render(request, 'workshop/jobcard/jobcard_form.html', context)
 
@@ -659,54 +683,70 @@ def pending_payments_list(request):
 from django.db.models import Count, Max
 
 @office_required
+@office_required
 def car_profile_list(request):
-    """Show all unique cars (grouped by registration) with filters"""
-    
-    # Get all unique registrations with their latest job card info
-    cars = JobCard.objects.values('registration_number').annotate(
+    """Show all unique cars (grouped by registration) with optimized queries and AJAX search."""
+    # 1. Base Query: Group by registration and get latest activity
+    cars_query = JobCard.objects.values('registration_number').annotate(
         total_visits=Count('id'),
         latest_date=Max('admitted_date'),
+        latest_id=Max('id')
     ).order_by('-latest_date')
+
+    # 2. Get Filters
+    search_query = request.GET.get('q', '')
+
+    # 3. Apply Multi-Field Search (Database Level)
+    if search_query:
+        cars_query = cars_query.filter(
+            Q(registration_number__icontains=search_query) |
+            Q(customer_name__icontains=search_query) |
+            Q(brand_name__icontains=search_query) |
+            Q(model_name__icontains=search_query)
+        )
+
+    # 4. Pagination (Pro-Active Scaling)
+    paginator = Paginator(cars_query, 21)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    # 5. Fetch Full Details for the current page only (N+1 Resolution)
+    # We get the full JobCard objects for the latest_ids on this page
+    latest_ids = [car['latest_id'] for car in page_obj]
     
-    # Get full details for each car (from their latest job card)
+    # Materialize the data into a list of dicts for the template
+    # (Using a dict for fast lookup)
+    details_map = {
+        jc.id: jc for jc in JobCard.objects.filter(id__in=latest_ids)
+    }
+    
     car_profiles = []
-    for car in cars:
-        latest_job = JobCard.objects.filter(
-            registration_number=car['registration_number']
-        ).order_by('-admitted_date').first()
-        
-        if latest_job:
+    for car in page_obj:
+        jc = details_map.get(car['latest_id'])
+        if jc:
             car_profiles.append({
                 'registration': car['registration_number'],
-                'brand': latest_job.brand_name,
-                'model': latest_job.model_name,
-                'customer': latest_job.customer_name,
+                'brand': jc.brand_name,
+                'model': jc.model_name,
+                'customer': jc.customer_name,
                 'total_visits': car['total_visits'],
                 'latest_date': car['latest_date'],
             })
-    
-    # Apply filters if provided
-    brand_filter = request.GET.get('brand', '')
-    search_query = request.GET.get('q', '')
-    
-    if brand_filter:
-        car_profiles = [c for c in car_profiles if brand_filter.lower() in c['brand'].lower()]
-    
-    if search_query:
-        car_profiles = [c for c in car_profiles if 
-            search_query.lower() in c['registration'].lower() or
-            search_query.lower() in (c['customer'] or '').lower()
-        ]
-    
-    # Get unique brands for filter dropdown
-    all_brands = list(set(c['brand'] for c in car_profiles))
-    
-    return render(request, 'workshop/car_profiles/car_profile_list.html', {
+
+    # Get unique brands (no longer used for filter, but keeping for other UI if needed - actually better to remove)
+    # all_brands = JobCard.objects.values_list('brand_name', flat=True).distinct().order_by('brand_name')
+
+    context = {
         'car_profiles': car_profiles,
-        'all_brands': sorted(all_brands),
-        'brand_filter': brand_filter,
+        'page_obj': page_obj,
         'search_query': search_query,
-    })
+    }
+
+    # AJAX Search: Return only the partial template
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, 'workshop/car_profiles/car_list_partial.html', context)
+    
+    return render(request, 'workshop/car_profiles/car_profile_list.html', context)
 
 
 @office_required

@@ -96,12 +96,41 @@
         -webkit-appearance: none;
         margin: 0;
     }
+
+    /* SEARCH STYLES */
+    .search-container { margin-bottom: 20px; }
+    .tiny-search {
+        width: 100%;
+        padding: 8px 14px;
+        border-radius: 999px;
+        border: 1px solid var(--card-border);
+        background: rgba(255,255,255,0.05);
+        color: var(--text-primary);
+        font-size: 0.95rem;
+        outline: none;
+        transition: border 0.2s;
+    }
+    .tiny-search:focus { border-color: var(--accent-red); }
 </style>
 
 <div class="inventory-dark-wrapper">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2 style="margin: 0; color: var(--accent-red); font-weight: 700;">Low Stock List</h2>
         <a href="{% url 'inventory_restock' %}" style="color: var(--text-secondary); text-decoration: none; font-size: 0.95rem; font-weight: 600;">← Back to Restock</a>
+    </div>
+
+    <div class="search-container">
+        <input id="lowStockSearch" class="tiny-search" type="text" placeholder="Search low stock items…">
+    </div>
+
+    <!-- No results found placeholder -->
+    <div id="noResults" style="display: none; text-align: center; padding: 40px; color: var(--muted);">
+        <i class="bi bi-search" style="font-size: 2.5rem; opacity: 0.3; display: block; margin-bottom: 10px;"></i>
+        <p style="font-size: 1rem; margin-bottom: 10px;">No matching alerts found</p>
+        <button onclick="const s=document.getElementById('lowStockSearch'); s.value=''; s.dispatchEvent(new Event('input'));" 
+                class="btn btn-sm btn-outline-danger rounded-pill px-3">
+            Clear Search
+        </button>
     </div>
 
     {% if messages %}
@@ -120,13 +149,13 @@
             <input type="hidden" name="next" value="{{ request.path }}">
     
             <div style="flex-grow: 1; margin-right: 15px; min-width: 0;">
-                <div class="expandable-name" onclick="this.classList.toggle('expanded')">{{ item.name }}</div>
-                <div style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 6px; font-weight: 500;">{{ item.category.name }}</div>
+                <div class="expandable-name searchable-item" onclick="this.classList.toggle('expanded')">{{ item.name }}</div>
+                <div class="searchable-cat" style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 6px; font-weight: 500;">{{ item.category.name }}</div>
             </div>
     
             <div style="display: flex; gap: 12px; align-items: center;">
                 <div style="text-align: right; width: 70px;">
-                    <input type="number" step="0.5" name="current_stock" value="{{ item.current_stock }}" class="qty-input">
+                    <input type="number" step="0.5" name="current_stock" value="{{ item.current_stock|floatformat:"-1" }}" class="qty-input">
                 </div>
                 <button type="submit" class="btn-save">
                     Save
@@ -143,4 +172,40 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const input = document.getElementById('lowStockSearch');
+        const rows = [...document.querySelectorAll('.low-stock-row')];
+        const noResults = document.getElementById('noResults');
+
+        function debounce(fn, ms) {
+            let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }
+        }
+
+        function filter() {
+            const q = input.value.toLowerCase().trim();
+            let totalVisible = 0;
+
+            rows.forEach(row => {
+                const nameNode = row.querySelector('.searchable-item');
+                const catNode = row.querySelector('.searchable-cat');
+                const text = (nameNode ? nameNode.textContent.toLowerCase() : "") + " " + 
+                             (catNode ? catNode.textContent.toLowerCase() : "");
+                
+                const matches = !q || text.includes(q);
+                row.style.display = matches ? 'flex' : 'none';
+                if (matches) totalVisible++;
+            });
+
+            if (noResults) {
+                noResults.style.display = (totalVisible === 0 && q !== '') ? 'block' : 'none';
+            }
+        }
+
+        if (input) {
+            input.addEventListener('input', debounce(filter, 150));
+        }
+    });
+</script>
 {% endblock %}

@@ -130,7 +130,7 @@
         </div>
         {% endif %}
 
-        <form method="post" id="jobcardForm" autocomplete="off">
+        <form method="post" id="jobcardForm" autocomplete="off" {% if next_url %}action="?next={{ next_url }}"{% endif %}>
             {% csrf_token %}
 
             {% if form.errors or concern_formset.errors or spare_formset.errors or labour_formset.errors %}

@@ -5,174 +5,168 @@
 
 {% block content %}
 <div class="container-fluid px-3 py-3">
-    <!-- Header -->
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="mb-0 text-primary fw-bold" style="font-size: 0.85rem;">
-            <i class="bi bi-clock-history"></i> Car Profiles ({{ car_profiles|length }})
+    <!-- Header with Tiny Search -->
+    <div class="d-flex justify-content-between align-items-center mb-3 gap-3">
+        <h6 class="mb-0 text-primary fw-bold flex-shrink-0" style="font-size: 0.85rem;">
+            <i class="bi bi-clock-history"></i> Car Profiles ({{ page_obj.paginator.count }})
         </h6>
-    </div>
-
-    <!-- Filters -->
-    <div class="filter-card mb-3">
-        <form method="get" class="row g-2">
-            <div class="col-sm-5 col-12">
-                <select name="brand" class="form-select form-select-sm">
-                    <option value="">All Brands</option>
-                    {% for b in all_brands %}
-                    <option value="{{ b }}" {% if b == brand_filter %}selected{% endif %}>{{ b }}</option>
-                    {% endfor %}
-                </select>
+        
+        <!-- Search Bar (Super Tiny Pattern) -->
+        <div class="d-flex flex-grow-1" style="max-width: 500px;">
+            <!-- Text Search -->
+            <div class="position-relative flex-grow-1">
+                <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-2 text-muted" style="font-size: 0.8rem;"></i>
+                <input type="text" name="q" id="carSearchInput" value="{{ search_query|default:'' }}" 
+                       placeholder="Search Reg, Owner, Brand, Model..." 
+                       class="form-control form-control-sm ps-4 rounded-pill border-0 shadow-sm"
+                       style="font-size: 0.85rem; height: 32px; background: var(--color-card);"
+                       autocomplete="off">
             </div>
-            <div class="col-sm-5 col-12">
-                <input type="text" name="q" class="form-control form-control-sm"
-                    placeholder="Search registration or owner" value="{{ search_query }}">
-            </div>
-            <div class="col-sm-2 col-12">
-                <button type="submit" class="btn btn-primary btn-sm w-100">
-                    <i class="bi bi-search"></i> Filter
-                </button>
-            </div>
-        </form>
-    </div>
-
-    <!-- Car List -->
-    {% if car_profiles %}
-    <div class="row g-3">
-        {% for car in car_profiles %}
-        <div class="col-12 col-md-6 col-lg-4">
-            <a href="{% url 'car_profile_detail' car.registration %}" class="car-card">
-                <div class="car-header">
-                    <h6 class="car-name">{{ car.brand }} {{ car.model }}</h6>
-                    <span class="reg-number">{{ car.registration }}</span>
-                </div>
-
-                <div class="car-info">
-                    <div class="info-item">
-                        <i class="bi bi-person-fill"></i>
-                        <span>{{ car.customer|default:"No Owner" }}</span>
-                    </div>
-                    <div class="info-item">
-                        <i class="bi bi-arrow-repeat"></i>
-                        <span>{{ car.total_visits }} visit{{ car.total_visits|pluralize }}</span>
-                    </div>
-                    <div class="info-item">
-                        <i class="bi bi-calendar3"></i>
-                        <span>{{ car.latest_date|date:"d M Y" }}</span>
-                    </div>
-                </div>
-            </a>
         </div>
-        {% endfor %}
     </div>
-    {% else %}
-    <div class="empty-state">
-        <i class="bi bi-inbox"></i>
-        <h5>No cars found</h5>
-        <p>
-            {% if search_query or brand_filter %}
-            Try adjusting your filters.
-            {% else %}
-            Cars will appear here after creating job cards.
-            {% endif %}
-        </p>
+
+    <!-- Car List Container (AJAX Target) -->
+    <div id="car-list-container" class="position-relative">
+        {% include 'workshop/car_profiles/car_list_partial.html' %}
     </div>
-    {% endif %}
 </div>
 
 <style>
-    /* Filter Card */
-    .filter-card {
-        background: var(--color-card);
-        border: 1px solid var(--color-border);
-        border-radius: 8px;
-        padding: 1rem;
-    }
-
-    /* Car Card */
+    /* Premium Car Card Styling */
     .car-card {
         display: block;
         background: var(--color-card);
         border: 1px solid var(--color-border);
-        border-radius: 8px;
-        padding: 1rem;
+        border-radius: 16px;
+        padding: 1.25rem;
+        text-decoration: none;
+        color: inherit;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        height: 100%;
+    }
+
+    .car-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 24px var(--color-shadow) !important;
+        border-color: var(--color-primary);
         text-decoration: none;
         color: inherit;
     }
 
-    .car-card:hover {
-        border-color: var(--color-primary);
-    }
-
-    /* Car Header */
     .car-header {
         margin-bottom: 1rem;
         padding-bottom: 0.75rem;
-        border-bottom: 1px solid var(--color-border);
+        border-bottom: 1px solid var(--color-border-light);
     }
 
     .car-name {
-        color: var(--color-text);
-        font-size: 1rem;
+        color: var(--color-primary);
+        font-size: 1.1rem;
         font-weight: 700;
-        margin-bottom: 0.5rem;
+        letter-spacing: -0.5px;
     }
 
     .reg-number {
-        background: var(--color-hover);
+        background: linear-gradient(135deg, var(--color-primary-light) 0%, var(--color-primary-light) 100%);
         color: var(--color-primary);
-        border: 1px solid var(--color-primary);
-        padding: 0.25rem 0.75rem;
-        border-radius: 6px;
+        border: 1.5px solid var(--color-primary);
+        padding: 0.35rem 0.75rem;
+        border-radius: 8px;
         font-size: 0.85rem;
         font-weight: 700;
-        letter-spacing: 1px;
+        letter-spacing: 1.5px;
         display: inline-block;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
     }
 
     /* Car Info */
     .car-info {
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 0.6rem;
     }
 
     .info-item {
         display: flex;
         align-items: center;
-        gap: 0.5rem;
+        gap: 0.6rem;
         font-size: 0.9rem;
-        color: var(--color-text-muted);
+        color: var(--color-text);
+        font-weight: 500;
     }
 
     .info-item i {
-        width: 18px;
+        width: 20px;
         text-align: center;
+        color: var(--color-text-muted);
+        opacity: 0.7;
+    }
+
+    /* Empty State Match Jobs Card */
+    .empty-state i {
+        font-size: 4rem;
+        opacity: 0.15;
         color: var(--color-primary);
     }
 
-    /* Empty State */
-    .empty-state {
-        text-align: center;
-        padding: 4rem 2rem;
-        color: var(--color-text-muted);
-    }
-
-    .empty-state i {
-        font-size: 4rem;
-        opacity: 0.3;
-        margin-bottom: 1rem;
-    }
-
-    .empty-state h5 {
-        color: var(--color-text);
-        margin-bottom: 0.5rem;
-    }
-
-    /* Mobile */
+    /* Mobile Adjustments */
     @media (max-width: 768px) {
-        .filter-card {
-            padding: 0.75rem;
+        .car-card {
+            padding: 1rem;
         }
     }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('carSearchInput');
+    const brandFilter = document.getElementById('brandFilter');
+    const container = document.getElementById('car-list-container');
+    let timeout = null;
+
+    function performSearch() {
+        const query = searchInput.value.trim();
+        
+        if (timeout) clearTimeout(timeout);
+        
+        timeout = setTimeout(() => {
+            const url = new URL(window.location.href);
+            url.searchParams.set('q', query);
+            url.searchParams.set('page', '1');
+            
+            container.style.opacity = '0.5';
+            
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newContent = doc.getElementById('car-list-container') || doc.body;
+                    
+                    if (newContent) {
+                        container.innerHTML = newContent.innerHTML;
+                        
+                        // Update the count in the header
+                        const newCountEl = doc.getElementById('car-count-data');
+                        if (newCountEl) {
+                            const newCount = newCountEl.getAttribute('data-count');
+                            const countHeader = document.querySelector('h6 i.bi-clock-history').parentElement;
+                            if (countHeader) {
+                                countHeader.innerHTML = `<i class="bi bi-clock-history"></i> Car Profiles (${newCount})`;
+                            }
+                        }
+                    }
+                    container.style.opacity = '1';
+                    window.history.pushState({}, '', url);
+                })
+                .catch(err => {
+                    console.error('Search failed:', err);
+                    container.style.opacity = '1';
+                });
+        }, 300);
+    }
+
+    if (searchInput) searchInput.addEventListener('input', performSearch);
+});
+</script>
 {% endblock %}

@@ -1,0 +1,74 @@
+<div id="car-count-data" data-count="{{ page_obj.paginator.count }}" style="display:none;"></div>
+
+{% if car_profiles %}
+<div class="row g-3">
+    {% for car in car_profiles %}
+    <div class="col-12 col-md-6 col-lg-4">
+        <a href="{% url 'car_profile_detail' car.registration %}" class="car-card shadow-sm h-100 position-relative">
+            <div class="car-header">
+                <h6 class="car-name mb-1">{{ car.brand }} {{ car.model }}</h6>
+                <span class="reg-number">{{ car.registration }}</span>
+            </div>
+
+            <div class="car-info">
+                <div class="info-item">
+                    <i class="bi bi-person-fill"></i>
+                    <span class="text-truncate">{{ car.customer|default:"No Owner" }}</span>
+                </div>
+                <div class="info-item">
+                    <i class="bi bi-arrow-repeat"></i>
+                    <span>{{ car.total_visits }} visit{{ car.total_visits|pluralize }}</span>
+                </div>
+                <div class="info-item">
+                    <i class="bi bi-calendar3"></i>
+                    <span>Last visit: {{ car.latest_date|date:"d M Y" }}</span>
+                </div>
+            </div>
+        </a>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Pagination Controls -->
+{% if page_obj.has_other_pages %}
+<div class="mt-4 d-flex justify-content-center">
+    <nav>
+        <ul class="pagination pagination-sm mb-5 shadow-sm">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link text-primary" href="?page={{ page_obj.previous_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if brand_filter %}&brand={{ brand_filter }}{% endif %}">&laquo; Prev</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">&laquo; Prev</span></li>
+            {% endif %}
+            
+            <li class="page-item disabled"><span class="page-link text-muted fw-bold">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span></li>
+            
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link text-primary" href="?page={{ page_obj.next_page_number }}{% if search_query %}&q={{ search_query }}{% endif %}{% if brand_filter %}&brand={{ brand_filter }}{% endif %}">Next &raquo;</a>
+            </li>
+            {% else %}
+            <li class="page-item disabled"><span class="page-link">Next &raquo;</span></li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endif %}
+
+{% else %}
+<div class="empty-state py-5 text-center">
+    {% if search_query or brand_filter %}
+        <i class="bi bi-search mb-3 d-block" style="font-size: 3rem; color: var(--color-text-muted); opacity: 0.3;"></i>
+        <h5 class="text-muted fw-bold">No matching cars found</h5>
+        <p class="text-muted small">Try adjusting your filters or search query.</p>
+        <a href="{% url 'car_profile_list' %}" class="btn btn-sm btn-outline-primary rounded-pill px-4 mt-2">
+            Clear Filters
+        </a>
+    {% else %}
+        <i class="bi bi-inbox mb-3 d-block" style="font-size: 3rem; color: var(--color-text-muted); opacity: 0.3;"></i>
+        <h5 class="text-muted fw-bold">No cars found</h5>
+        <p class="text-muted small">Cars will appear here after creating job cards.</p>
+    {% endif %}
+</div>
+{% endif %}
