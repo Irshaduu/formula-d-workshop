@@ -313,6 +313,11 @@
                             <i class="bi bi-card-list"></i> All Job-cards
                         </a>
                     </li>
+                    <li>
+                        <a class="dropdown-item fw-bold text-danger" href="{% url 'pending_payments_list' %}">
+                            <i class="bi bi-exclamation-octagon"></i> Pending Payments
+                        </a>
+                    </li>
                     {% if request.user|has_group:"Owner" or request.user.is_superuser %}
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item fw-bold text-primary" href="{% url 'manage_dashboard' %}"><i class="bi bi-people"></i> Manage Accounts</a></li>

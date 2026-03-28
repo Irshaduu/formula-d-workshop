@@ -18,16 +18,12 @@
                 </div>
 
                 <div class="d-flex gap-2">
-                    <a href="{% url 'jobcard_edit' jobcard.pk %}" class="btn btn-sm btn-outline-primary flex-fill">
-                        <i class="bi bi-eye"></i> View
+                    <a href="{% url 'invoice_view' jobcard.pk %}?back={{ request.get_full_path|urlencode }}" class="btn btn-sm btn-outline-primary flex-fill">
+                        <i class="bi bi-receipt"></i> Invoice
                     </a>
-                    <form method="post" action="{% url 'undo_delivered' jobcard.pk %}" class="flex-fill">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-sm btn-outline-secondary w-100"
-                            onclick="return confirm('Move this car back to active workshop?');">
-                            <i class="bi bi-arrow-counterclockwise"></i> Undo
-                        </button>
-                    </form>
+                    <a href="{% url 'jobcard_edit' jobcard.pk %}" class="btn btn-sm btn-outline-secondary flex-fill">
+                        <i class="bi bi-pencil-square"></i> Edit
+                    </a>
                 </div>
             </div>
         </div>

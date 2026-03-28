@@ -32,7 +32,8 @@ def home(request):
     # Get only non-delivered job cards (where delivered=False)
     # Discharge date is just for planning - doesn't control visibility
     # Annotate with concern counts for progress bar
-    active_jobcards = JobCard.objects.filter(delivered=False).annotate(
+    # Optimized with select_related for lead_mechanic to prevent N+1 queries
+    active_jobcards = JobCard.objects.filter(delivered=False).select_related('lead_mechanic').annotate(
         total_concerns=Count('concerns'),
         fixed_concerns=Count('concerns', filter=Q(concerns__status='FIXED'))
     ).order_by('-updated_at')
@@ -42,10 +43,16 @@ def home(request):
         delivered=True,
         updated_at__date=date.today()  # When delivered button was clicked
     ).count()
+
+    # Count pending bills (Delivered but not fully paid)
+    pending_bills_count = JobCard.objects.filter(
+        payment_status__in=['PENDING', 'PARTIAL']
+    ).count()
     
     return render(request, 'workshop/dashboard/dashboard_home.html', {
         'active_jobcards': active_jobcards,
         'delivered_count': delivered_count,
+        'pending_bills_count': pending_bills_count,
     })
 
 
@@ -179,7 +186,11 @@ def live_report(request):
     SECTION 2.1: LIVE REPORT - Quick scroll for all roles.
     Shows active jobs, concerns, and spares status.
     """
-    active_jobs = JobCard.objects.filter(delivered=False).prefetch_related('concerns', 'spares').order_by('-updated_at')
+    from django.db.models import Count, Q
+    active_jobs = JobCard.objects.filter(delivered=False).select_related('lead_mechanic').prefetch_related('concerns', 'spares').annotate(
+        total_concerns=Count('concerns'),
+        fixed_concerns=Count('concerns', filter=Q(concerns__status='FIXED'))
+    ).order_by('-updated_at')
     
     return render(request, 'workshop/jobcard/live_report.html', {
         'active_jobs': active_jobs,
@@ -348,6 +359,8 @@ def delivered_list(request):
         'delivered_jobcards': page_obj,
         'filter_type': filter_type,
         'q': q,
+        'start_date': start_date if filter_type == 'custom' else '',
+        'end_date': end_date if filter_type == 'custom' else '',
     }
     
     # 5. AJAX Return Partial
@@ -674,18 +687,80 @@ def update_bill_status(request, pk):
 def pending_payments_list(request):
     """
     Shows a list of job cards that are not fully paid.
-    Focuses on Delivered jobs that are still 'PENDING' or 'PARTIAL'.
+    Highly optimized for 10M+ records using SQL Subqueries & Annotations.
     """
+    from django.db.models import Sum, Q, Value, F, OuterRef, Subquery
+    from django.db.models.functions import Coalesce
+    
+    # 1. Base Query with Filtering by Payment Status (Indexed)
     pending_jobs = JobCard.objects.filter(
         payment_status__in=['PENDING', 'PARTIAL']
+    )
+
+    # 2. AJAX Search (Registration or Customer Name)
+    q = request.GET.get('q', '').strip()
+    if q:
+        pending_jobs = pending_jobs.filter(
+            Q(registration_number__icontains=q) |
+            Q(customer_name__icontains=q)
+        )
+
+    # 3. SQL Annotations (The Scale Optimizer)
+    # Using Subqueries to prevent Cartesian Product/Double Counting when summing 
+    # over multiple related tables (Spares & Labours).
+    
+    from django.db.models import Sum, Q, Value, F, OuterRef, Subquery, DecimalField, ExpressionWrapper
+    from django.db.models.functions import Coalesce
+    from decimal import Decimal
+    
+    spares_subquery = JobCardSpareItem.objects.filter(
+        job_card=OuterRef('pk')
+    ).values('job_card').annotate(
+        total=Sum('total_price')
+    ).values('total')
+
+    labours_subquery = JobCardLabourItem.objects.filter(
+        job_card=OuterRef('pk')
+    ).values('job_card').annotate(
+        total=Sum('amount')
+    ).values('total')
+
+    pending_jobs = pending_jobs.annotate(
+        annotated_spares=Coalesce(Subquery(spares_subquery), Value(Decimal('0.0'), output_field=DecimalField())),
+        annotated_labour=Coalesce(Subquery(labours_subquery), Value(Decimal('0.0'), output_field=DecimalField()))
+    ).annotate(
+        total_bill=ExpressionWrapper(
+            F('annotated_spares') + F('annotated_labour'),
+            output_field=DecimalField()
+        )
+    ).annotate(
+        balance_amount=ExpressionWrapper(
+            F('total_bill') - F('received_amount'),
+            output_field=DecimalField()
+        )
     ).order_by('-admitted_date')
-    
-    total_outstanding = sum(job.get_balance_amount for job in pending_jobs)
-    
-    return render(request, 'workshop/jobcard/pending_payments.html', {
-        'pending_jobs': pending_jobs,
-        'total_outstanding': total_outstanding
-    })
+
+    # 4. Global Grand Total
+    total_outstanding = pending_jobs.aggregate(
+        total=Sum(F('balance_amount'), output_field=DecimalField())
+    )['total'] or 0
+
+    # 5. Pagination (21 items per page)
+    paginator = Paginator(pending_jobs, 21)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+
+    context = {
+        'pending_jobs': page_obj,
+        'total_outstanding': total_outstanding,
+        'q': q,
+    }
+
+    # 6. AJAX Return Partial
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, 'workshop/jobcard/pending_payments_partial.html', context)
+
+    return render(request, 'workshop/jobcard/pending_payments.html', context)
 
 
 # ============================================================================

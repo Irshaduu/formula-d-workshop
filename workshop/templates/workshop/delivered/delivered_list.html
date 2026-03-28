@@ -21,7 +21,7 @@
         <div class="d-flex gap-2">
             <!-- Date Filter Dropdown -->
             <div class="dropdown">
-                <button class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center gap-2 px-3 py-2 border-0 shadow-sm" type="button"
+                <button id="filterDropdownBtn" class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center gap-2 px-3 py-2 border-0 shadow-sm" type="button"
                     data-bs-toggle="dropdown" style="border-radius: 999px; background: var(--color-card);">
                     <i class="bi bi-funnel"></i>
                     <span id="filterLabel">
@@ -29,7 +29,7 @@
                         {% elif filter_type == 'week' %}1 Week
                         {% elif filter_type == 'month' %}1 Month
                         {% elif filter_type == 'year' %}1 Year
-                        {% elif filter_type == 'custom' %}Custom
+                        {% elif filter_type == 'custom' %}{% if start_date and end_date %}{{ start_date }} - {{ end_date }}{% else %}Custom{% endif %}
                         {% else %}All{% endif %}
                     </span>
                 </button>
@@ -41,15 +41,17 @@
                     <li><a class="dropdown-item py-2 px-3 {% if filter_type == 'all' %}active{% endif %}" href="?filter=all">All</a></li>
                     <li><hr class="dropdown-divider mx-3"></li>
                     <li>
-                        <a class="dropdown-item py-2 px-3 {% if filter_type == 'custom' %}active{% endif %}" href="#" onclick="toggleCustomDatePicker(event)">Custom Range</a>
+                        <a id="customRangeToggle" class="dropdown-item py-2 px-3 {% if filter_type == 'custom' %}active{% endif %}" href="#">Custom Range</a>
                     </li>
-                    <li id="customDatePicker" style="display: {% if filter_type == 'custom' %}block{% else %}none{% endif %};">
+                    <li id="customDatePicker" style="display: {% if filter_type == 'custom' %}block{% else %}none{% endif %};" onclick="event.stopPropagation()">
                         <div class="px-3 py-2">
-                            <form method="get" class="d-flex flex-column gap-2" onsubmit="handleCustomDate(event)">
+                            <form id="customDateForm" method="get" class="d-flex flex-column gap-2">
                                 <input type="hidden" name="filter" value="custom">
-                                <input type="date" name="start_date" id="start_date" class="form-control form-control-sm" required>
-                                <input type="date" name="end_date" id="end_date" class="form-control form-control-sm" required>
-                                <button type="submit" class="btn btn-primary btn-sm rounded-pill">Apply</button>
+                                <label class="small text-muted mb-0">Start Date</label>
+                                <input type="date" name="start_date" id="start_date" class="form-control form-control-sm" value="{{ start_date }}" required>
+                                <label class="small text-muted mb-0">End Date</label>
+                                <input type="date" name="end_date" id="end_date" class="form-control form-control-sm" value="{{ end_date }}" required>
+                                <button type="submit" class="btn btn-primary btn-sm rounded-pill mt-1">Apply Range</button>
                             </form>
                         </div>
                     </li>
@@ -94,12 +96,17 @@
                 'week': '1 Week',
                 'month': '1 Month',
                 'year': '1 Year',
-                'all': 'All',
-                'custom': 'Custom Range'
+                'all': 'All'
             };
             const label = document.getElementById('filterLabel');
-            if (label && labelMap[currentFilter]) {
-                label.textContent = labelMap[currentFilter];
+            if (label) {
+                if (currentFilter === 'custom') {
+                    const startDate = document.getElementById('start_date').value;
+                    const endDate = document.getElementById('end_date').value;
+                    label.textContent = (startDate && endDate) ? `${startDate} - ${endDate}` : 'Custom';
+                } else if (labelMap[currentFilter]) {
+                    label.textContent = labelMap[currentFilter];
+                }
             }
 
             // Sync Dropdown Active Class
@@ -167,29 +174,40 @@
                 }
             });
         });
-    });
 
-    function toggleCustomDatePicker(event) {
-        event.preventDefault();
-        const picker = document.getElementById('customDatePicker');
-        picker.style.display = (picker.style.display === 'none') ? 'block' : 'none';
-    }
-
-    function handleCustomDate(event) {
-        event.preventDefault();
-        const startDate = document.getElementById('start_date').value;
-        const endDate = document.getElementById('end_date').value;
-        
-        if (startDate && endDate) {
-            currentFilter = 'custom';
-            // Explicitly call updateResults with current search and dates
-            updateResults(document.getElementById('deliveredSearch').value, 1);
-            
-            // Close the dropdown (Bootstrap 5 way)
-            const dropdown = bootstrap.Dropdown.getInstance(document.querySelector('.dropdown-toggle'));
-            if (dropdown) dropdown.hide();
+        // Close the dropdown when clicking the "Custom Range" link
+        const customToggle = document.getElementById('customRangeToggle');
+        if (customToggle) {
+            customToggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                const picker = document.getElementById('customDatePicker');
+                if (picker) {
+                    picker.style.display = (picker.style.display === 'none') ? 'block' : 'none';
+                }
+            });
         }
-    }
+
+        // Handle the custom date form submission
+        const customForm = document.getElementById('customDateForm');
+        if (customForm) {
+            customForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const startDate = document.getElementById('start_date').value;
+                const endDate = document.getElementById('end_date').value;
+                
+                if (startDate && endDate) {
+                    currentFilter = 'custom';
+                    updateResults(input.value, 1);
+                    
+                    // Close the dropdown (specifically the date filter one)
+                    const dropdownEl = document.getElementById('filterDropdownBtn');
+                    const dropdown = bootstrap.Dropdown.getInstance(dropdownEl);
+                    if (dropdown) dropdown.hide();
+                }
+            });
+        }
+    });
 </script>
 
 <style>

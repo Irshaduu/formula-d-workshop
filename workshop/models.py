@@ -167,7 +167,7 @@ class JobCard(models.Model):
         ('PAID', 'Fully Paid'),
         ('PARTIAL', 'Partially Paid'),
     ]
-    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='PENDING')
+    payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='PENDING', db_index=True)
     
     PAYMENT_METHOD_CHOICES = [
         ('CASH', 'Cash'),

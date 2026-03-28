@@ -152,13 +152,14 @@
                     </div>
 
                     <!-- SIMPLE PROGRESS LINE -->
-                    {% if job.concerns.exists %}
-                    {% with percent=job.get_completion_percentage %}
+                    {% if job.total_concerns > 0 %}
+                    {% widthratio job.fixed_concerns job.total_concerns 100 as percent %}
+                    {% with p=percent|add:"0" %}
                     <div class="progress-container">
                         <div class="progress-bar-bg">
                             <div class="progress-bar-fill 
-                                {% if percent == 100 %}progress-green
-                                {% elif percent >= 50 %}progress-blue
+                                {% if p == 100 %}progress-green
+                                {% elif p >= 50 %}progress-blue
                                 {% else %}progress-orange{% endif %}"
                                 style="width: {{ percent }}%;">
                             </div>
