@@ -128,8 +128,8 @@ class JobCard(models.Model):
 
 
     # Vehicle Details (Text fields with Autocomplete)
-    brand_name = models.CharField(max_length=100)
-    model_name = models.CharField(max_length=100)
+    brand_name = models.CharField(max_length=100, db_index=True)
+    model_name = models.CharField(max_length=100, db_index=True)
     registration_number = models.CharField(max_length=50, db_index=True)
     mileage = models.CharField(max_length=20, blank=True, null=True, help_text="e.g. 50000 or 50k")
 

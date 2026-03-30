@@ -895,6 +895,8 @@ def car_profile_list(request):
                 'customer': jc.customer_name,
                 'total_visits': car['total_visits'],
                 'latest_date': car['latest_date'],
+                'color_hex': jc.get_car_color_hex,
+                'color_name': jc.get_car_color_display,
             })
 
     # Get unique brands (no longer used for filter, but keeping for other UI if needed - actually better to remove)
