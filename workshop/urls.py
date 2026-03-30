@@ -18,6 +18,7 @@ urlpatterns = [
     # ------------------
     path('jobcards/', views.jobcard_list, name='jobcard_list'),
     path('jobcards/live-report/', views.live_report, name='live_report'),
+    path('jobcards/<int:pk>/', views.jobcard_detail, name='jobcard_detail'),
     path('jobcards/<int:pk>/edit/', views.jobcard_edit, name='jobcard_edit'),
     path('jobcards/<int:pk>/delete/', views.jobcard_delete, name='jobcard_delete'),
 

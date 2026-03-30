@@ -238,6 +238,21 @@ def jobcard_list(request):
 
 
 @staff_required
+def jobcard_detail(request, pk):
+    """
+    Clean View for a Job Card (Read-Only).
+    """
+    jobcard = get_object_or_404(
+        JobCard.objects.select_related('lead_mechanic').prefetch_related('concerns', 'spares', 'labours'),
+        pk=pk
+    )
+
+    return render(request, 'workshop/jobcard/jobcard_detail.html', {
+        'jobcard': jobcard,
+    })
+
+
+@staff_required
 def jobcard_edit(request, pk):
     """
     Edit an existing Job Card. Pre-populates form and formsets.

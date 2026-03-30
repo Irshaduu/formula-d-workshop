@@ -101,7 +101,7 @@
                             <i class="bi bi-three-dots-vertical fs-5"></i>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="font-size: 0.85rem; border-radius: 10px; z-index: 1050;">
-                            <li><a class="dropdown-item py-2" href="{% url 'jobcard_edit' job.pk %}"><i class="bi bi-pencil me-2"></i>Edit Job</a></li>
+                            <li><a class="dropdown-item py-2" href="{% url 'jobcard_detail' job.pk %}"><i class="bi bi-eye me-2"></i>View Job</a></li>
                             <li><a class="dropdown-item py-2" href="{% url 'invoice_view' job.pk %}" target="_blank"><i class="bi bi-receipt me-2"></i>View Invoice</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item py-2 text-danger" href="{% url 'jobcard_delete' job.pk %}"><i class="bi bi-trash me-2"></i>Delete Record</a></li>
@@ -110,7 +110,7 @@
                 </div>
 
                 <!-- 3. CENTERPIECE: VEHICLE (Link Area) -->
-                <a href="{% url 'jobcard_edit' job.pk %}" class="text-decoration-none card-link h-100 d-flex flex-column">
+                <a href="{% url 'jobcard_detail' job.pk %}" class="text-decoration-none card-link h-100 d-flex flex-column">
                     <div class="mb-4">
                         <h4 class="card-title fw-bold mb-0 text-truncate" style="letter-spacing: -0.5px; color: var(--color-primary); font-size: 1.1rem;">
                             {% if job.car_color %}
