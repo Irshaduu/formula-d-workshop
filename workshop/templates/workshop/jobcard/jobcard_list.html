@@ -1,13 +1,21 @@
 {% extends 'workshop/base.html' %}
+{% load auth_extras %}
 
 {% block title %}Jobs List{% endblock %}
 
 {% block content %}
 <!-- Header Section -->
 <div class="d-flex justify-content-between align-items-center mb-3 gap-3">
-    <h6 class="mb-0 text-primary fw-bold flex-shrink-0" style="font-size: 0.85rem;">
-        <i class="bi bi-card-checklist"></i> Jobs ({{ jobcards.paginator.count }})
-    </h6>
+    <div class="d-flex align-items-center gap-3">
+        <h6 class="mb-0 text-primary fw-bold flex-shrink-0" style="font-size: 0.85rem;">
+            <i class="bi bi-card-checklist"></i> Jobs ({{ jobcards.paginator.count }})
+        </h6>
+        {% if request.user|has_group:"Owner" or request.user.is_superuser %}
+        <a href="{% url 'trash_list' %}" class="btn btn-sm btn-outline-danger py-1 px-2 border-0" style="font-size: 0.75rem;">
+            <i class="bi bi-trash3"></i> Trash
+        </a>
+        {% endif %}
+    </div>
     
     <!-- Jobs Search Bar -->
     <form id="jobsSearchForm" method="get" class="flex-grow-1" style="max-width: 400px;">

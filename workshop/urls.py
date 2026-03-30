@@ -25,11 +25,13 @@ urlpatterns = [
     # NEW: DELIVERED (Workshop Dashboard)
     # ------------------
     path('delivered/', views.delivered_list, name='delivered_list'),
+    path('trash/', views.trash_list, name='trash_list'),
     path('pending-payments/', views.pending_payments_list, name='pending_payments_list'),
     path('jobcards/<int:pk>/deliver/', views.mark_delivered, name='mark_delivered'),
     path('jobcards/<int:pk>/undo-deliver/', views.undo_delivered, name='undo_delivered'),
     path('jobcards/<int:pk>/toggle-hold/', views.toggle_hold, name='toggle_hold'),
     path('jobcards/<int:pk>/update-bill/', views.update_bill_status, name='update_bill_status'),
+    path('jobcards/<int:pk>/restore/', views.restore_jobcard, name='restore_jobcard'),
 
     # ------------------
     # SECTION 3: MASTER LISTS

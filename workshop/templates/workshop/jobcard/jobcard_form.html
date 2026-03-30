@@ -11,7 +11,7 @@
 
         <!-- Fixed Compact Header -->
         <div class="position-sticky shadow-sm"
-            style="top: 60px; z-index: 100; padding: 0.25rem 1rem; border-radius: 0 0 8px 8px; margin-bottom: 2rem; background-color: var(--color-primary-light);">
+            style="top: 60px; z-index: 100; padding: 0.25rem 1rem; border-radius: 0 0 8px 8px; margin-bottom: 1rem; background-color: var(--color-primary-light);">
             <div class="d-flex justify-content-between align-items-center">
                 {% if is_edit %}
                 <span class="text-truncate" style="font-size: 0.9rem;">
@@ -21,8 +21,9 @@
                     <strong>{{ jobcard.brand_name }} {{ jobcard.model_name }}</strong>
                     <span class="text-primary fw-bold ms-2">{{ jobcard.registration_number }}</span>
                 </span>
-                {% if request.user|has_group:"Office" or request.user|has_group:"Owner" or request.user.is_superuser %}
+                
                 <div class="d-flex gap-2">
+                    {% if request.user|has_group:"Office" or request.user|has_group:"Owner" or request.user.is_superuser %}
                     <a href="{% url 'car_profile_detail' jobcard.registration_number %}"
                         class="btn btn-sm btn-outline-primary" style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">
                         <i class="bi bi-car-front"></i> Profile
@@ -31,14 +32,38 @@
                         style="padding: 0.25rem 0.5rem; font-size: 0.8rem;">
                         <i class="bi bi-receipt"></i> Invoice
                     </a>
+                    {% endif %}
                 </div>
-                {% endif %}
                 {% else %}
                 <strong style="font-size: 0.9rem;">New Job Card</strong>
                 <span></span>
                 {% endif %}
             </div>
         </div>
+
+        <!-- Security Tier Banner (Triple-Tier Security) -->
+        {% if is_edit %}
+        <div class="mb-3">
+            {% if jobcard.payment_status == 'PAID' %}
+                <div class="alert alert-danger py-2 px-3 d-flex justify-content-between align-items-center mb-0 shadow-sm border-0" style="border-radius: 8px; background-color: #fce8e6; color: #c5221f;">
+                    <div class="small fw-bold">
+                        <i class="bi bi-shield-lock-fill me-1"></i> FINANCIAL LOCK ACTIVE
+                    </div>
+                    {% if request.user|has_group:"Office" or request.user|has_group:"Owner" or request.user.is_superuser %}
+                    <button type="button" class="btn btn-sm btn-danger py-0 fw-bold" onclick="toggleRecordLock(true)" style="font-size: 0.75rem;">
+                        UNLOCK RECORD
+                    </button>
+                    {% endif %}
+                </div>
+            {% elif jobcard.delivered %}
+                <div class="alert alert-warning py-2 px-3 mb-0 shadow-sm border-0" style="border-radius: 8px; background-color: #fef7e0; color: #b06000;">
+                    <div class="small fw-bold">
+                        <i class="bi bi-exclamation-triangle-fill me-1"></i> CAUTION: Car is Delivered. Review before editing.
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+        {% endif %}
 
 
 
@@ -738,6 +763,53 @@
                 setTimeout(applyStatusColors, 100);
             });
         }
+        // ==========================================
+        // TRIPLE-TIER SECURITY: LOCKING LOGIC
+        // ==========================================
+
+        window.toggleRecordLock = function(isHardLock) {
+            const form = document.getElementById('jobcardForm');
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const allElements = form.querySelectorAll('input, select, textarea, button:not([onclick^="toggleRecordLock"])');
+            
+            const isCurrentlyLocked = allElements[0].disabled;
+
+            if (isCurrentlyLocked) {
+                // UNLOCKING (Tier 3 Only)
+                const confirmMsg = "⚠️ PROCEED WITH CAUTION!\n\nYou are unlocking a FINALIZED financial record.\nThis action should only be done for essential corrections. Continue?";
+                
+                if (confirm(confirmMsg)) {
+                    allElements.forEach(el => el.disabled = false);
+                    submitBtn.classList.remove('d-none');
+                    
+                    // High-impact notification
+                    const toast = document.createElement('div');
+                    toast.className = 'position-fixed bottom-0 start-50 translate-middle-x mb-5 p-3 bg-danger text-white rounded shadow-lg fw-bold';
+                    toast.style.zIndex = '9999';
+                    toast.innerHTML = '🔓 FINANCIAL LOCK RELEASED';
+                    document.body.appendChild(toast);
+                    setTimeout(() => toast.remove(), 3000);
+                }
+            } else {
+                // LOCKING
+                allElements.forEach(el => el.disabled = true);
+                submitBtn.classList.add('d-none');
+            }
+        };
+
+        // Auto-lock on load: ONLY for Tier 3 (PAID)
+        {% if is_edit %}
+            {% if jobcard.payment_status == 'PAID' %}
+                setTimeout(() => {
+                    const form = document.getElementById('jobcardForm');
+                    const allElements = form.querySelectorAll('input, select, textarea, button:not([onclick^="toggleRecordLock"])');
+                    const submitBtn = form.querySelector('button[type="submit"]');
+                    
+                    allElements.forEach(el => el.disabled = true);
+                    submitBtn.classList.add('d-none');
+                }, 100);
+            {% endif %}
+        {% endif %}
     });
 </script>
 

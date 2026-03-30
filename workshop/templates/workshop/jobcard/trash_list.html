@@ -1,0 +1,122 @@
+{% extends 'workshop/base.html' %}
+{% load auth_extras %}
+
+{% block title %}Trash - Deleted Jobs{% endblock %}
+
+{% block content %}
+<!-- Header Section -->
+<div class="d-flex justify-content-between align-items-center mb-3 gap-3">
+    <h6 class="mb-0 text-danger fw-bold flex-shrink-0" style="font-size: 0.85rem;">
+        <i class="bi bi-trash3-fill"></i> Trash ({{ trash_cards.paginator.count }})
+    </h6>
+    
+    <!-- Trash Search Bar -->
+    <form id="trashSearchForm" method="get" class="flex-grow-1" style="max-width: 400px;">
+        <div class="position-relative">
+            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-2 text-muted" style="font-size: 0.8rem;"></i>
+            <input type="text" name="q" id="trashSearchInput" value="{{ request.GET.q|default:'' }}" 
+                   placeholder="Search Reg, Brand, Model in Trash..." 
+                   class="form-control form-control-sm ps-4 rounded-pill border-0 shadow-sm"
+                   style="font-size: 0.85rem; height: 32px; background: var(--color-card);"
+                   autocomplete="off">
+            {% if request.GET.q %}
+            <a href="{% url 'trash_list' %}" class="position-absolute top-50 end-0 translate-middle-y me-2 text-muted text-decoration-none">
+                <i class="bi bi-x-circle-fill" style="font-size: 0.8rem;"></i>
+            </a>
+            {% endif %}
+        </div>
+    </form>
+</div>
+
+<div id="trash-list-container" class="position-relative">
+    {% include 'workshop/jobcard/trash_list_partial.html' %}
+</div>
+
+<style>
+    .job-card {
+        background-color: var(--color-card);
+        border: 1px solid var(--color-border);
+        border-radius: 16px;
+        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        overflow: hidden;
+        opacity: 0.85; /* Slightly faded for trash look */
+    }
+
+    .job-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 15px rgba(0,0,0,0.1) !important;
+        opacity: 1;
+    }
+
+    .reg-badge {
+        background: #f8f9fa;
+        color: #6c757d;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        display: inline-block;
+        font-weight: 700;
+        padding: 0.4rem 0.75rem !important;
+        font-size: 0.9rem !important;
+        letter-spacing: 1.5px !important;
+    }
+
+    .restore-btn {
+        transition: all 0.2s;
+    }
+    .restore-btn:hover {
+        transform: scale(1.05);
+    }
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('trashSearchInput');
+    const container = document.getElementById('trash-list-container');
+    let timeout = null;
+
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            const query = this.value.trim();
+            
+            if (timeout) clearTimeout(timeout);
+            
+            timeout = setTimeout(() => {
+                const url = new URL(window.location.href);
+                url.searchParams.set('q', query);
+                url.searchParams.set('page', '1');
+                
+                container.style.opacity = '0.5';
+                
+                fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                    .then(response => response.text())
+                    .then(html => {
+                        const parser = new DOMParser();
+                        const doc = parser.parseFromString(html, 'text/html');
+                        const newContent = doc.getElementById('trash-list-container') || doc.body;
+                        
+                        if (newContent) {
+                            container.innerHTML = newContent.innerHTML;
+                            
+                            // Update the job count in the header
+                            const newCountEl = doc.getElementById('trash-count-data');
+                            if (newCountEl) {
+                                const newCount = newCountEl.getAttribute('data-count');
+                                const countHeader = document.querySelector('h6 i.bi-trash3-fill').parentElement;
+                                if (countHeader) {
+                                    countHeader.innerHTML = `<i class="bi bi-trash3-fill"></i> Trash (${newCount})`;
+                                }
+                            }
+                        }
+                        container.style.opacity = '1';
+                        window.history.pushState({}, '', url);
+                    })
+                    .catch(err => {
+                        console.error('Search failed:', err);
+                        container.style.opacity = '1';
+                    });
+            }, 300);
+        });
+    }
+});
+</script>
+{% endblock %}

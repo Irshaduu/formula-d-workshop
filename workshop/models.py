@@ -123,6 +123,9 @@ class JobCard(models.Model):
     # On Hold Status (for jobs waiting for parts or paused)
     on_hold = models.BooleanField(default=False, help_text="Job is on hold (waiting for parts, etc.)")
 
+    # Soft Delete (Trash System)
+    is_deleted = models.BooleanField(default=False, db_index=True, help_text="Hide from main list (moved to trash)")
+
 
     # Vehicle Details (Text fields with Autocomplete)
     brand_name = models.CharField(max_length=100)

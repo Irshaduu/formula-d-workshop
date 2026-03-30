@@ -30,22 +30,23 @@ def home(request):
     from django.db.models import Count, Q
     
     # Get only non-delivered job cards (where delivered=False)
-    # Discharge date is just for planning - doesn't control visibility
-    # Annotate with concern counts for progress bar
     # Optimized with select_related for lead_mechanic to prevent N+1 queries
-    active_jobcards = JobCard.objects.filter(delivered=False).select_related('lead_mechanic').annotate(
+    # Filter out soft-deleted records
+    active_jobcards = JobCard.objects.filter(delivered=False, is_deleted=False).select_related('lead_mechanic').annotate(
         total_concerns=Count('concerns'),
         fixed_concerns=Count('concerns', filter=Q(concerns__status='FIXED'))
     ).order_by('-updated_at')
     
-    # Count delivered today
+    # Count delivered today (Active only)
     delivered_count = JobCard.objects.filter(
         delivered=True,
-        updated_at__date=date.today()  # When delivered button was clicked
+        is_deleted=False,
+        updated_at__date=date.today()
     ).count()
 
-    # Count pending bills (Delivered but not fully paid)
+    # Count pending bills (Delivered but not fully paid, Active only)
     pending_bills_count = JobCard.objects.filter(
+        is_deleted=False,
         payment_status__in=['PENDING', 'PARTIAL']
     ).count()
     
@@ -164,7 +165,15 @@ def jobcard_create(request):
             labour_formset = JobCardLabourFormSet(request.POST, prefix='labours')
     else:
         # Pre-fill admitted_date with today's date
-        form = JobCardForm(initial={'admitted_date': date.today()})
+        initial_data = {'admitted_date': date.today()}
+        
+        # Pre-fill from GET parameters (Cloning/New Visit feature)
+        for field in ['registration_number', 'brand_name', 'model_name', 'customer_name', 'customer_contact']:
+            val = request.GET.get(field)
+            if val:
+                initial_data[field] = val
+                
+        form = JobCardForm(initial=initial_data)
         concern_formset = JobCardConcernFormSet(prefix='concerns')
         spare_formset = JobCardSpareFormSet(prefix='spares')
         labour_formset = JobCardLabourFormSet(prefix='labours')
@@ -200,10 +209,9 @@ def live_report(request):
 @office_required
 def jobcard_list(request):
     """
-    SECTION 2: JOBS - List of saved job cards.
-    Newest first is handled by Model Meta ordering.
+    SECTION 2: JOBS - List of active saved job cards.
     """
-    jobcard_list_query = JobCard.objects.all()
+    jobcard_list_query = JobCard.objects.filter(is_deleted=False)
     
     q = request.GET.get('q')
     if q:
@@ -291,16 +299,62 @@ def jobcard_edit(request, pk):
     return render(request, 'workshop/jobcard/jobcard_form.html', context)
 
 
-@office_required # Office and Owners can delete
+@office_required
 def jobcard_delete(request, pk):
     """
-    Simple confirmation page before deletion.
+    Soft-delete a job card and move it to the Trash.
     """
     jobcard = get_object_or_404(JobCard, pk=pk)
     if request.method == 'POST':
-        jobcard.delete()
+        jobcard.is_deleted = True
+        jobcard.save()
+        from django.contrib import messages
+        messages.warning(request, f"Job Card {jobcard.registration_number} moved to Trash.")
         return redirect('jobcard_list')
     return render(request, 'workshop/jobcard/jobcard_confirm_delete.html', {'jobcard': jobcard})
+
+
+# =============================================================================
+# NEW: TRASH & RECOVERY SECTION
+# =============================================================================
+
+@owner_required
+def trash_list(request):
+    """
+    Dashboard for all soft-deleted records.
+    """
+    trash_query = JobCard.objects.filter(is_deleted=True).order_by('-updated_at')
+    
+    q = request.GET.get('q')
+    if q:
+        trash_query = trash_query.filter(
+            Q(registration_number__icontains=q) |
+            Q(brand_name__icontains=q) |
+            Q(model_name__icontains=q) |
+            Q(customer_name__icontains=q)
+        )
+        
+    paginator = Paginator(trash_query, 21)
+    page_number = request.GET.get('page')
+    trash_cards = paginator.get_page(page_number)
+    
+    if request.headers.get('x-requested-with') == 'XMLHttpRequest':
+        return render(request, 'workshop/jobcard/trash_list_partial.html', {'trash_cards': trash_cards})
+        
+    return render(request, 'workshop/jobcard/trash_list.html', {'trash_cards': trash_cards})
+
+
+@owner_required
+def restore_jobcard(request, pk):
+    """
+    Restore a record from the Trash to the main Floor.
+    """
+    jobcard = get_object_or_404(JobCard, pk=pk)
+    jobcard.is_deleted = False
+    jobcard.save()
+    from django.contrib import messages
+    messages.success(request, f"Successfully restored {jobcard.registration_number} to the Floor.")
+    return redirect('trash_list')
 
 
 # =============================================================================
@@ -314,11 +368,20 @@ def delivered_list(request):
     """
     from datetime import date, timedelta
     
-    # 1. Base Query
-    delivered_jobcards = JobCard.objects.filter(delivered=True).order_by('-discharged_date')
+    # 1. Base Query (Active only)
+    delivered_jobcards = JobCard.objects.filter(delivered=True, is_deleted=False).order_by('-discharged_date')
     
-    # 2. Apply AJAX Search Filters (Registration, Customer, Brand, Model)
-    q = request.GET.get('q', '').strip()
+    # 2. Smart Reset: Reset to "Today" on full page refresh to avoid confusion with historical data
+    is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
+    
+    if not is_ajax:
+        filter_type = 'today'
+        q = ''
+    else:
+        filter_type = request.GET.get('filter', 'today')
+        q = request.GET.get('q', '').strip()
+
+    # 3. Apply Search Filters (Registration, Customer, Brand, Model)
     if q:
         delivered_jobcards = delivered_jobcards.filter(
             Q(registration_number__icontains=q) |
@@ -327,8 +390,7 @@ def delivered_list(request):
             Q(model_name__icontains=q)
         )
     
-    # 3. Apply Date Filters
-    filter_type = request.GET.get('filter', 'today')
+    # 4. Apply Date Filters
     today = date.today()
     if filter_type == 'today':
         delivered_jobcards = delivered_jobcards.filter(discharged_date=today)

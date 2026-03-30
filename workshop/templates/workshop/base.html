@@ -377,6 +377,11 @@
                 <li><a class="dropdown-item text-danger" href="{% url 'pending_payments_list' %}"><i
                             class="bi bi-exclamation-octagon"></i>
                         Pending Payments</a></li>
+                {% if request.user|has_group:"Owner" or request.user.is_superuser %}
+                <li><a class="dropdown-item text-muted" href="{% url 'trash_list' %}"><i
+                            class="bi bi-trash3"></i>
+                        Trash / Soft-Deleted</a></li>
+                {% endif %}
                 <li>
                     <hr class="dropdown-divider">
                 </li>
