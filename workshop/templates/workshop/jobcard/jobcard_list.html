@@ -18,16 +18,18 @@
     </div>
     
     <!-- Jobs Search Bar -->
-    <form id="jobsSearchForm" method="get" class="flex-grow-1" style="max-width: 400px;">
+    <form id="jobsSearchForm" class="flex-grow-1" style="max-width: 400px;">
         <div class="position-relative">
-            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-2 text-muted" style="font-size: 0.8rem;"></i>
+            <button type="submit" class="btn btn-link position-absolute top-50 start-0 translate-middle-y p-0 ms-2 text-muted" style="z-index: 5; border: none; text-decoration: none;">
+                <i class="bi bi-search" style="font-size: 0.8rem;"></i>
+            </button>
             <input type="text" name="q" id="jobsSearchInput" value="{{ request.GET.q|default:'' }}" 
                    placeholder="Search Reg, Brand, Model..." 
                    class="form-control form-control-sm ps-4 rounded-pill border-0 shadow-sm"
                    style="font-size: 0.85rem; height: 32px; background: var(--color-card);"
                    autocomplete="off">
             {% if request.GET.q %}
-            <a href="{% url 'jobcard_list' %}" class="position-absolute top-50 end-0 translate-middle-y me-2 text-muted text-decoration-none">
+            <a href="{% url 'jobcard_list' %}" class="position-absolute top-50 end-0 translate-middle-y me-2 text-muted text-decoration-none" style="z-index: 5;">
                 <i class="bi bi-x-circle-fill" style="font-size: 0.8rem;"></i>
             </a>
             {% endif %}
@@ -156,56 +158,57 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('jobsSearchInput');
+    const searchForm = document.getElementById('jobsSearchForm');
     const container = document.getElementById('job-list-container');
     let timeout = null;
 
-    if (searchInput) {
-        searchInput.addEventListener('input', function() {
-            const query = this.value.trim();
+    function performSearch(event) {
+        if (event && event.type === 'submit') event.preventDefault();
+        const query = searchInput.value.trim();
+        
+        if (timeout) clearTimeout(timeout);
+        
+        const delay = (event && event.type === 'submit') ? 0 : 300;
+        
+        timeout = setTimeout(() => {
+            const url = new URL(window.location.href);
+            url.searchParams.set('q', query);
+            url.searchParams.set('page', '1');
             
-            if (timeout) clearTimeout(timeout);
+            container.style.opacity = '0.5';
             
-            timeout = setTimeout(() => {
-                const url = new URL(window.location.href);
-                url.searchParams.set('q', query);
-                url.searchParams.set('page', '1'); // Reset to first page on new search
-                
-                // Show subtle loading state
-                container.style.opacity = '0.5';
-                
-                fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                    .then(response => response.text())
-                    .then(html => {
-                        const parser = new DOMParser();
-                        const doc = parser.parseFromString(html, 'text/html');
-                        const newContent = doc.getElementById('job-list-container') || doc.body;
-                        const newHeaderCount = doc.querySelector('h6 i.bi-card-checklist').parentElement;
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newContent = doc.getElementById('job-list-container') || doc.body;
+                    
+                    if (newContent) {
+                        container.innerHTML = newContent.innerHTML;
                         
-                        if (newContent) {
-                            container.innerHTML = newContent.innerHTML;
-                            
-                            // Update the job count in the header from the hidden data element in partial
-                            const newCountEl = doc.getElementById('job-count-data');
-                            if (newCountEl) {
-                                const newCount = newCountEl.getAttribute('data-count');
-                                const countHeader = document.querySelector('h6 i.bi-card-checklist').parentElement;
-                                if (countHeader) {
-                                    countHeader.innerHTML = `<i class="bi bi-card-checklist"></i> Jobs (${newCount})`;
-                                }
+                        // Update the count in the header
+                        const newCountEl = doc.getElementById('job-count-data');
+                        if (newCountEl) {
+                            const newCount = newCountEl.getAttribute('data-count');
+                            const countHeader = document.querySelector('h6 i.bi-card-checklist').parentElement;
+                            if (countHeader) {
+                                countHeader.innerHTML = `<i class="bi bi-card-checklist"></i> Jobs (${newCount})`;
                             }
                         }
-                        container.style.opacity = '1';
-                        
-                        // Update URL without reload
-                        window.history.pushState({}, '', url);
-                    })
-                    .catch(err => {
-                        console.error('Search failed:', err);
-                        container.style.opacity = '1';
-                    });
-            }, 300);
-        });
+                    }
+                    container.style.opacity = '1';
+                    window.history.pushState({}, '', url);
+                })
+                .catch(err => {
+                    console.error('Search failed:', err);
+                    container.style.opacity = '1';
+                });
+        }, delay);
     }
+
+    if (searchInput) searchInput.addEventListener('input', performSearch);
+    if (searchForm) searchForm.addEventListener('submit', performSearch);
 });
 </script>
 {% endblock %}

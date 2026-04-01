@@ -6,23 +6,14 @@
     <div class="col-12 col-md-6 col-lg-4">
         <a href="{% url 'car_profile_detail' car.registration %}" class="car-card shadow-sm h-100 position-relative">
             <div class="car-header">
-                <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
-                    <h6 class="car-name mb-0">
-                        {% if car.color_hex %}
-                        <span class="color-square" title="{{ car.color_name }}" 
-                              style="background-color: {{ car.color_hex }};"></span>
-                        {% endif %}
-                        {{ car.brand }} {{ car.model }}
-                    </h6>
-                    <!-- Owner Name Corner -->
-                    <div class="owner-corner">
-                        {% if car.customer %}
-                            <i class="bi bi-person-fill me-1"></i>{{ car.customer }}
-                        {% else %}
-                            <span class="opacity-50 fst-italic">No name</span>
-                        {% endif %}
-                    </div>
-                </div>
+                <!-- Vehicle Row (Full Width) -->
+                <h6 class="car-name mb-2">
+                    {% if car.color_hex %}
+                    <span class="color-square me-1" title="{{ car.color_name }}" 
+                          style="background-color: {{ car.color_hex }};"></span>
+                    {% endif %}
+                    {{ car.brand }} {{ car.model }}
+                </h6>
                 <span class="reg-number">{{ car.registration }}</span>
             </div>
 
@@ -36,6 +27,13 @@
                     <span>Last visit: {{ car.latest_date|date:"d M Y" }}</span>
                 </div>
             </div>
+
+            <!-- Owner Name (Bottom-Right Corner) -->
+            {% if car.customer %}
+            <div class="owner-corner">
+                <i class="bi bi-person-fill me-1"></i>{{ car.customer }}
+            </div>
+            {% endif %}
         </a>
     </div>
     {% endfor %}

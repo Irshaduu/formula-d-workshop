@@ -213,17 +213,21 @@ def jobcard_list(request):
     """
     jobcard_list_query = JobCard.objects.filter(is_deleted=False)
     
-    q = request.GET.get('q')
+    # Detect AJAX vs Full Refresh for "Smart Reset"
+    is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
+    q = request.GET.get('q', '').strip() if is_ajax else ''
+    
     if q:
-        jobcard_list_query = jobcard_list_query.filter(
-            Q(registration_number__icontains=q) |
-            Q(bill_number__icontains=q) |
-            Q(brand_name__icontains=q) |
-            Q(model_name__icontains=q) |
-            Q(customer_name__icontains=q) |
-            Q(customer_contact__icontains=q) |
-            Q(lead_mechanic__name__icontains=q)
-        )
+        for word in q.split():
+            jobcard_list_query = jobcard_list_query.filter(
+                Q(registration_number__icontains=word) |
+                Q(bill_number__icontains=word) |
+                Q(brand_name__icontains=word) |
+                Q(model_name__icontains=word) |
+                Q(customer_name__icontains=word) |
+                Q(customer_contact__icontains=word) |
+                Q(lead_mechanic__name__icontains=word)
+            )
         
     paginator = Paginator(jobcard_list_query, 21)  # Show 21 jobs per page
     
@@ -340,14 +344,18 @@ def trash_list(request):
     """
     trash_query = JobCard.objects.filter(is_deleted=True).order_by('-updated_at')
     
-    q = request.GET.get('q')
+    # Detect AJAX vs Full Refresh for "Smart Reset"
+    is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
+    q = request.GET.get('q', '').strip() if is_ajax else ''
+    
     if q:
-        trash_query = trash_query.filter(
-            Q(registration_number__icontains=q) |
-            Q(brand_name__icontains=q) |
-            Q(model_name__icontains=q) |
-            Q(customer_name__icontains=q)
-        )
+        for word in q.split():
+            trash_query = trash_query.filter(
+                Q(registration_number__icontains=word) |
+                Q(brand_name__icontains=word) |
+                Q(model_name__icontains=word) |
+                Q(customer_name__icontains=word)
+            )
         
     paginator = Paginator(trash_query, 21)
     page_number = request.GET.get('page')
@@ -398,12 +406,13 @@ def delivered_list(request):
 
     # 3. Apply Search Filters (Registration, Customer, Brand, Model)
     if q:
-        delivered_jobcards = delivered_jobcards.filter(
-            Q(registration_number__icontains=q) |
-            Q(customer_name__icontains=q) |
-            Q(brand_name__icontains=q) |
-            Q(model_name__icontains=q)
-        )
+        for word in q.split():
+            delivered_jobcards = delivered_jobcards.filter(
+                Q(registration_number__icontains=word) |
+                Q(customer_name__icontains=word) |
+                Q(brand_name__icontains=word) |
+                Q(model_name__icontains=word)
+            )
     
     # 4. Apply Date Filters
     today = date.today()
@@ -777,10 +786,11 @@ def pending_payments_list(request):
     # 2. AJAX Search (Registration or Customer Name)
     q = request.GET.get('q', '').strip()
     if q:
-        pending_jobs = pending_jobs.filter(
-            Q(registration_number__icontains=q) |
-            Q(customer_name__icontains=q)
-        )
+        for word in q.split():
+            pending_jobs = pending_jobs.filter(
+                Q(registration_number__icontains=word) |
+                Q(customer_name__icontains=word)
+            )
 
     # 3. SQL Annotations (The Scale Optimizer)
     # Using Subqueries to prevent Cartesian Product/Double Counting when summing 
@@ -857,17 +867,19 @@ def car_profile_list(request):
         latest_id=Max('id')
     ).order_by('-latest_date')
 
-    # 2. Get Filters
-    search_query = request.GET.get('q', '')
+    # 2. Get Filters (Smart Reset: Clear on full refresh)
+    is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
+    search_query = request.GET.get('q', '').strip() if is_ajax else ''
 
     # 3. Apply Multi-Field Search (Database Level)
     if search_query:
-        cars_query = cars_query.filter(
-            Q(registration_number__icontains=search_query) |
-            Q(customer_name__icontains=search_query) |
-            Q(brand_name__icontains=search_query) |
-            Q(model_name__icontains=search_query)
-        )
+        for word in search_query.split():
+            cars_query = cars_query.filter(
+                Q(registration_number__icontains=word) |
+                Q(customer_name__icontains=word) |
+                Q(brand_name__icontains=word) |
+                Q(model_name__icontains=word)
+            )
 
     # 4. Pagination (Pro-Active Scaling)
     paginator = Paginator(cars_query, 21)
@@ -936,9 +948,15 @@ def car_profile_detail(request, registration):
         'customer': latest.customer_name,
     }
     
+    # Materialize and attach chronological visit numbers (1 = oldest)
+    bills_list = list(bills)
+    total_visits = len(bills_list)
+    for i, bill in enumerate(bills_list):
+        bill.visit_number = total_visits - i
+    
     return render(request, 'workshop/car_profiles/car_profile_detail.html', {
         'car_info': car_info,
-        'bills': bills,
+        'bills': bills_list,
     })
 
 

@@ -29,15 +29,18 @@
     <h5 style="color: var(--color-text);" class="mb-3">📄 Bill History ({{ bills|length }})</h5>
 
     {% for bill in bills %}
-    <div class="card mb-2" style="background: var(--color-surface); border: 1px solid var(--color-border); {% if forloop.first %}border-left: 5px solid #28a745;{% else %}border-left: 5px solid #dc3545; opacity: 0.85;{% endif %}">
+    <div class="card mb-2" 
+         onclick="window.location='{% url 'jobcard_detail' bill.pk %}'"
+         style="background: var(--color-surface); border: 1px solid var(--color-border); cursor: pointer; {% if forloop.first %}border-left: 5px solid #28a745;{% else %}border-left: 5px solid #dc3545; opacity: 0.85;{% endif %}">
         <div class="card-body py-2 px-3">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="mb-1">
+                    <div class="mb-1 d-flex align-items-center gap-2">
+                        <span class="badge bg-secondary-subtle text-secondary border border-secondary-subtle px-2 py-1" style="font-size: 0.65rem;">
+                            #{{ bill.visit_number }}
+                        </span>
                         {% if forloop.first %}
-                        <span class="badge bg-success text-white small px-2 py-1 mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px;">✨ LATEST VISIT</span>
-                        {% else %}
-                        <span class="badge bg-danger text-white small px-2 py-1 mb-1" style="font-size: 0.65rem; letter-spacing: 0.5px; background-color: #fce8e6 !important; color: #c5221f !important;">🕰️ PREVIOUS HISTORY</span>
+                        <span class="badge bg-success text-white px-2 py-1" style="font-size: 0.7rem; font-weight: 600;">Latest</span>
                         {% endif %}
                     </div>
                     
@@ -66,15 +69,12 @@
                     </small>
                 </div>
                 <div class="d-flex gap-2">
-                    <a href="{% url 'jobcard_detail' bill.pk %}" class="btn btn-outline-secondary btn-sm" style="font-size: 0.75rem;">
-                        {% if bill.delivered or bill.payment_status == 'PAID' %}
-                        <i class="bi bi-eye"></i> View
-                        {% else %}
-                        <i class="bi bi-pencil"></i> Edit
-                        {% endif %}
-                    </a>
                     {% if user.is_staff %}
-                    <a href="{% url 'invoice_view' bill.pk %}" class="btn btn-primary btn-sm" target="_blank" style="font-size: 0.75rem;">
+                    <a href="{% url 'invoice_view' bill.pk %}" 
+                       class="btn btn-primary btn-sm" 
+                       target="_blank" 
+                       onclick="event.stopPropagation();"
+                       style="font-size: 0.75rem;">
                         <i class="bi bi-receipt"></i> Invoice
                     </a>
                     {% endif %}

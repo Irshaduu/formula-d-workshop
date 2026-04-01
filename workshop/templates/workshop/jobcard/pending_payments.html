@@ -12,15 +12,17 @@
     </div>
     
     <!-- Tiny Search -->
-    <div style="min-width: 300px;">
+    <form id="pendingSearchForm" style="min-width: 300px;">
         <div class="position-relative">
-            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted opacity-50"></i>
-            <input type="text" id="pendingSearch" class="form-control border-0 shadow-sm ps-5" 
+            <button type="submit" class="btn btn-link position-absolute top-50 start-0 translate-middle-y p-0 ms-3 text-muted" style="z-index: 5; border: none; text-decoration: none;">
+                <i class="bi bi-search opacity-50" style="font-size: 0.8rem;"></i>
+            </button>
+            <input type="text" id="pendingSearch" name="q" class="form-control border-0 shadow-sm ps-5" 
                 placeholder="Search Reg or Name..." 
                 style="border-radius: 999px; background: var(--color-card); font-size: 0.85rem;" 
                 value="{{ q }}">
         </div>
-    </div>
+    </form>
 </div>
 
 <!-- Results Container -->
@@ -31,30 +33,38 @@
 <script>
     document.addEventListener('DOMContentLoaded', function () {
         const input = document.getElementById('pendingSearch');
+        const searchForm = document.getElementById('pendingSearchForm');
         const resultsContainer = document.getElementById('pendingResultsContainer');
         let debounceTimer;
 
-        function updateResults(q, page = 1) {
+        function updateResults(q, page = 1, event = null) {
+            if (event && event.type === 'submit') event.preventDefault();
             const url = new URL(window.location.href);
             url.searchParams.set('q', q);
             url.searchParams.set('page', page);
 
-            fetch(url, {
-                headers: { 'X-Requested-With': 'XMLHttpRequest' }
-            })
-            .then(res => res.text())
-            .then(html => {
-                resultsContainer.innerHTML = html;
-                window.history.pushState({}, '', url);
-            })
-            .catch(err => console.error('Search error:', err));
+            const delay = (event && event.type === 'submit') ? 0 : 300;
+            if (debounceTimer) clearTimeout(debounceTimer);
+
+            debounceTimer = setTimeout(() => {
+                fetch(url, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(res => res.text())
+                .then(html => {
+                    resultsContainer.innerHTML = html;
+                    window.history.pushState({}, '', url);
+                })
+                .catch(err => console.error('Search error:', err));
+            }, delay);
         }
 
         input.addEventListener('input', function() {
-            clearTimeout(debounceTimer);
-            debounceTimer = setTimeout(() => {
-                updateResults(this.value);
-            }, 300);
+            updateResults(this.value);
+        });
+
+        searchForm.addEventListener('submit', function(e) {
+            updateResults(input.value, 1, e);
         });
 
         resultsContainer.addEventListener('click', function(e) {
