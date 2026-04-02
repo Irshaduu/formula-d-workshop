@@ -114,7 +114,7 @@ class JobCard(models.Model):
     )
     
     # Dates
-    admitted_date = models.DateField()
+    admitted_date = models.DateField(db_index=True)
     discharged_date = models.DateField(db_index=True, blank=True, null=True, help_text="Auto-filled when job is marked as delivered")
     
     # Delivery Status (separate from planning date)
@@ -161,9 +161,10 @@ class JobCard(models.Model):
     # Assignment
     lead_mechanic = models.ForeignKey(Mechanic, on_delete=models.SET_NULL, null=True, blank=True, related_name='job_cards', help_text="The main mechanic assigned to this job")
 
-    # Financials (NEW)
-    received_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="Amount actually received from customer")
-    discount_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="Internal discount tracking (calculated on Paid status)")
+    # Financials (NEW - Optimized for 1M+ records)
+    total_bill_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0, help_text="Denormalized total for instant dashboard loading")
+    received_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0, help_text="Amount actually received from customer")
+    discount_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0, help_text="Internal discount tracking (calculated on Paid status)")
     
     PAYMENT_STATUS_CHOICES = [
         ('PENDING', 'Pending (Unpaid)'),
@@ -222,8 +223,22 @@ class JobCard(models.Model):
         
         super().save(*args, **kwargs)
     
-    class Meta:
-        ordering = ['-updated_at'] # Newest jobs first
+    def update_totals(self):
+        """
+        Calculates and saves the denormalized total_bill_amount.
+        This eliminates expensive on-the-fly calculations for 1M+ records.
+        """
+        from django.db.models import Sum
+        from django.db.models.functions import Coalesce
+        
+        spare_total = self.spares.aggregate(total=Coalesce(Sum('total_price'), 0, output_field=models.DecimalField()))['total']
+        labour_total = self.labours.aggregate(total=Coalesce(Sum('amount'), 0, output_field=models.DecimalField()))['total']
+        
+        new_total = spare_total + labour_total
+        if self.total_bill_amount != new_total:
+            self.total_bill_amount = new_total
+            # Use update to avoid triggering save() recursion if called from save()
+            JobCard.objects.filter(pk=self.pk).update(total_bill_amount=new_total)
 
     def __str__(self):
         return f"{self.bill_number or f'#{self.id}'} - {self.registration_number}"
@@ -263,10 +278,8 @@ class JobCard(models.Model):
 
     @property
     def get_total_amount(self):
-        """Calculates total bill amount (Spares + Labour)."""
-        spare_total = sum(item.total_price or 0 for item in self.spares.all())
-        labour_total = sum(item.amount or 0 for item in self.labours.all())
-        return spare_total + labour_total
+        """Calculates total bill amount. Returns the denormalized value for performance."""
+        return self.total_bill_amount or 0
 
     @property
     def get_balance_amount(self):
@@ -338,6 +351,12 @@ class JobCardSpareItem(models.Model):
         if self.spare_part_name:
             self.spare_part_name = self.spare_part_name.strip()
         super().save(*args, **kwargs)
+        self.job_card.update_totals()
+
+    def delete(self, *args, **kwargs):
+        job_card = self.job_card
+        super().delete(*args, **kwargs)
+        job_card.update_totals()
 
     def __str__(self):
         return f"{self.spare_part_name} ({self.quantity})"
@@ -350,6 +369,15 @@ class JobCardLabourItem(models.Model):
     job_card = models.ForeignKey(JobCard, on_delete=models.CASCADE, related_name='labours')
     job_description = models.CharField(max_length=150)
     amount = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True) 
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        self.job_card.update_totals()
+
+    def delete(self, *args, **kwargs):
+        job_card = self.job_card
+        super().delete(*args, **kwargs)
+        job_card.update_totals()
 
     def __str__(self):
         return self.job_description

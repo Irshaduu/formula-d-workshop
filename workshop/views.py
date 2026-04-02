@@ -30,9 +30,8 @@ def home(request):
     from django.db.models import Count, Q
     
     # Get only non-delivered job cards (where delivered=False)
-    # Optimized with select_related for lead_mechanic to prevent N+1 queries
-    # Filter out soft-deleted records
-    active_jobcards = JobCard.objects.filter(delivered=False, is_deleted=False).select_related('lead_mechanic').annotate(
+    # Optimized with select_related and prefetch_related for 1M+ records
+    active_jobcards = JobCard.objects.filter(delivered=False, is_deleted=False).select_related('lead_mechanic').prefetch_related('concerns', 'spares', 'labours').annotate(
         total_concerns=Count('concerns'),
         fixed_concerns=Count('concerns', filter=Q(concerns__status='FIXED'))
     ).order_by('-updated_at')
@@ -211,7 +210,7 @@ def jobcard_list(request):
     """
     SECTION 2: JOBS - List of active saved job cards.
     """
-    jobcard_list_query = JobCard.objects.filter(is_deleted=False)
+    jobcard_list_query = JobCard.objects.filter(is_deleted=False).select_related('lead_mechanic').prefetch_related('spares', 'labours')
     
     # Detect AJAX vs Full Refresh for "Smart Reset"
     is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
@@ -342,7 +341,7 @@ def trash_list(request):
     """
     Dashboard for all soft-deleted records.
     """
-    trash_query = JobCard.objects.filter(is_deleted=True).order_by('-updated_at')
+    trash_query = JobCard.objects.filter(is_deleted=True).select_related('lead_mechanic').prefetch_related('spares', 'labours').order_by('-updated_at')
     
     # Detect AJAX vs Full Refresh for "Smart Reset"
     is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
@@ -392,7 +391,7 @@ def delivered_list(request):
     from datetime import date, timedelta
     
     # 1. Base Query (Active only)
-    delivered_jobcards = JobCard.objects.filter(delivered=True, is_deleted=False).order_by('-discharged_date')
+    delivered_jobcards = JobCard.objects.filter(delivered=True, is_deleted=False).select_related('lead_mechanic').prefetch_related('spares', 'labours').order_by('-discharged_date')
     
     # 2. Smart Reset: Reset to "Today" on full page refresh to avoid confusion with historical data
     is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
