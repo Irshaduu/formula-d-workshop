@@ -30,6 +30,13 @@ DEBUG = config('DEBUG', default=False, cast=bool)
 #ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost').split(',')
 ALLOWED_HOSTS = ['*']
 
+# Allow CSRF for local network access (phone testing via IP)
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'http://192.168.1.4:8000',  # Your laptop's local IP
+]
+
 # Application definition
 
 INSTALLED_APPS = [

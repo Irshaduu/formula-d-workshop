@@ -44,17 +44,21 @@
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             color: var(--color-text);
             padding-bottom: 80px;
+            overflow-y: scroll; /* Always show scrollbar → prevents layout shift */
+            scrollbar-gutter: stable; /* Modern browsers: reserve scrollbar space */
         }
 
         /* ========================================== */
         /* TOP NAV — All screen sizes                 */
         /* ========================================== */
+        /* NAVBAR STYLES — Racing Dark + Pill Style */
+
+        /* Universal Top Bar */
         .navbar-top {
-            background-color: var(--color-card);
-            border-bottom: 1px solid var(--color-border);
-            padding: 0.4rem 0;
+            background-color: #111827;
+            box-shadow: 0 2px 12px rgba(0, 0, 0, 0.35);
             height: 56px;
-            display: flex; /* Always visible */
+            display: flex;
         }
 
         /* Bottom nav hidden on all sizes */
@@ -67,12 +71,13 @@
             max-width: 800px;
             margin: 0 auto;
             display: flex;
-            justify-content: space-evenly; /* Equal spacing for all items */
+            justify-content: space-evenly;
             align-items: center;
-            padding: 0 8px;
+            padding: 0 6px;
+            height: 100%;
         }
 
-        /* Each direct nav child gets equal share */
+        /* Each nav item takes equal space */
         .navbar-container > a,
         .navbar-container > div {
             flex: 1;
@@ -82,41 +87,55 @@
         }
 
         .nav-link-custom {
-            color: var(--color-text-muted);
-            font-weight: 500;
+            color: #9ca3af;
+            font-weight: 600;
             text-decoration: none;
-            padding: 0.45rem 0.8rem;
-            border-radius: 8px;
-            transition: background-color 0.2s;
+            padding: 0.4rem 0.7rem;
             font-size: 13.5px;
             display: inline-flex;
             align-items: center;
+            justify-content: center;
             gap: 5px;
             white-space: nowrap;
-        }
-
-        /* Compact on small mobile screens */
-        @media (max-width: 480px) {
-            .navbar-container {
-                padding: 0 2px;
-            }
-            .nav-link-custom {
-                padding: 0.4rem 0.4rem;
-                font-size: 12px;
-                gap: 3px;
-            }
+            border-radius: 20px; /* Pill shape */
+            transition: all 0.2s ease;
         }
 
         .nav-link-custom:hover,
         .nav-link-custom:focus {
-            background-color: var(--color-hover);
-            color: var(--color-primary);
+            color: #e5e7eb;
+            background-color: rgba(255, 255, 255, 0.08);
+            text-decoration: none;
         }
 
+        /* Active = red pill with light red text */
         .nav-link-custom.active {
-            color: var(--color-primary);
-            font-weight: 600;
-            background-color: var(--color-primary-light);
+            color: #fca5a5;
+            font-weight: 700;
+            background-color: rgba(239, 68, 68, 0.18);
+        }
+
+        /* Compact on small mobile screens */
+        @media (max-width: 480px) {
+            .nav-link-custom {
+                font-size: 12px;
+                gap: 3px;
+                padding: 0.35rem 0.5rem;
+            }
+        }
+
+        /* Mobile navbar — slightly taller for better tap targets */
+        @media (max-width: 768px) {
+            .navbar-top {
+                height: 62px;
+            }
+            .main-content {
+                margin-top: 62px;
+            }
+            .nav-link-custom {
+                font-size: 13px;
+                padding: 0.5rem 0.65rem;
+            }
         }
 
         /* ========================================== */
@@ -244,7 +263,7 @@
 
             <!-- New -->
             {% if user.is_authenticated %}
-            <a class="nav-link-custom fw-bold text-primary" href="{% url 'jobcard_create' %}">
+            <a class="nav-link-custom fw-bold {% if 'create' in request.path %}active{% endif %}" href="{% url 'jobcard_create' %}">
                 <i class="bi bi-plus-circle"></i> New
             </a>
             {% else %}
