@@ -12,69 +12,107 @@
     <!-- Bootstrap Icons -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
 
-    <!-- Custom CSS Support -->
+    <!-- Custom CSS -->
     {% load static %}
     {% load auth_extras %}
     <link rel="stylesheet" href="{% static 'css/style.css' %}?v=3">
 
     <style>
         /* ========================================== */
-        /* CSS VARIABLES FOR LIGHT/DARK MODE */
+        /* CSS VARIABLES — STRICT LIGHT MODE          */
         /* ========================================== */
         :root {
-            /* Light Mode Colors (Eye-Comfortable - Softer) */
-            --color-bg: #f0f2f5;
-            --color-card: #fafbfc;
-            --color-text: #2c3e50;
-            --color-text-muted: #6c757d;
-            --color-primary: #0d6efd;
-            --color-primary-light: #e8f2ff;
-            --color-border: #d1d9e0;
-            --color-border-light: #e4e9ee;
-            --color-hover: #f0f4f8;
-            --color-shadow: rgba(0, 0, 0, 0.08);
-        }
-
-        @media (prefers-color-scheme: dark) {
-            :root {
-                /* Dark Mode Colors (Eye-Comfortable) */
-                --color-bg: #1a1d23;
-                --color-card: #242830;
-                --color-text: #e4e6eb;
-                --color-text-muted: #9ca3af;
-                --color-primary: #5b9eff;
-                --color-primary-light: #1e3a5f;
-                --color-border: #3a3f4b;
-                --color-border-light: #2d3139;
-                --color-hover: #2d3139;
-                --color-shadow: rgba(0, 0, 0, 0.3);
-            }
+            --color-bg: #f3f4f6;
+            --color-card: #ffffff;
+            --color-text: #1e293b;
+            --color-text-muted: #64748b;
+            --color-primary: #2563eb;
+            --color-primary-light: #eff6ff;
+            --color-border: #e2e8f0;
+            --color-border-light: #f1f5f9;
+            --color-hover: #f8fafc;
+            --color-shadow: rgba(0, 0, 0, 0.04);
+            --color-success: #10b981;
+            --color-danger: #ef4444;
         }
 
         /* ========================================== */
-        /* CORE BASE STYLES */
+        /* CORE BASE STYLES                           */
         /* ========================================== */
         body {
             background-color: var(--color-bg);
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             color: var(--color-text);
-            padding-bottom: 200px;
-            /* Increased space for dropdowns and mobile keyboard */
+            padding-bottom: 80px;
         }
 
-        /* NAVBAR STYLES */
-
-        /* DESKTOP TOP BAR (Hidden on Mobile) */
+        /* ========================================== */
+        /* TOP NAV — All screen sizes                 */
+        /* ========================================== */
         .navbar-top {
             background-color: var(--color-card);
             border-bottom: 1px solid var(--color-border);
-            padding: 0.5rem 0;
-            height: 60px;
-            display: none;
-            /* Hidden by default */
+            padding: 0.4rem 0;
+            height: 56px;
+            display: flex; /* Always visible */
         }
 
-        /* MOBILE BOTTOM BAR (Fixed) */
+        /* Bottom nav hidden on all sizes */
+        .bottom-nav {
+            display: none !important;
+        }
+
+        .navbar-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 12px;
+        }
+
+        .nav-link-custom {
+            color: var(--color-text-muted);
+            font-weight: 500;
+            text-decoration: none;
+            padding: 0.45rem 0.8rem;
+            border-radius: 8px;
+            transition: background-color 0.2s;
+            font-size: 13.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            white-space: nowrap;
+        }
+
+        /* Compact on small mobile screens */
+        @media (max-width: 480px) {
+            .navbar-container {
+                padding: 0 4px;
+            }
+            .nav-link-custom {
+                padding: 0.4rem 0.45rem;
+                font-size: 12px;
+                gap: 3px;
+            }
+        }
+
+        .nav-link-custom:hover,
+        .nav-link-custom:focus {
+            background-color: var(--color-hover);
+            color: var(--color-primary);
+        }
+
+        .nav-link-custom.active {
+            color: var(--color-primary);
+            font-weight: 600;
+            background-color: var(--color-primary-light);
+        }
+
+        /* ========================================== */
+        /* MOBILE BOTTOM NAV                          */
+        /* ========================================== */
         .bottom-nav {
             position: fixed;
             bottom: 0;
@@ -112,7 +150,7 @@
             color: var(--color-primary);
         }
 
-        /* Big Center Button (New Job) */
+        /* Big Center Button */
         .center-btn {
             position: relative;
             top: -20px;
@@ -123,95 +161,29 @@
             color: var(--color-primary);
             background: var(--color-card);
             border-radius: 50%;
-            /* box-shadow: 0 4px 10px var(--color-shadow); */
         }
 
-        /* MEDIA QUERIES FOR NAV VISIBILITY */
-        @media (min-width: 769px) {
-            .navbar-top {
-                display: flex;
-                /* Show Top Bar on PC */
-            }
-
-            .bottom-nav {
-                display: none;
-                /* Hide Bottom Bar on PC */
-            }
-        }
-
-        @media (max-width: 768px) {
-            body {
-                padding-bottom: 80px;
-                /* Space for bottom bar */
-            }
-        }
-
-        .navbar-container {
-            width: 100%;
-            max-width: 800px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 15px;
-        }
-
-        .nav-link-custom {
-            color: var(--color-text-muted);
-            font-weight: 500;
-            text-decoration: none;
-            padding: 0.5rem 1.0rem;
-            border-radius: 8px;
-            transition: background-color 0.2s;
-            font-size: 14px;
-        }
-
-        .nav-link-custom {
-            color: var(--color-text-muted);
-            font-weight: 500;
-            text-decoration: none;
-            padding: 0.5rem 1.5rem;
-            border-radius: 8px;
-            transition: background-color 0.2s;
-        }
-
-        .nav-link-custom:hover,
-        .nav-link-custom:focus {
-            background-color: var(--color-hover);
-            color: var(--color-primary);
-        }
-
-        .nav-link-custom.active {
-            color: var(--color-primary);
-            font-weight: 600;
-            background-color: var(--color-primary-light);
-        }
-
-        /* STUDY DROPDOWN */
+        /* ========================================== */
+        /* DROPDOWNS                                  */
+        /* ========================================== */
         .dropdown-menu-custom {
             border: none;
-            box-shadow: 0 4px 12px var(--color-shadow);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.12);
             border-radius: 12px;
             margin-top: 10px;
             background-color: var(--color-card);
         }
 
-        /* Compact dropdown for action menus */
         .dropdown-menu {
             min-width: 120px;
-            /* Narrower dropdown */
             background-color: var(--color-card);
-            /* Match theme */
             border: 1px solid var(--color-border);
         }
 
         .dropdown-item {
             padding: 6px 12px;
-            /* Even more compact */
             font-size: 0.85rem;
-            /* Smaller text */
             color: var(--color-text);
-            /* Default text color */
         }
 
         .dropdown-item:hover,
@@ -219,10 +191,8 @@
             background-color: var(--color-hover);
         }
 
-        /* Keep success color for Delivered button */
         .dropdown-item.text-success {
             color: #198754 !important;
-            /* Bootstrap green */
         }
 
         .dropdown-header {
@@ -232,14 +202,15 @@
         .dropdown-divider {
             border-color: var(--color-border-light);
             margin: 0.2rem 0;
-            /* Tighter spacing */
         }
 
-        /* CONTENT WRAPPER */
+        /* ========================================== */
+        /* CONTENT WRAPPER                            */
+        /* ========================================== */
         .main-content {
             padding: 1.5rem 1rem;
             max-width: 800px;
-            margin: 60px auto 0;
+            margin: 56px auto 0; /* Always offset for top nav */
         }
     </style>
 
@@ -253,35 +224,35 @@
     <!-- ============================================== -->
     <nav class="navbar fixed-top navbar-top">
         <div class="navbar-container">
-            <!-- Left: Logo -->
+            <!-- Left: Floor / Home -->
             <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'home' %}" style="text-decoration: none;">
-                <span class="nav-link-custom fw-bold" style="font-size: 1.1rem; color: {% if request.user|has_group:'Owner' or request.user.is_superuser %}#dc3545{% elif request.user|has_group:'Office' %}#ffc107{% else %}#ffffff{% endif %} !important; font-style: normal;">
-                    {% if '/jobcards/live-report/' in request.path %}<i class="bi bi-chevron-left me-1"></i>{% endif %}Floor
+                <span class="nav-link-custom fw-bold" style="font-size: 1.0rem; color: {% if request.user|has_group:'Owner' or request.user.is_superuser %}var(--color-danger){% elif request.user|has_group:'Office' %}#d97706{% else %}var(--color-text){% endif %} !important;">
+                    {% if '/jobcards/live-report/' in request.path %}<i class="bi bi-chevron-left me-1"></i>{% endif %}
+                    <i class="bi bi-house-door"></i> Floor
                 </span>
             </a>
 
-            <!-- Center: Links -->
+            <!-- Center: Main Links -->
             <div class="d-flex gap-2">
                 {% if user.is_authenticated %}
                 <a class="nav-link-custom text-primary fw-bold" href="{% url 'jobcard_create' %}">
                     <i class="bi bi-plus-circle"></i> New
                 </a>
-                
+
                 {% if request.user|has_group:"Office" or request.user|has_group:"Owner" or request.user.is_superuser %}
                 <a class="nav-link-custom {% if 'delivered' in request.path %}active{% endif %}"
-                    href="{% url 'delivered_list' %}">Delivered</a>
-                <a class="nav-link-custom {% if 'car-profiles' in request.path %}active{% endif %}"
-                    href="{% url 'car_profile_list' %}">Car Profiles</a>
+                    href="{% url 'delivered_list' %}">
+                    <i class="bi bi-check-circle"></i> Delivered
+                </a>
                 {% endif %}
                 {% else %}
-                <!-- Login prompt for unauthenticated users -->
                 <a href="{% url 'login' %}" class="btn btn-primary btn-sm">
                     <i class="bi bi-lock"></i> Login
                 </a>
                 {% endif %}
             </div>
 
-            <!-- Right: Inventory Link (Floor only - visible in main nav) -->
+            <!-- Right: Inventory (Floor only) -->
             {% if request.user|has_group:"Floor" and not request.user|has_group:"Office" and not request.user|has_group:"Owner" and not request.user.is_superuser %}
             <a class="nav-link-custom {% if 'inventory' in request.path %}active{% endif %} me-2"
                 href="{% url 'inventory_restock' %}">
@@ -289,35 +260,21 @@
             </a>
             {% endif %}
 
-            <!-- Right: Manage/Master Lists Dropdown -->
+            <!-- Right: Manage Dropdown -->
             {% if request.user|has_group:"Owner" or request.user|has_group:"Office" or request.user.is_superuser %}
             <div class="dropdown">
-                <a class="nav-link-custom dropdown-toggle {% if 'inventory' in request.path or 'master-lists' in request.path or 'brand' in request.path or 'spare' in request.path or 'concern' in request.path or 'jobcards' in request.path and 'live-report' not in request.path and 'create' not in request.path %}active{% endif %}"
+                <a class="nav-link-custom dropdown-toggle {% if 'inventory' in request.path or 'master-lists' in request.path or 'brand' in request.path or 'spare' in request.path or 'concern' in request.path or 'car-profiles' in request.path or 'jobcards' in request.path and 'live-report' not in request.path and 'create' not in request.path %}active{% endif %}"
                     href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                     🔧 Manage
                 </a>
                 <ul class="dropdown-menu dropdown-menu-end dropdown-menu-custom">
-                    <li>
-                        <a class="dropdown-item fw-bold" href="{% url 'inventory_restock' %}">
-                            <i class="bi bi-box-seam"></i> Inventory
-                        </a>
-                    </li>
+                    <li><a class="dropdown-item fw-bold {% if 'car-profiles' in request.path %}text-primary{% endif %}" href="{% url 'car_profile_list' %}"><i class="bi bi-clock-history"></i> Car Profiles</a></li>
                     <li><hr class="dropdown-divider"></li>
-                    <li>
-                        <a class="dropdown-item fw-bold" href="{% url 'master_lists_home' %}">
-                            <i class="bi bi-collection"></i> Master Lists
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item fw-bold text-info" href="{% url 'jobcard_list' %}">
-                            <i class="bi bi-card-list"></i> All Job-cards
-                        </a>
-                    </li>
-                    <li>
-                        <a class="dropdown-item fw-bold text-danger" href="{% url 'pending_payments_list' %}">
-                            <i class="bi bi-exclamation-octagon"></i> Pending Payments
-                        </a>
-                    </li>
+                    <li><a class="dropdown-item fw-bold" href="{% url 'inventory_restock' %}"><i class="bi bi-box-seam"></i> Inventory</a></li>
+                    <li><hr class="dropdown-divider"></li>
+                    <li><a class="dropdown-item fw-bold" href="{% url 'master_lists_home' %}"><i class="bi bi-collection"></i> Master Lists</a></li>
+                    <li><a class="dropdown-item fw-bold text-info" href="{% url 'jobcard_list' %}"><i class="bi bi-card-list"></i> All Job-cards</a></li>
+                    <li><a class="dropdown-item fw-bold text-danger" href="{% url 'pending_payments_list' %}"><i class="bi bi-exclamation-octagon"></i> Pending Payments</a></li>
                     {% if request.user|has_group:"Owner" or request.user.is_superuser %}
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item fw-bold text-primary" href="{% url 'manage_dashboard' %}"><i class="bi bi-people"></i> Manage Accounts</a></li>
@@ -337,32 +294,30 @@
     </nav>
 
     <!-- ============================================== -->
-    <!-- MOBILE BOTTOM NAVIGATION (App View)          -->
+    <!-- MOBILE BOTTOM NAVIGATION                     -->
     <!-- ============================================== -->
     <nav class="bottom-nav">
-        <!-- 1. Home -->
+        <!-- Home -->
         <a href="{% url 'home' %}" class="nav-item {% if request.path == '/' %}active{% endif %}">
-            <i class="bi {% if request.path == '/' %}bi-house-door-fill{% else %}bi-house-door{% endif %}"></i>
-            <span>Home</span>
+            <i class="bi {% if request.path == '/' %}bi-house-door-fill{% else %}bi-house-door{% endif %}"
+               style="color: {% if request.user|has_group:'Owner' or request.user.is_superuser %}var(--color-danger){% elif request.user|has_group:'Office' %}#d97706{% endif %};"></i>
+            <span>Floor</span>
         </a>
 
-
-        <!-- 3. NEW (Center Button) -->
+        <!-- New Job (Center Big Button) -->
         <a href="{% url 'jobcard_create' %}" class="nav-item center-btn">
             <i class="bi bi-plus-circle-fill"></i>
         </a>
 
-        <!-- 4. History (Car Profiles) - Office/Owner -->
+        <!-- Car Profiles (Office/Owner) -->
         {% if request.user|has_group:"Office" or request.user|has_group:"Owner" or request.user.is_superuser %}
-        <a href="{% url 'car_profile_list' %}"
-            class="nav-item {% if 'car-profiles' in request.path %}active{% endif %}">
-            <i
-                class="bi {% if 'car-profiles' in request.path %}bi-clock-history{% else %}bi-clock-history{% endif %}"></i>
+        <a href="{% url 'car_profile_list' %}" class="nav-item {% if 'car-profiles' in request.path %}active{% endif %}">
+            <i class="bi bi-clock-history"></i>
             <span>History</span>
         </a>
         {% endif %}
 
-        <!-- 5. Menu (Dropup) -->
+        <!-- Menu Dropup -->
         <div class="nav-item dropup">
             <a href="#" class="nav-item" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="bi bi-list"></i>
@@ -370,21 +325,13 @@
             </a>
             <ul class="dropdown-menu dropdown-menu-end dropdown-menu-custom mb-2">
                 {% if request.user|has_group:"Office" or request.user|has_group:"Owner" or request.user.is_superuser %}
-                <li><a class="dropdown-item" href="{% url 'jobcard_list' %}"><i class="bi bi-card-list"></i>
-                        All Job-cards</a></li>
-                <li><a class="dropdown-item" href="{% url 'delivered_list' %}"><i class="bi bi-check-circle"></i>
-                        Delivered Jobs</a></li>
-                <li><a class="dropdown-item text-danger" href="{% url 'pending_payments_list' %}"><i
-                            class="bi bi-exclamation-octagon"></i>
-                        Pending Payments</a></li>
+                <li><a class="dropdown-item" href="{% url 'jobcard_list' %}"><i class="bi bi-card-list"></i> All Job-cards</a></li>
+                <li><a class="dropdown-item" href="{% url 'delivered_list' %}"><i class="bi bi-check-circle"></i> Delivered Jobs</a></li>
+                <li><a class="dropdown-item text-danger" href="{% url 'pending_payments_list' %}"><i class="bi bi-exclamation-octagon"></i> Pending Payments</a></li>
                 {% if request.user|has_group:"Owner" or request.user.is_superuser %}
-                <li><a class="dropdown-item text-muted" href="{% url 'trash_list' %}"><i
-                            class="bi bi-trash3"></i>
-                        Trash / Soft-Deleted</a></li>
+                <li><a class="dropdown-item text-muted" href="{% url 'trash_list' %}"><i class="bi bi-trash3"></i> Trash</a></li>
                 {% endif %}
-                <li>
-                    <hr class="dropdown-divider">
-                </li>
+                <li><hr class="dropdown-divider"></li>
                 {% endif %}
 
                 {% if request.user|has_group:"Owner" or request.user|has_group:"Office" or request.user|has_group:"Floor" or request.user.is_superuser %}
@@ -392,14 +339,16 @@
                 {% endif %}
 
                 {% if request.user|has_group:"Owner" or request.user|has_group:"Office" or request.user.is_superuser %}
-                <li><a class="dropdown-item fw-bold text-primary" href="{% url 'master_lists_home' %}"><i
-                            class="bi bi-hdd-stack"></i>
-                        Master Lists</a></li>
-                <li>
-                    <hr class="dropdown-divider">
-                </li>
+                <li><a class="dropdown-item fw-bold text-primary" href="{% url 'master_lists_home' %}"><i class="bi bi-hdd-stack"></i> Master Lists</a></li>
+                <li><hr class="dropdown-divider"></li>
                 {% endif %}
+
                 {% if user.is_authenticated %}
+                <li>
+                    <a class="dropdown-item fw-bold" href="#" data-bs-toggle="modal" data-bs-target="#accountProfileModal">
+                        👤 {% if request.user.is_superuser or request.user|has_group:"Owner" %}Admin Account{% elif request.user|has_group:"Office" %}Office Account{% else %}Floor Account{% endif %}
+                    </a>
+                </li>
                 <li>
                     <form method="post" action="{% url 'logout' %}" class="d-inline">
                         {% csrf_token %}
@@ -407,9 +356,7 @@
                     </form>
                 </li>
                 {% else %}
-                <li>
-                    <a class="dropdown-item text-primary" href="{% url 'login' %}">🔒 Login</a>
-                </li>
+                <li><a class="dropdown-item text-primary" href="{% url 'login' %}">🔒 Login</a></li>
                 {% endif %}
             </ul>
         </div>
@@ -431,7 +378,6 @@
     <div class="modal-dialog modal-dialog-centered" style="max-width: 320px;">
         <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
             <div class="modal-body text-center p-4">
-                <!-- Close -->
                 <button type="button" class="btn-close position-absolute" style="top: 16px; right: 16px;" data-bs-dismiss="modal"></button>
 
                 <!-- Avatar -->
@@ -447,7 +393,7 @@
                     </span>
                 </div>
 
-                <!-- Username -->
+                <!-- Name & Username -->
                 <h5 class="fw-bold mt-2 mb-0">{{ request.user.get_full_name|default:request.user.username }}</h5>
                 <p class="text-muted small mb-3">@{{ request.user.username }}</p>
 
@@ -465,5 +411,4 @@
 {% endif %}
 
 </body>
-
 </html>
