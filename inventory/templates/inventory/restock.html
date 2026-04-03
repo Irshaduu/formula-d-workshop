@@ -2,27 +2,9 @@
 {% block title %}Restock Inventory{% endblock %}
 {% block content %}
 <style>
-    :root {
-        --panel: #121212;
-        --muted: #9aa0a6;
-        --accent-blue: #1177ff;
-        --accent-red: #ff4d4f;
-        --card-border: rgba(255, 255, 255, 0.06);
-        --success: #20c997;
-        --card-bg: rgba(255, 255, 255, 0.05);
-        --border-color: rgba(255, 255, 255, 0.1);
-        --input-bg: rgba(0, 0, 0, 0.2);
-        --text-primary: #e8eef7;
-    }
-
-    .inventory-dark-wrapper {
-        background-color: #000000;
-        color: var(--text-primary);
-        font-family: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Arial;
-        border-radius: 12px;
+    /* ---------- INVENTORY PREMIUM LIGHT THEME ---------- */
+    .inventory-wrapper {
         min-height: 80vh;
-        margin: -1.5rem;
-        padding: 1.5rem;
     }
 
     /* ---------- TOP ROW ---------- */
@@ -38,7 +20,7 @@
         font-weight: 700;
         margin: 0;
         white-space: nowrap;
-        color: white;
+        color: var(--color-text);
     }
 
     .search-container {
@@ -50,35 +32,21 @@
         width: 100%;
         padding: 8px 14px;
         border-radius: 999px;
-        border: 1px solid var(--card-border);
-        background: var(--input-bg);
-        color: var(--text-primary);
+        border: 1px solid var(--color-border);
+        background: var(--color-card);
+        color: var(--color-text);
         font-size: 0.95rem;
         outline: none;
-        transition: border 0.2s;
+        transition: border 0.2s, box-shadow 0.2s;
     }
 
     .tiny-search:focus {
-        border-color: var(--accent-blue);
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px var(--color-primary-light);
     }
 
     .tiny-search::placeholder {
-        color: var(--muted);
-    }
-
-    .low-stock-btn {
-        display: inline-flex;
-        align-items: center;
-        gap: 6px;
-        padding: 8px 14px;
-        font-size: 0.85rem;
-        font-weight: 600;
-        background: var(--accent-red);
-        color: #fff;
-        border-radius: 999px;
-        text-decoration: none;
-        white-space: nowrap;
-        border: none;
+        color: var(--color-text-muted);
     }
 
     /* ---------- CATEGORY ---------- */
@@ -87,13 +55,13 @@
     }
 
     .category-title {
-        color: var(--accent-blue);
+        color: var(--color-primary);
         font-weight: 700;
         margin: 0 0 10px 6px;
         font-size: 1.05rem;
         letter-spacing: 0.5px;
         text-transform: uppercase;
-        border-bottom: 1px solid var(--card-border);
+        border-bottom: 2px solid var(--color-border-light);
         padding-bottom: 8px;
     }
 
@@ -103,9 +71,17 @@
         align-items: center;
         gap: 12px;
         padding: 12px 14px;
-        margin: 6px 0;
-        border-radius: 10px;
-        border: 1px solid var(--card-border);
+        margin: 8px 0;
+        border-radius: 12px;
+        border: 1px solid var(--color-border);
+        background-color: var(--color-card);
+        box-shadow: 0 2px 4px var(--color-shadow);
+        transition: transform 0.1s ease, box-shadow 0.1s ease;
+    }
+    
+    .item-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 8px var(--color-shadow);
     }
 
     .item-info {
@@ -117,7 +93,7 @@
         font-weight: 600;
         font-size: 1.05rem;
         line-height: 1.3;
-        color: white;
+        color: var(--color-text);
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -144,12 +120,13 @@
     }
 
     .avg-badge {
-        background: rgba(17, 119, 255, 0.15);
-        color: var(--accent-blue);
+        background: var(--color-primary-light);
+        color: var(--color-primary);
     }
 
     .cur-badge {
-        background: rgba(32, 201, 151, 0.1);
+        background: var(--color-hover);
+        border: 1px solid var(--color-border);
     }
 
     /* ---------- CONTROLS ---------- */
@@ -163,13 +140,18 @@
         width: 70px;
         padding: 8px;
         border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        background: var(--panel);
-        color: #fff;
+        border: 1px solid var(--color-border);
+        background: var(--color-bg);
+        color: var(--color-text);
         font-weight: 700;
         font-size: 0.95rem;
         text-align: center;
         outline: none;
+    }
+    
+    .controls input[type="number"]:focus {
+        border-color: var(--color-primary);
+        background: var(--color-card);
     }
 
     .controls input[type=number]::-webkit-inner-spin-button,
@@ -185,13 +167,19 @@
         gap: 6px;
         padding: 8px 12px;
         border-radius: 8px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        background: linear-gradient(180deg, #2a2a2a, #171717);
-        color: #e8eef7;
+        border: 1px solid var(--color-border);
+        background: var(--color-card);
+        color: var(--color-text);
         font-size: 0.9rem;
         font-weight: 600;
         cursor: pointer;
-        box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        transition: all 0.2s;
+    }
+
+    .btn-save:hover {
+        background: var(--color-primary);
+        color: white;
+        border-color: var(--color-primary);
     }
 
     .btn-save svg {
@@ -199,13 +187,9 @@
         height: 14px;
         opacity: 0.9;
     }
-
-    .btn-save:active {
-        transform: translateY(1px);
-    }
 </style>
 
-<div class="inventory-dark-wrapper">
+<div class="inventory-wrapper mt-3">
     <div class="top-row">
         <h2>Restock</h2>
         <div class="search-container">
@@ -213,10 +197,10 @@
         </div>
         
         <div class="dropdown ms-2">
-            <button class="btn btn-secondary d-flex align-items-center justify-content-center" style="background: var(--input-bg); border: 1px solid var(--card-border); color: var(--text-primary); border-radius: 8px; padding: 6px 12px; box-shadow: none;" type="button" data-bs-toggle="dropdown" aria-expanded="false">
+            <button class="btn btn-outline-secondary d-flex align-items-center justify-content-center" style="border-radius: 8px; padding: 6px 12px;" type="button" data-bs-toggle="dropdown" aria-expanded="false">
                 <i class="bi bi-list" style="font-size: 1.25rem; line-height: 1;"></i>
             </button>
-            <ul class="dropdown-menu dropdown-menu-end shadow" style="border-radius: 12px; border: 1px solid var(--border-color); margin-top: 8px; min-width: 160px; z-index: 1050;">
+            <ul class="dropdown-menu dropdown-menu-end shadow" style="border-radius: 12px; margin-top: 8px; min-width: 160px; z-index: 1050;">
                 <li><a class="dropdown-item fw-bold text-danger py-2" href="{% url 'inventory_low_stock' %}"><i class="bi bi-exclamation-triangle me-2"></i> Low Stock</a></li>
                 <li><a class="dropdown-item fw-bold py-2" href="{% url 'inventory_history' %}"><i class="bi bi-clock-history me-2"></i> Stock History</a></li>
                 <li><a class="dropdown-item fw-bold py-2" href="{% url 'inventory_manage' %}"><i class="bi bi-gear me-2"></i> Manage Database</a></li>
@@ -238,12 +222,12 @@
 
         {% for item in category.items.all %}
         <form method="post" action="{% url 'inventory_update_stock' item.id %}" class="item-card" data-default-display="flex"
-            style="background: linear-gradient(90deg, var(--card-bg) {{ item.stock_percentage|floatformat:0 }}%, transparent {{ item.stock_percentage|floatformat:0 }}%);">
+            style="background: linear-gradient(90deg, var(--color-primary-light) {{ item.stock_percentage|floatformat:0 }}%, var(--color-card) {{ item.stock_percentage|floatformat:0 }}%);">
             {% csrf_token %}
             <input type="hidden" name="next" value="{{ request.path }}">
             <div class="item-info">
                 <div class="item-name" onclick="this.classList.toggle('expanded')">
-                    <span class="searchable-text text-white">{{ item.name }}</span>
+                    <span class="searchable-text text-dark">{{ item.name }}</span>
                     <span class="searchable-text" style="display:none">{{ category.name }}</span>
                 </div>
                 <div class="item-stock">

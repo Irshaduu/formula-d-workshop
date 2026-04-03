@@ -23,9 +23,9 @@
         <div class="d-flex gap-2">
             <!-- Date Filter Dropdown -->
             <div class="dropdown">
-                <button id="filterDropdownBtn" class="btn btn-sm btn-outline-secondary dropdown-toggle d-flex align-items-center gap-2 px-3 py-2 border-0 shadow-sm" type="button"
-                    data-bs-toggle="dropdown" style="border-radius: 999px; background: var(--color-card);">
-                    <i class="bi bi-funnel"></i>
+                <button id="filterDropdownBtn" class="btn btn-sm dropdown-toggle d-flex align-items-center gap-2 px-3 py-2 shadow-sm" type="button"
+                    data-bs-toggle="dropdown" style="border-radius: 999px; background: var(--color-card); border: 1px solid var(--color-border) !important; color: var(--color-text);">
+                    <i class="bi bi-funnel" style="color: var(--color-text-muted);"></i>
                     <span id="filterLabel">
                         {% if filter_type == 'today' %}Today
                         {% elif filter_type == 'week' %}1 Week
@@ -147,12 +147,12 @@
             }, delay);
         }
 
-        input.addEventListener('input', function() {
+        searchInput.addEventListener('input', function() {
             updateResults(this.value);
         });
 
         searchForm.addEventListener('submit', function(e) {
-            updateResults(input.value, 1, e);
+            updateResults(searchInput.value, 1, e);
         });
 
         // Handle pagination clicks within the partial
@@ -162,7 +162,7 @@
                 e.preventDefault();
                 const url = new URL(link.href);
                 const page = url.searchParams.get('page');
-                const q = input.value || ''; // Get current search query
+                const q = searchInput.value || ''; // Get current search query
                 updateResults(q, page);
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             }
@@ -179,7 +179,7 @@
                     if (newFilter && newFilter !== 'custom') { 
                         e.preventDefault();
                         currentFilter = newFilter;
-                        updateResults(input.value);
+                        updateResults(searchInput.value);
                     }
                 }
             });
@@ -208,7 +208,7 @@
                 
                 if (startDate && endDate) {
                     currentFilter = 'custom';
-                    updateResults(input.value, 1);
+                    updateResults(searchInput.value, 1);
                     
                     // Close the dropdown (specifically the date filter one)
                     const dropdownEl = document.getElementById('filterDropdownBtn');

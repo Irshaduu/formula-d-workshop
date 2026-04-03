@@ -114,7 +114,7 @@ def update_stock(request, item_id):
 
 @staff_required
 def inventory_low_stock(request):
-    low_stock_items = Item.objects.filter(
+    low_stock_items = Item.objects.select_related('category').filter(
         average_stock__gt=0
     ).filter(
         Q(current_stock__lte=0) | 

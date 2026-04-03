@@ -232,22 +232,17 @@ input[type=number] {
 }
 */
 
-/* Custom Table Header (Restoring Dark Look) */
-.table-dark-header {
-    background-color: #212529;
-    /* Dark background */
-    color: #adb5bd;
-    /* Muted text */
-    border-bottom: 1px solid var(--color-border-light);
+/* Custom Table Header (Premium Light Theme) */
+.table-premium-header {
+    background-color: var(--color-hover);
+    color: var(--color-text-muted);
+    border-bottom: 1px solid var(--color-border);
 }
 
-.table-dark-header th {
-    background-color: #212529;
-    /* Explicitly set on TH */
+.table-premium-header th {
+    background-color: var(--color-hover);
     font-weight: 600;
     letter-spacing: 0.5px;
     padding: 12px 8px;
-    /* Comfortable padding */
     white-space: nowrap;
-    /* Prevent wrapping */
 }

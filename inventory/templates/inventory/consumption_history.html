@@ -32,7 +32,7 @@
                 </thead>
                 <tbody class="border-top-0">
                     {% for record in records %}
-                    <tr class="border-bottom" style="border-color: rgba(255,255,255,0.05) !important;">
+                    <tr class="border-bottom" style="border-color: var(--color-border-light) !important;">
                         <td class="ps-4 text-muted small">
                             {{ record.timestamp|date:"d M Y" }}<br>
                             <span style="font-size: 0.75rem;">{{ record.timestamp|date:"H:i" }}</span>
