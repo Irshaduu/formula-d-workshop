@@ -3,6 +3,7 @@ from django.contrib import messages
 from .models import Category, Item, ConsumptionRecord
 from workshop.decorators import staff_required
 from django.db.models import F, Q
+from django.core.paginator import Paginator
 
 @staff_required
 def inventory_home(request):

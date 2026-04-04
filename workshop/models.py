@@ -8,6 +8,13 @@ from django.dispatch import receiver
 # -----------------------------------------------------------------------------
 
 class UserProfile(models.Model):
+    """
+    Extends the base Django User with workshop-specific identity.
+    
+    Attributes:
+        user (OneToOneField): Link to standard Django User.
+        mobile_number (CharField): Verified mobile used for Owner 2FA OTP login.
+    """
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     mobile_number = models.CharField(max_length=20, blank=True, null=True, help_text="Used for Owner OTP login")
 
@@ -21,7 +28,13 @@ class UserProfile(models.Model):
 class FailedAttempt(models.Model):
     """
     Tracks failed login attempts by IP address to prevent brute-force attacks.
-    Unlike session-based lockouts, this cannot be bypassed by clearing cookies.
+    Part of the 'Steel Gate' security suite. Unlike session-based lockouts, 
+    this cannot be bypassed by clearing browser cookies.
+    
+    Attributes:
+        ip_address (GenericIPAddressField): Unique network identity of the visitor.
+        failures (PositiveIntegerField): Consecutive failed login or OTP attempts.
+        last_attempt (DateTimeField): Timestamp of the most recent failure.
     """
     ip_address = models.GenericIPAddressField(unique=True)
     failures = models.PositiveIntegerField(default=0)
@@ -32,7 +45,15 @@ class FailedAttempt(models.Model):
 
 class UserSession(models.Model):
     """
-    Tracks active login sessions for owners to monitor and revoke access.
+    Tracks active login sessions for HQ Command Center monitoring.
+    Allows owners (Sahad/Rijas) to identify and revoke unauthorized access.
+    
+    Attributes:
+        user (ForeignKey): The authenticated user (Owner, Office, or Floor).
+        session_key (CharField): The unique Django session identifier.
+        ip_address (GenericIPAddressField): The visitor's network IP.
+        user_agent (TextField): Raw browser identification string.
+        last_activity (DateTimeField): Indexed timestamp for session cleanup & monitoring.
     """
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sessions')
     session_key = models.CharField(max_length=40, unique=True)
@@ -181,8 +202,14 @@ class ConcernSolution(models.Model):
 
 class JobCard(models.Model):
     """
-    The main Job Card. 
-    Fields are distinct text inputs to allow manual entry if master lists is missing.
+    The Industrial Heart of WorkshopOS. Manages the end-to-end lifecycle 
+    of a vehicle service, from admission to billing.
+    
+    Key Features:
+    - Auto-Generating Bill Numbers (JB-26-001)
+    - Triple-Tier Security States (Active, Delivered, Billed)
+    - Soft-Delete 'Trash' Architecture for 100% data integrity.
+    - Denormalized Financials for sub-50ms dashboard loading.
     """
     # Bill Number (Auto-generated)
     bill_number = models.CharField(

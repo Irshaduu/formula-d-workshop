@@ -14,7 +14,15 @@ from .models import UserSession, FailedAttempt
 # Matches +91, spaces, and different formats in .env vs input.
 # ============================================================
 def normalize_phone(phone_str):
-    """Keep only the last 10 digits to match Indian mobile numbers consistently."""
+    """
+    Normalizes a phone number to its last 10 digits for consistent lookup.
+    
+    Args:
+        phone_str (str): Raw phone input (e.g., '+91 98765 43210').
+        
+    Returns:
+        str: Sanitized 10-digit numeric string.
+    """
     if not phone_str:
         return ""
     digits = "".join(filter(str.isdigit, phone_str))
@@ -25,8 +33,13 @@ def normalize_phone(phone_str):
 # ============================================================
 def get_owner_mobile(identifier):
     """
-    Returns the mobile number for the given identifier (can be username or mobile).
-    Checks against the owner map in .env.
+    Retrieves the registered mobile number for an owner.
+    
+    Args:
+        identifier (str): Username or raw mobile number.
+        
+    Returns:
+        str|None: The mobile number from .env if found, else None.
     """
     owner_map = {
         config('OWNER_1_USERNAME', default='').strip(' ='): config('OWNER_1_MOBILE', default='').strip(' ='),
@@ -82,7 +95,15 @@ def get_client_ip(request):
     return ip
 
 def check_ip_lockout(request):
-    """Returns True if the IP is currently blocked."""
+    """
+    Evaluates if the visitor's IP is currently under a 'Steel Gate' block.
+    
+    Args:
+        request (HttpRequest): Current login attempt request.
+        
+    Returns:
+        bool: True if IP is blocked (failures >= 5 within 15 min).
+    """
     ip = get_client_ip(request)
     attempt = FailedAttempt.objects.filter(ip_address=ip).first()
     if attempt and attempt.failures >= 5:
@@ -195,7 +216,14 @@ def send_staff_login_alert(user, request):
 # ============================================================
 def staff_login_view(request):
     """
-    Standard login for Floor and Office staff.
+    Handles standard password-based login for Floor and Office staff.
+    Does NOT allow owners (redirects them or shows generic error for privacy).
+    
+    Algorithm:
+    1. Check IP lockout status.
+    2. Authenticate username/password.
+    3. Block owners/superusers for security partitioning.
+    4. Trigger collaborative alerts on success.
     """
     if request.user.is_authenticated:
         return redirect('home')
@@ -235,7 +263,15 @@ def staff_login_view(request):
 # ============================================================
 def admin_login_view(request):
     """
-    Step 1 of Owner 2FA (Password).
+    Step 1 of the high-security Owner 2FA flow.
+    Validates password first, then initiates OTP challenge.
+    
+    Algorithm:
+    1. Performs 'Steel Gate' IP audit.
+    2. Normalizes input (Username or Mobile).
+    3. Verifies password against Owner Group membership.
+    4. Generates encrypted 6-digit random string (OTP).
+    5. Dispatches SMS challenge.
     """
     if request.user.is_authenticated:
         return redirect('home')
@@ -272,7 +308,8 @@ def admin_login_view(request):
 
             # Generate OTP
             otp = get_random_string(length=6, allowed_chars='0123456789')
-
+            reset_login_failures(request) # Success! Reset before OTP phase
+            
             request.session['pre_2fa_user_id'] = user.id
             request.session['2fa_otp'] = otp
             request.session['2fa_expire'] = time.time() + 300
