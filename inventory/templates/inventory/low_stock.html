@@ -161,6 +161,11 @@
         </form>
         {% endfor %}
     </div>
+    
+    <!-- Pagination -->
+    <div class="mt-4">
+        {% include 'workshop/includes/pagination.html' %}
+    </div>
     {% else %}
     <div style="text-align: center; padding: 50px 20px; background: var(--color-card); border-radius: 12px; border: 1px solid var(--color-border); box-shadow: 0 2px 4px var(--color-shadow); margin-top: 20px;">
         <i class="bi bi-check-circle" style="font-size: 3.5rem; color: var(--color-success); margin-bottom: 15px; display: block;"></i>

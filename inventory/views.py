@@ -10,8 +10,18 @@ def inventory_home(request):
 
 @staff_required
 def inventory_manage(request):
-    categories = Category.objects.prefetch_related('items').all()
-    return render(request, 'inventory/manage.html', {'categories': categories})
+    q = request.GET.get('q', '').strip()
+    categories_query = Category.objects.prefetch_related('items').all().order_by('name')
+    
+    if q:
+        categories_query = categories_query.filter(
+            Q(name__icontains=q) | Q(items__name__icontains=q)
+        ).distinct()
+        
+    paginator = Paginator(categories_query, 10) # 10 categories per page (heavy nested view)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'inventory/manage.html', {'categories': page_obj, 'page_obj': page_obj, 'q': q})
 
 @staff_required
 def add_category(request):
@@ -94,8 +104,18 @@ def delete_item(request, item_id):
 
 @staff_required
 def inventory_restock(request):
-    categories = Category.objects.prefetch_related('items').all()
-    return render(request, 'inventory/restock.html', {'categories': categories})
+    q = request.GET.get('q', '').strip()
+    categories_query = Category.objects.prefetch_related('items').all().order_by('name')
+    
+    if q:
+        categories_query = categories_query.filter(
+            Q(name__icontains=q) | Q(items__name__icontains=q)
+        ).distinct()
+        
+    paginator = Paginator(categories_query, 10)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'inventory/restock.html', {'categories': page_obj, 'page_obj': page_obj, 'q': q})
 
 @staff_required
 def update_stock(request, item_id):
@@ -114,15 +134,23 @@ def update_stock(request, item_id):
 
 @staff_required
 def inventory_low_stock(request):
-    low_stock_items = Item.objects.select_related('category').filter(
+    low_stock_query = Item.objects.select_related('category').filter(
         average_stock__gt=0
     ).filter(
         Q(current_stock__lte=0) | 
         Q(current_stock__lt=F('average_stock') * 0.25)
     ).order_by('name')
-    return render(request, 'inventory/low_stock.html', {'items': low_stock_items})
+    
+    paginator = Paginator(low_stock_query, 50)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    return render(request, 'inventory/low_stock.html', {'items': page_obj, 'page_obj': page_obj})
 
 @staff_required
 def consumption_history(request):
-    records = ConsumptionRecord.objects.select_related('user', 'item', 'item__category').order_by('-timestamp')[:100]
-    return render(request, 'inventory/consumption_history.html', {'records': records})
+    records_query = ConsumptionRecord.objects.select_related('user', 'item', 'item__category').order_by('-timestamp')
+    paginator = Paginator(records_query, 50)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'inventory/consumption_history.html', {'records': page_obj, 'page_obj': page_obj})

@@ -3,7 +3,7 @@ from django.contrib.auth.models import User
 from django.utils import timezone
 
 class Category(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, db_index=True)
 
     class Meta:
         verbose_name_plural = "Categories"
@@ -13,7 +13,7 @@ class Category(models.Model):
 
 class Item(models.Model):
     category = models.ForeignKey(Category, related_name='items', on_delete=models.CASCADE)
-    name = models.CharField(max_length=200)
+    name = models.CharField(max_length=200, db_index=True)
     average_stock = models.FloatField(default=0, help_text="Ideal stock level for calculation")
     current_stock = models.FloatField(default=0)
     usage_count = models.FloatField(default=0, help_text="Cached popularity score (frequency of use)")

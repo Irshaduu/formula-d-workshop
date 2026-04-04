@@ -169,12 +169,12 @@
     </div>
 
     <div class="search-container mb-4">
-        <div class="position-relative">
+        <form method="get" action="" class="position-relative">
             <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-3 text-muted"></i>
-            <input id="manageSearch" class="form-control border-0 shadow-sm ps-5" 
-                   type="text" placeholder="Search categories..." 
+            <input id="manageSearch" name="q" class="form-control border-0 shadow-sm ps-5" 
+                   type="text" placeholder="Search categories..." value="{{ q|default:'' }}"
                    style="border-radius: 12px; height: 48px; background: white;">
-        </div>
+        </form>
     </div>
 
     <!-- No results found placeholder -->
@@ -248,6 +248,11 @@
         <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 0;">Click New Category to get started.</p>
     </div>
     {% endfor %}
+
+    <!-- Pagination -->
+    <div class="mt-4">
+        {% include 'workshop/includes/pagination.html' %}
+    </div>
 </div>
 
 <!-- Add Category Modal -->

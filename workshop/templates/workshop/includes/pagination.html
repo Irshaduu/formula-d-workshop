@@ -1,0 +1,74 @@
+{% if page_obj and page_obj.paginator.num_pages > 1 %}
+<nav aria-label="Page navigation" class="mt-4 mb-5">
+    <ul class="pagination justify-content-center flex-wrap gap-2">
+        
+        {# First & Previous #}
+        {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link shadow-sm border-0 rounded-pill px-3 py-2 bg-dark text-light" 
+                   href="?page=1{% if q %}&q={{ q }}{% endif %}{% if filter_type %}&filter={{ filter_type }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" 
+                   aria-label="First">
+                    <i class="bi bi-chevron-double-left small"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link shadow-sm border-0 rounded-pill px-3 py-2 bg-dark text-light" 
+                   href="?page={{ page_obj.previous_page_number }}{% if q %}&q={{ q }}{% endif %}{% if filter_type %}&filter={{ filter_type }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" 
+                   aria-label="Previous">
+                    <i class="bi bi-chevron-left small"></i>
+                </a>
+            </li>
+        {% endif %}
+
+        {# Page Numbers (Showing 5 surrounding pages) #}
+        {% for num in page_obj.paginator.page_range %}
+            {% if num > page_obj.number|add:'-3' and num < page_obj.number|add:'3' %}
+                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                    <a class="page-link shadow-sm border-0 rounded-pill px-3 py-2 {% if page_obj.number == num %}bg-danger text-white fw-bold{% else %}bg-dark text-light{% endif %}" 
+                       href="?page={{ num }}{% if q %}&q={{ q }}{% endif %}{% if filter_type %}&filter={{ filter_type }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}">
+                        {{ num }}
+                    </a>
+                </li>
+            {% endif %}
+        {% endfor %}
+
+        {# Next & Last #}
+        {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link shadow-sm border-0 rounded-pill px-3 py-2 bg-dark text-light" 
+                   href="?page={{ page_obj.next_page_number }}{% if q %}&q={{ q }}{% endif %}{% if filter_type %}&filter={{ filter_type }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" 
+                   aria-label="Next">
+                    <i class="bi bi-chevron-right small"></i>
+                </a>
+            </li>
+            <li class="page-item">
+                <a class="page-link shadow-sm border-0 rounded-pill px-3 py-2 bg-dark text-light" 
+                   href="?page={{ page_obj.paginator.num_pages }}{% if q %}&q={{ q }}{% endif %}{% if filter_type %}&filter={{ filter_type }}{% endif %}{% if start_date %}&start_date={{ start_date }}{% endif %}{% if end_date %}&end_date={{ end_date }}{% endif %}" 
+                   aria-label="Last">
+                    <i class="bi bi-chevron-double-right small"></i>
+                </a>
+            </li>
+        {% endif %}
+
+    </ul>
+    
+    <div class="text-center mt-2">
+        <small class="text-muted">
+            Page <strong>{{ page_obj.number }}</strong> of <strong>{{ page_obj.paginator.num_pages }}</strong> 
+            ({{ page_obj.paginator.count }} total records)
+        </small>
+    </div>
+</nav>
+
+<style>
+    .pagination .page-link:hover {
+        background-color: var(--color-danger) !important;
+        color: white !important;
+        transform: translateY(-2px);
+        transition: all 0.2s ease;
+    }
+    .pagination .page-item.active .page-link {
+        box-shadow: 0 4px 10px rgba(239, 68, 68, 0.3) !important;
+    }
+</style>
+{% endif %}

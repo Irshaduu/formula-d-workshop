@@ -193,7 +193,9 @@
     <div class="top-row">
         <h2>Restock</h2>
         <div class="search-container">
-            <input id="restockSearch" class="tiny-search" type="text" placeholder="Search items or category…">
+            <form method="get" action="">
+                <input id="restockSearch" name="q" class="tiny-search" type="text" placeholder="Search items or category…" value="{{ q|default:'' }}">
+            </form>
         </div>
         
         <div class="dropdown ms-2">
@@ -258,6 +260,11 @@
         <a href="{% url 'inventory_manage' %}" style="color: var(--accent-blue); text-decoration: none;">Go Setup</a>
     </div>
     {% endfor %}
+
+    <!-- Pagination -->
+    <div class="mt-4">
+        {% include 'workshop/includes/pagination.html' %}
+    </div>
 
     <!-- No results found placeholder -->
     <div id="noResults" style="display: none; text-align: center; padding: 40px; color: var(--muted);">

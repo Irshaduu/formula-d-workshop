@@ -56,6 +56,18 @@ def get_owner_username_by_mobile(mobile_number):
 
 
 # ============================================================
+# Phone Masking (Privacy & Feedback)
+# Returns e.g. +91 ******7978
+# ============================================================
+def mask_phone(phone_str):
+    if not phone_str:
+        return "****"
+    # Keep last 4 digits
+    last_four = phone_str[-4:]
+    return f"*******{last_four}"
+
+
+# ============================================================
 # SMS Function — prints to terminal (replace with Twilio later)
 # ============================================================
 def send_otp_sms(mobile_number, otp):
@@ -105,17 +117,18 @@ def admin_login_view(request):
     if request.user.is_authenticated:
         return redirect('home')
 
-    # Check for active lockout from too many wrong OTP attempts
-    blocked_until = request.session.get('2fa_blocked_until')
+    # Check for HQ Lockout (Password Brute-Force or OTP failures)
+    blocked_until = request.session.get('hq_blocked_until')
     if blocked_until:
         remaining_secs = blocked_until - time.time()
         if remaining_secs > 0:
             remaining_mins = int(remaining_secs // 60) + 1
-            messages.error(request, f"Too many failed attempts. Please wait {remaining_mins} minute(s) before trying again.")
+            messages.error(request, f"🔒 Security Lockout. Please wait {remaining_mins} minute(s) before trying again.")
             return render(request, 'workshop/auth/admin_login.html')
         else:
             # Block expired — clear it
-            request.session.pop('2fa_blocked_until', None)
+            request.session.pop('hq_blocked_until', None)
+            request.session.pop('pw_attempts', None)
 
     if request.method == 'POST':
         u = request.POST.get('username', '').strip()
@@ -147,6 +160,15 @@ def admin_login_view(request):
                 )
                 return redirect('admin_login')
 
+            # 60-Second Cooldown Check (Prevent SMS Spam)
+            last_send = request.session.get('last_otp_send_time')
+            if last_send:
+                elapsed = time.time() - last_send
+                if elapsed < 60:
+                    remaining = int(60 - elapsed)
+                    messages.warning(request, f"Please wait {remaining} seconds before requesting another SMS.")
+                    return render(request, 'workshop/auth/admin_login.html')
+
             # Generate 6-digit OTP
             otp = get_random_string(length=6, allowed_chars='0123456789')
 
@@ -154,13 +176,29 @@ def admin_login_view(request):
             request.session['pre_2fa_user_id'] = user.id
             request.session['2fa_otp'] = otp
             request.session['2fa_expire'] = time.time() + 300  # 5 minutes
+            request.session['last_otp_send_time'] = time.time() # Update cooldown
+            request.session['masked_phone'] = mask_phone(mobile) # Pass for display
+            
+            # Clear password attempts on success
+            request.session.pop('pw_attempts', None)
 
             # Send OTP via SMS
             send_otp_sms(mobile, otp)
 
             return redirect('otp_verify')
         else:
-            messages.error(request, "Invalid access attempt detected. Initiating security alert.")
+            # FAIL: Password attempt tracking
+            attempts = request.session.get('pw_attempts', 0) + 1
+            request.session['pw_attempts'] = attempts
+            
+            if attempts >= 5:
+                request.session['hq_blocked_until'] = time.time() + 600  # 10 min block
+                messages.error(request, "🛡️ Brute-force suspicious activity detected. HQ Access blocked for 10 minutes.")
+            else:
+                remaining = 5 - attempts
+                messages.error(request, f"Invalid credentials. {remaining} attempt(s) remaining for HQ access.")
+            
+            return redirect('admin_login')
 
     return render(request, 'workshop/auth/admin_login.html')
 
@@ -202,7 +240,7 @@ def otp_verify_view(request):
             auth_login(request, user)
 
             # Clean up session
-            for key in ('pre_2fa_user_id', '2fa_otp', '2fa_expire', '2fa_attempts'):
+            for key in ('pre_2fa_user_id', '2fa_otp', '2fa_expire', '2fa_attempts', 'masked_phone'):
                 request.session.pop(key, None)
 
             messages.success(request, f"Welcome back, {user.username}! ✅")
@@ -213,16 +251,19 @@ def otp_verify_view(request):
             remaining = 3 - attempts
 
             if attempts >= 3:
-                # Lockout — wipe OTP session but set a 5-minute block
-                for key in ('pre_2fa_user_id', '2fa_otp', '2fa_expire', '2fa_attempts'):
+                # Lockout — wipe OTP session but set a 10-minute block (standardized)
+                for key in ('pre_2fa_user_id', '2fa_otp', '2fa_expire', '2fa_attempts', 'masked_phone'):
                     request.session.pop(key, None)
-                request.session['2fa_blocked_until'] = time.time() + 300  # 5-minute block
-                messages.error(request, "Too many wrong attempts. You are blocked for 5 minutes.")
+                request.session['hq_blocked_until'] = time.time() + 600  # 10-minute block
+                messages.error(request, "🛡️ Too many wrong attempts. HQ Access blocked for 10 minutes.")
                 return redirect('admin_login')
             else:
                 messages.error(request, f"Incorrect OTP. {remaining} attempt(s) remaining.")
 
-    return render(request, 'workshop/auth/otp_verify.html')
+    context = {
+        'masked_phone': request.session.get('masked_phone', 'your registered device')
+    }
+    return render(request, 'workshop/auth/otp_verify.html', context)
 
 
 # ============================================================
@@ -272,6 +313,15 @@ def owner_forgot_password_view(request):
             messages.error(request, "No Owner account found with that identifier.")
             return redirect('owner_forgot_password')
 
+        # 60-Second Cooldown Check (Prevent SMS Spam)
+        last_send = request.session.get('last_otp_send_time')
+        if last_send:
+            elapsed = time.time() - last_send
+            if elapsed < 60:
+                remaining = int(60 - elapsed)
+                messages.warning(request, f"Please wait {remaining} seconds before requesting another SMS reset.")
+                return render(request, 'workshop/auth/forgot_password.html')
+
         # Generate OTP
         otp = get_random_string(length=6, allowed_chars='0123456789')
 
@@ -279,6 +329,7 @@ def owner_forgot_password_view(request):
         request.session['pwd_reset_user_id'] = user.id
         request.session['pwd_reset_otp'] = otp
         request.session['pwd_reset_expire'] = time.time() + 300  # 5 minutes
+        request.session['last_otp_send_time'] = time.time() # Update cooldown
 
         # Send OTP
         send_otp_sms(mobile, otp)

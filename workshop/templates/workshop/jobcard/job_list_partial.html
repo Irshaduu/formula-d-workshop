@@ -175,29 +175,5 @@
     {% endfor %}
 </div>
 
-<!-- Pagination Controls (Inside Partial for AJAX) -->
-{% if jobcards.has_other_pages %}
-<div class="mt-4 d-flex justify-content-center">
-    <nav>
-        <ul class="pagination pagination-sm mb-5 shadow-sm">
-            {% if jobcards.has_previous %}
-            <li class="page-item">
-                <a class="page-link text-primary" href="?page={{ jobcards.previous_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">&laquo; Prev</a>
-            </li>
-            {% else %}
-            <li class="page-item disabled"><span class="page-link">&laquo; Prev</span></li>
-            {% endif %}
-            
-            <li class="page-item disabled"><span class="page-link text-muted fw-bold">Page {{ jobcards.number }} of {{ jobcards.paginator.num_pages }}</span></li>
-            
-            {% if jobcards.has_next %}
-            <li class="page-item">
-                <a class="page-link text-primary" href="?page={{ jobcards.next_page_number }}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">Next &raquo;</a>
-            </li>
-            {% else %}
-            <li class="page-item disabled"><span class="page-link">Next &raquo;</span></li>
-            {% endif %}
-        </ul>
-    </nav>
-</div>
-{% endif %}
+<!-- Pagination Controls (Reusable) -->
+{% include 'workshop/includes/pagination.html' %}

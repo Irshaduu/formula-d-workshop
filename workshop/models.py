@@ -54,7 +54,7 @@ class CarModel(models.Model):
     Used for the Study section grid and autocomplete source.
     """
     brand = models.ForeignKey(CarBrand, on_delete=models.CASCADE, related_name='models')
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:

@@ -49,10 +49,16 @@ def home(request):
         payment_status__in=['PENDING', 'PARTIAL']
     ).count()
     
+    # 5. Pagination for Floor (50 items per page)
+    paginator = Paginator(active_jobcards, 50)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
     return render(request, 'workshop/dashboard/dashboard_home.html', {
-        'active_jobcards': active_jobcards,
+        'active_jobcards': page_obj, # Pass page_obj as active_jobcards
         'delivered_count': delivered_count,
         'pending_bills_count': pending_bills_count,
+        'page_obj': page_obj,
     })
 
 
@@ -235,9 +241,9 @@ def jobcard_list(request):
     
     # AJAX Search: Return only the partial template for thousands-ready performance
     if request.headers.get('x-requested-with') == 'XMLHttpRequest':
-        return render(request, 'workshop/jobcard/job_list_partial.html', {'jobcards': jobcards})
+        return render(request, 'workshop/jobcard/job_list_partial.html', {'jobcards': jobcards, 'page_obj': jobcards, 'q': q})
     
-    return render(request, 'workshop/jobcard/jobcard_list.html', {'jobcards': jobcards})
+    return render(request, 'workshop/jobcard/jobcard_list.html', {'jobcards': jobcards, 'page_obj': jobcards, 'q': q})
 
 
 @staff_required
@@ -442,6 +448,7 @@ def delivered_list(request):
     
     context = {
         'delivered_jobcards': page_obj,
+        'page_obj': page_obj, # Explicitly included for consistency
         'filter_type': filter_type,
         'q': q,
         'start_date': start_date if filter_type == 'custom' else '',
@@ -510,8 +517,11 @@ def master_lists_home(request):
 @office_required
 def brand_list(request):
     """Grid of Car Brands"""
-    brands = CarBrand.objects.all()
-    return render(request, 'workshop/master_lists/brand_list.html', {'brands': brands})
+    brands_query = CarBrand.objects.all()
+    paginator = Paginator(brands_query, 24) # 24 for grid layout (4x6 or 3x8)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'workshop/master_lists/brand_list.html', {'brands': page_obj, 'page_obj': page_obj})
 
 @office_required
 def brand_create(request):
@@ -589,8 +599,21 @@ def model_delete(request, pk):
 
 @office_required
 def spare_list(request):
-    spares = SparePart.objects.all()
-    return render(request, 'workshop/master_lists/spare_list.html', {'spares': spares})
+    is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
+    q = request.GET.get('q', '').strip() if is_ajax else ''
+    
+    spares_query = SparePart.objects.all()
+    if q:
+        spares_query = spares_query.filter(name__icontains=q)
+        
+    paginator = Paginator(spares_query, 50)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'workshop/master_lists/spare_list.html', {
+        'spares': page_obj, 
+        'page_obj': page_obj,
+        'q': q
+    })
 
 @office_required
 def spare_create(request):
@@ -613,8 +636,24 @@ def spare_edit(request, pk):
 
 @office_required
 def concern_list(request):
-    concerns = ConcernSolution.objects.all()
-    return render(request, 'workshop/master_lists/concern_list.html', {'concerns': concerns})
+    is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
+    q = request.GET.get('q', '').strip() if is_ajax else ''
+    
+    concerns_query = ConcernSolution.objects.all()
+    if q:
+        for word in q.split():
+            concerns_query = concerns_query.filter(
+                Q(concern__icontains=word) | Q(solution__icontains=word)
+            )
+            
+    paginator = Paginator(concerns_query, 50)
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    return render(request, 'workshop/master_lists/concern_list.html', {
+        'concerns': page_obj, 
+        'page_obj': page_obj,
+        'q': q
+    })
 
 @office_required
 def concern_create(request):
@@ -840,6 +879,7 @@ def pending_payments_list(request):
         'pending_jobs': page_obj,
         'total_outstanding': total_outstanding,
         'q': q,
+        'page_obj': page_obj,
     }
 
     # 6. AJAX Return Partial
@@ -856,7 +896,6 @@ def pending_payments_list(request):
 from django.db.models import Count, Max
 
 @office_required
-@office_required
 def car_profile_list(request):
     """Show all unique cars (grouped by registration) with optimized queries and AJAX search."""
     # 1. Base Query: Group by registration and get latest activity
@@ -868,11 +907,11 @@ def car_profile_list(request):
 
     # 2. Get Filters (Smart Reset: Clear on full refresh)
     is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
-    search_query = request.GET.get('q', '').strip() if is_ajax else ''
+    q = request.GET.get('q', '').strip() if is_ajax else ''
 
     # 3. Apply Multi-Field Search (Database Level)
-    if search_query:
-        for word in search_query.split():
+    if q:
+        for word in q.split():
             cars_query = cars_query.filter(
                 Q(registration_number__icontains=word) |
                 Q(customer_name__icontains=word) |
@@ -916,7 +955,7 @@ def car_profile_list(request):
     context = {
         'car_profiles': car_profiles,
         'page_obj': page_obj,
-        'search_query': search_query,
+        'q': q,
     }
 
     # AJAX Search: Return only the partial template
