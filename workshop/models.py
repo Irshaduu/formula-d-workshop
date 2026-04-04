@@ -1,5 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.contrib.auth.signals import user_logged_out
+from django.dispatch import receiver
 
 # -----------------------------------------------------------------------------
 # 0. AUTHENTICATION & USERS
@@ -11,6 +13,84 @@ class UserProfile(models.Model):
 
     def __str__(self):
         return f"{self.user.username}'s Profile"
+
+
+# -----------------------------------------------------------------------------
+# SECURITY MODELS
+# -----------------------------------------------------------------------------
+class FailedAttempt(models.Model):
+    """
+    Tracks failed login attempts by IP address to prevent brute-force attacks.
+    Unlike session-based lockouts, this cannot be bypassed by clearing cookies.
+    """
+    ip_address = models.GenericIPAddressField(unique=True)
+    failures = models.PositiveIntegerField(default=0)
+    last_attempt = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"IP {self.ip_address}: {self.failures} failures"
+
+class UserSession(models.Model):
+    """
+    Tracks active login sessions for owners to monitor and revoke access.
+    """
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sessions')
+    session_key = models.CharField(max_length=40, unique=True)
+    ip_address = models.GenericIPAddressField(null=True, blank=True)
+    user_agent = models.TextField(null=True, blank=True)
+    last_activity = models.DateTimeField(auto_now=True, db_index=True)
+
+    def __str__(self):
+        return f"Session {self.session_key} for {self.user.username}"
+
+    @staticmethod
+    def get_device_name(user_agent_string):
+        """
+        Parses a User-Agent string into a premium, specific device name.
+        Used for both the dashboard display and real-time security alerts.
+        """
+        ua = (user_agent_string or "")
+        ua_lower = ua.lower()
+        
+        # 1. Identify specific Mobile Hardware
+        device = "Desktop"
+        if "iphone" in ua_lower:
+            device = "iPhone"
+        elif "ipad" in ua_lower:
+            device = "iPad"
+        elif "android" in ua_lower:
+            if "sm-" in ua_lower or "samsung" in ua_lower:
+                device = "Samsung Galaxy"
+            elif "pixel" in ua_lower:
+                device = "Google Pixel"
+            elif "nexus" in ua_lower:
+                device = "Nexus"
+            else:
+                device = "Android Phone"
+        elif "macintosh" in ua_lower and "mobile" not in ua_lower:
+            device = "Macbook"
+        elif "windows" in ua_lower:
+            device = "Windows PC"
+        elif "linux" in ua_lower and "android" not in ua_lower:
+            device = "Linux Workstation"
+            
+        # 2. Browser Name
+        browser = "Web Browser"
+        if 'edg/' in ua_lower or 'edge/' in ua_lower:
+            browser = "Microsoft Edge"
+        elif 'chrome' in ua_lower:
+            browser = "Google Chrome"
+        elif 'firefox' in ua_lower:
+            browser = "Mozilla Firefox"
+        elif 'safari' in ua_lower and 'chrome' not in ua_lower:
+            browser = "Apple Safari"
+            
+        return f"{browser} on {device}"
+
+    @property
+    def device_info(self):
+        """Returns the specific device string for the dashboard."""
+        return self.get_device_name(self.user_agent)
 # -----------------------------------------------------------------------------
 # 1. STUDY SECTION MODELS
 # These models act as the "Master Lists" for autocomplete suggestions.
@@ -381,3 +461,13 @@ class JobCardLabourItem(models.Model):
 
     def __str__(self):
         return self.job_description
+
+
+@receiver(user_logged_out)
+def on_user_logout(sender, request, user, **kwargs):
+    """
+    When an owner logs out manually, immediately delete their UserSession record
+    so the 'Active Now' dashboard stays 100% accurate.
+    """
+    if user:
+        UserSession.objects.filter(session_key=request.session.session_key).delete()

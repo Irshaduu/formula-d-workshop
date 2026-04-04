@@ -101,6 +101,7 @@ urlpatterns = [
     path('manage/mechanics/create/', management_views.manage_create_mechanic, name='manage_create_mechanic'),
     path('manage/mechanics/<int:mechanic_id>/toggle/', management_views.manage_toggle_mechanic, name='manage_toggle_mechanic'),
     path('manage/mechanics/<int:mechanic_id>/edit/', management_views.manage_edit_mechanic, name='manage_edit_mechanic'),
+    path('manage/sessions/<int:session_id>/terminate/', management_views.manage_terminate_session, name='manage_terminate_session'),
 
     # ------------------
     # DATA CLEANUP TOOL

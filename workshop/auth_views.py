@@ -4,6 +4,9 @@ from django.contrib import messages
 from django.utils.crypto import get_random_string
 from decouple import config
 import time
+from datetime import timedelta
+from django.utils import timezone
+from .models import UserSession, FailedAttempt
 
 
 # ============================================================
@@ -68,6 +71,43 @@ def mask_phone(phone_str):
 
 
 # ============================================================
+# IP-Based Lockout Infrastructure (Steel Gate)
+# ============================================================
+def get_client_ip(request):
+    x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
+    if x_forwarded_for:
+        ip = x_forwarded_for.split(',')[0]
+    else:
+        ip = request.META.get('REMOTE_ADDR')
+    return ip
+
+def check_ip_lockout(request):
+    """Returns True if the IP is currently blocked."""
+    ip = get_client_ip(request)
+    attempt = FailedAttempt.objects.filter(ip_address=ip).first()
+    if attempt and attempt.failures >= 5:
+        # 15 Minute window
+        lockout_expiry = attempt.last_attempt + timedelta(minutes=15)
+        if timezone.now() < lockout_expiry:
+            return True
+        else:
+            # Lockout expired — reset
+            attempt.failures = 0
+            attempt.save()
+    return False
+
+def record_login_failure(request):
+    ip = get_client_ip(request)
+    attempt, created = FailedAttempt.objects.get_or_create(ip_address=ip)
+    attempt.failures += 1
+    attempt.save()
+
+def reset_login_failures(request):
+    ip = get_client_ip(request)
+    FailedAttempt.objects.filter(ip_address=ip).update(failures=0)
+
+
+# ============================================================
 # SMS Function — prints to terminal (replace with Twilio later)
 # ============================================================
 def send_otp_sms(mobile_number, otp):
@@ -77,15 +117,93 @@ def send_otp_sms(mobile_number, otp):
 
 
 # ============================================================
+# Security Alert — Notify the OTHER owner about a login
+# ============================================================
+def send_owner_login_alert(user, request):
+    """
+    If Sahad logs in, notify Rijas. If Rijas logs in, notify Sahad.
+    Includes device info and IP for immediate verification.
+    """
+    owner1_u = config('OWNER_1_USERNAME', default='').strip()
+    owner2_u = config('OWNER_2_USERNAME', default='').strip()
+    
+    current_username = user.username
+    target_mobile = None
+    other_owner_name = ""
+    
+    if current_username == owner1_u:
+        target_mobile = config('OWNER_2_MOBILE', default='').strip()
+        other_owner_name = config('OWNER_2_USERNAME', default='Assistant Owner')
+    elif current_username == owner2_u:
+        target_mobile = config('OWNER_1_MOBILE', default='').strip()
+        other_owner_name = config('OWNER_1_USERNAME', default='Main Owner')
+    
+    if target_mobile:
+        # Get Device Info
+        ua = request.META.get('HTTP_USER_AGENT', 'Unknown Device')
+        device_name = UserSession.get_device_name(ua)
+        ip = request.META.get('REMOTE_ADDR', 'Unknown IP')
+        
+        # 2. Build Message
+        msg = (
+            f"🛡️ SECURITY ALERT: {current_username} just logged into HQ Portal.\n"
+            f"📱 Device: {device_name}\n"
+            f"🌐 IP: {ip}\n"
+            f"If this wasn't expected, REVOKE access now from your dashboard!"
+        )
+        
+        print(f"=========================================")
+        print(f"[SECURITY ALERT SMS] TO: {target_mobile} ({other_owner_name})")
+        print(f"{msg}")
+        print(f"=========================================")
+
+
+def send_staff_login_alert(user, request):
+    """
+    When any staff (Office/Floor) logs in, notify BOTH owners.
+    """
+    owner1_mobile = config('OWNER_1_MOBILE', default='').strip()
+    owner2_mobile = config('OWNER_2_MOBILE', default='').strip()
+    
+    # Get Device Info
+    ua = request.META.get('HTTP_USER_AGENT', 'Unknown Device')
+    device_name = UserSession.get_device_name(ua)
+    ip = request.META.get('REMOTE_ADDR', 'Unknown IP')
+    
+    role = "Staff"
+    if user.groups.filter(name='Office').exists():
+        role = "Office"
+    elif user.groups.filter(name='Floor').exists():
+        role = "Floor"
+
+    msg = (
+        f"📋 TEAM ALERT: {user.username} ({role}) just logged in.\n"
+        f"📱 Device: {device_name}\n"
+        f"🌐 IP: {ip}"
+    )
+
+    for mobile in [owner1_mobile, owner2_mobile]:
+        if mobile:
+            print(f"=========================================")
+            print(f"[STAFF LOGIN ALERT] TO OWNER: {mobile}")
+            print(f"{msg}")
+            print(f"=========================================")
+
+
+# ============================================================
 # Staff Login — Floor & Office only
 # ============================================================
 def staff_login_view(request):
     """
     Standard login for Floor and Office staff.
-    Owners are blocked and redirected to Admin HQ portal.
     """
     if request.user.is_authenticated:
         return redirect('home')
+
+    # 1. IP Lockout Check
+    if check_ip_lockout(request):
+        messages.error(request, "🛡️ Security Lockout: Too many failed attempts. Please wait 15 minutes.")
+        return render(request, 'workshop/auth/login.html')
 
     if request.method == 'POST':
         u = request.POST.get('username', '').strip()
@@ -93,15 +211,21 @@ def staff_login_view(request):
         user = authenticate(request, username=u, password=p)
 
         if user is not None:
-            # Block owners from staff portal
+            # Block owners from staff portal (Generic Error for security)
             if user.groups.filter(name='Owner').exists() or user.is_superuser:
-                messages.error(request, "Owners must use the Admin HQ Portal.")
+                record_login_failure(request)
+                messages.error(request, "Invalid credentials.")
                 return redirect('login')
 
             auth_login(request, user)
+            reset_login_failures(request)
+            
+            # --- Team Security Alert ---
+            send_staff_login_alert(user, request)
             return redirect('home')
         else:
-            messages.error(request, "Invalid access attempt detected. Initiating security alert.")
+            record_login_failure(request)
+            messages.error(request, "Invalid credentials.")
 
     return render(request, 'workshop/auth/login.html')
 
@@ -111,30 +235,20 @@ def staff_login_view(request):
 # ============================================================
 def admin_login_view(request):
     """
-    Step 1 of Owner 2FA.
-    Validates password, then looks up mobile from .env and sends OTP.
+    Step 1 of Owner 2FA (Password).
     """
     if request.user.is_authenticated:
         return redirect('home')
 
-    # Check for HQ Lockout (Password Brute-Force or OTP failures)
-    blocked_until = request.session.get('hq_blocked_until')
-    if blocked_until:
-        remaining_secs = blocked_until - time.time()
-        if remaining_secs > 0:
-            remaining_mins = int(remaining_secs // 60) + 1
-            messages.error(request, f"🔒 Security Lockout. Please wait {remaining_mins} minute(s) before trying again.")
-            return render(request, 'workshop/auth/admin_login.html')
-        else:
-            # Block expired — clear it
-            request.session.pop('hq_blocked_until', None)
-            request.session.pop('pw_attempts', None)
+    # 1. IP Lockout Check (Steel Gate)
+    if check_ip_lockout(request):
+        messages.error(request, "🛡️ Security Lockout: Too many failed attempts. Please wait 15 minutes.")
+        return render(request, 'workshop/auth/admin_login.html')
 
     if request.method == 'POST':
         u = request.POST.get('username', '').strip()
         p = request.POST.get('password', '').strip()
         
-        # Identification Logic: If it looks like a phone number, resolve to username
         login_username = u
         norm_u = normalize_phone(u)
         if len(norm_u) == 10:
@@ -147,57 +261,28 @@ def admin_login_view(request):
         if user is not None:
             # Must be an Owner or superuser
             if not (user.groups.filter(name='Owner').exists() or user.is_superuser):
-                messages.error(request, "Only Owners can access this portal.")
+                record_login_failure(request)
+                messages.error(request, "Invalid credentials.")
                 return redirect('admin_login')
 
-            # Look up mobile number from .env (identifier could be username or mobile)
             mobile = get_owner_mobile(login_username)
             if not mobile:
-                messages.error(
-                    request,
-                    "No mobile number is registered for this Owner account. "
-                    "Contact your system administrator."
-                )
+                messages.error(request, "Invalid credentials.")
                 return redirect('admin_login')
 
-            # 60-Second Cooldown Check (Prevent SMS Spam)
-            last_send = request.session.get('last_otp_send_time')
-            if last_send:
-                elapsed = time.time() - last_send
-                if elapsed < 60:
-                    remaining = int(60 - elapsed)
-                    messages.warning(request, f"Please wait {remaining} seconds before requesting another SMS.")
-                    return render(request, 'workshop/auth/admin_login.html')
-
-            # Generate 6-digit OTP
+            # Generate OTP
             otp = get_random_string(length=6, allowed_chars='0123456789')
 
-            # Store in session (user is NOT logged in yet)
             request.session['pre_2fa_user_id'] = user.id
             request.session['2fa_otp'] = otp
-            request.session['2fa_expire'] = time.time() + 300  # 5 minutes
-            request.session['last_otp_send_time'] = time.time() # Update cooldown
-            request.session['masked_phone'] = mask_phone(mobile) # Pass for display
+            request.session['2fa_expire'] = time.time() + 300
+            request.session['masked_phone'] = mask_phone(mobile)
             
-            # Clear password attempts on success
-            request.session.pop('pw_attempts', None)
-
-            # Send OTP via SMS
             send_otp_sms(mobile, otp)
-
             return redirect('otp_verify')
         else:
-            # FAIL: Password attempt tracking
-            attempts = request.session.get('pw_attempts', 0) + 1
-            request.session['pw_attempts'] = attempts
-            
-            if attempts >= 5:
-                request.session['hq_blocked_until'] = time.time() + 600  # 10 min block
-                messages.error(request, "🛡️ Brute-force suspicious activity detected. HQ Access blocked for 10 minutes.")
-            else:
-                remaining = 5 - attempts
-                messages.error(request, f"Invalid credentials. {remaining} attempt(s) remaining for HQ access.")
-            
+            record_login_failure(request)
+            messages.error(request, "Invalid credentials.")
             return redirect('admin_login')
 
     return render(request, 'workshop/auth/admin_login.html')
@@ -208,16 +293,18 @@ def admin_login_view(request):
 # ============================================================
 def otp_verify_view(request):
     """
-    Step 2 of Owner 2FA.
-    Validates the OTP and finalizes the session login.
+    Step 2 of Owner 2FA (OTP).
     """
     user_id = request.session.get('pre_2fa_user_id')
     stored_otp = request.session.get('2fa_otp')
     expire_time = request.session.get('2fa_expire')
 
-    # Redirect back if no pending 2FA session
+    if check_ip_lockout(request):
+        messages.error(request, "🛡️ Security Lockout: Too many failed attempts. Please wait 15 minutes.")
+        return render(request, 'workshop/auth/admin_login.html')
+
     if not all([user_id, stored_otp, expire_time]):
-        messages.error(request, "Session expired. Please log in again.")
+        messages.error(request, "Invalid credentials.")
         return redirect('admin_login')
 
     if time.time() > expire_time:
@@ -234,10 +321,14 @@ def otp_verify_view(request):
         attempts = request.session.get('2fa_attempts', 0)
 
         if entered_otp == stored_otp:
-            # Correct OTP — fully log the user in
             from django.contrib.auth.models import User
             user = User.objects.get(id=user_id)
             auth_login(request, user)
+            reset_login_failures(request) # Success!
+
+            # --- Collaborative Security Alert ---
+            send_owner_login_alert(user, request)
+            # ---------------------------
 
             # Clean up session
             for key in ('pre_2fa_user_id', '2fa_otp', '2fa_expire', '2fa_attempts', 'masked_phone'):
@@ -246,16 +337,15 @@ def otp_verify_view(request):
             messages.success(request, f"Welcome back, {user.username}! ✅")
             return redirect('home')
         else:
+            record_login_failure(request)
             attempts += 1
             request.session['2fa_attempts'] = attempts
             remaining = 3 - attempts
 
             if attempts >= 3:
-                # Lockout — wipe OTP session but set a 10-minute block (standardized)
                 for key in ('pre_2fa_user_id', '2fa_otp', '2fa_expire', '2fa_attempts', 'masked_phone'):
                     request.session.pop(key, None)
-                request.session['hq_blocked_until'] = time.time() + 600  # 10-minute block
-                messages.error(request, "🛡️ Too many wrong attempts. HQ Access blocked for 10 minutes.")
+                messages.error(request, "🛡️ Too many wrong attempts. HQ Access blocked.")
                 return redirect('admin_login')
             else:
                 messages.error(request, f"Incorrect OTP. {remaining} attempt(s) remaining.")

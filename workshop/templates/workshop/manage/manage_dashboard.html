@@ -1,18 +1,35 @@
 {% extends 'workshop/base.html' %}
 {% load auth_extras %}
 
-{% block title %}Owner Management Dashboard{% endblock %}
+{% block title %}Owner Control Hub{% endblock %}
 
 {% block content %}
-<div class="container-fluid py-3" style="max-width: 900px;">
+<div class="container-fluid py-3" style="max-width: 1000px;">
 
-    <h4 class="fw-bold mb-1"><i class="bi bi-diagram-3"></i> Management Dashboard</h4>
-    <p class="text-muted small mb-4">Owner-only panel — Create and manage staff accounts and mechanic roster.</p>
+    <!-- HEADER -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h4 class="fw-bold mb-0 text-dark">
+                <span class="text-primary"><i class="bi bi-gear-fill"></i> WorkshopOS</span> Control Hub
+            </h4>
+            <p class="text-muted small mb-0">Management & Security Panel for Sahad & Rijas.</p>
+        </div>
+        {% if section %}
+        <a href="{% url 'manage_dashboard' %}" class="btn btn-sm btn-outline-secondary px-3 shadow-xs">
+            <i class="bi bi-arrow-left"></i> Back to Main Menu
+        </a>
+        {% else %}
+        <div class="text-end">
+            <span class="badge bg-dark-subtle text-dark border p-2">HQ PORTAL v2.1</span>
+        </div>
+        {% endif %}
+    </div>
 
     {% if messages %}
     <div class="mb-3">
         {% for message in messages %}
-        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}success{% endif %} alert-dismissible fade show py-2" role="alert">
+        <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}success{% endif %} alert-dismissible fade show py-2 border-0 shadow-sm" role="alert">
+            <i class="bi {% if message.tags == 'error' %}bi-exclamation-triangle{% else %}bi-check-circle{% endif %} me-2"></i>
             {{ message }}
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
@@ -21,208 +38,260 @@
     {% endif %}
 
     <!-- ============================================================ -->
-    <!-- SECTION 1: CREATE NEW ACCOUNT -->
+    <!-- 🏢 LEVEL 0: MANAGEMENT MENU (Default View) -->
     <!-- ============================================================ -->
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header py-3">
-            <h6 class="mb-0 fw-bold text-primary"><i class="bi bi-person-plus-fill"></i> Create Staff Account</h6>
-        </div>
-        <div class="card-body">
-            <form method="post" action="{% url 'manage_create_user' %}" class="row g-3 align-items-end">
-                {% csrf_token %}
-                <div class="col-12 col-md-4">
-                    <label class="form-label small text-muted">Username</label>
-                    <input type="text" name="username" class="form-control" placeholder="e.g. office_sarah" required>
-                </div>
-                <div class="col-12 col-md-3">
-                    <label class="form-label small text-muted">Password</label>
-                    <input type="password" name="password" class="form-control" placeholder="Min. 4 characters" required minlength="4">
-                </div>
-                <div class="col-6 col-md-3">
-                    <label class="form-label small text-muted">Role</label>
-                    <select name="role" class="form-select" required>
-                        <option value="">-- Select Role --</option>
-                        <option value="Office">🏢 Office</option>
-                        <option value="Floor">🔧 Floor</option>
-                    </select>
-                </div>
-                <div class="col-6 col-md-2">
-                    <button type="submit" class="btn btn-primary w-100">Create</button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- ============================================================ -->
-    <!-- SECTION 2: OFFICE ACCOUNTS -->
-    <!-- ============================================================ -->
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header py-3 d-flex justify-content-between align-items-center">
-            <h6 class="mb-0 fw-bold text-primary"><i class="bi bi-building"></i> Office Accounts ({{ office_users|length }})</h6>
-        </div>
-        <div class="card-body p-0">
-            {% if office_users %}
-            <ul class="list-group list-group-flush">
-                {% for u in office_users %}
-                <li class="list-group-item d-flex justify-content-between align-items-center py-2">
-                    <span><i class="bi bi-person-circle text-primary me-2"></i><strong>{{ u.username }}</strong></span>
-                    <div class="d-flex gap-2">
-                        <!-- Reset Password -->
-                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#resetModal{{ u.id }}">
-                            <i class="bi bi-key"></i> Reset
-                        </button>
-                        <!-- Delete -->
-                        <form method="post" action="{% url 'manage_delete_user' u.id %}" onsubmit="return confirm('Delete {{ u.username }}?');">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
-                        </form>
-                    </div>
-                </li>
-
-                <!-- Reset Password Modal -->
-                <div class="modal fade" id="resetModal{{ u.id }}" tabindex="-1">
-                    <div class="modal-dialog modal-sm">
-                        <div class="modal-content">
-                            <div class="modal-header py-2">
-                                <h6 class="modal-title">Reset: {{ u.username }}</h6>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body py-2">
-                                <form method="post" action="{% url 'manage_reset_password' u.id %}">
-                                    {% csrf_token %}
-                                    <input type="password" name="new_password" class="form-control mb-2" placeholder="New password" required minlength="4">
-                                    <button type="submit" class="btn btn-primary w-100">Set Password</button>
-                                </form>
-                            </div>
+    {% if not section %}
+    <div class="row g-4 py-4">
+        <!-- CARD 1: TEAM & ACCOUNT MANAGEMENT -->
+        <div class="col-12 col-md-6">
+            <a href="?section=accounts" class="text-decoration-none h-100">
+                <div class="card h-100 shadow border-0 overflow-hidden menu-card" style="transition: all 0.3s ease; border-radius: 20px; background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);">
+                    <div class="card-body p-4 text-center">
+                        <div class="icon-box mb-3 mx-auto d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; border-radius: 50%; background: rgba(13, 110, 253, 0.1);">
+                            <i class="bi bi-person-workspace text-primary" style="font-size: 2.5rem;"></i>
+                        </div>
+                        <h4 class="fw-bold text-dark mb-2">Account Management</h4>
+                        <p class="text-muted small">Create workshop accounts, manage roles, reset passwords, and oversee the mechanic roster.</p>
+                        <div class="mt-4">
+                            <span class="btn btn-primary rounded-pill px-4 shadow-sm">Manage Team <i class="bi bi-chevron-right ms-1"></i></span>
                         </div>
                     </div>
                 </div>
-                {% endfor %}
-            </ul>
-            {% else %}
-            <p class="text-muted small text-center py-3">No Office accounts yet. Create one above.</p>
-            {% endif %}
+            </a>
         </div>
-    </div>
 
-    <!-- ============================================================ -->
-    <!-- SECTION 3: FLOOR ACCOUNTS -->
-    <!-- ============================================================ -->
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header py-3">
-            <h6 class="mb-0 fw-bold text-primary"><i class="bi bi-wrench-adjustable"></i> Floor Accounts ({{ floor_users|length }})</h6>
-        </div>
-        <div class="card-body p-0">
-            {% if floor_users %}
-            <ul class="list-group list-group-flush">
-                {% for u in floor_users %}
-                <li class="list-group-item d-flex justify-content-between align-items-center py-2">
-                    <span><i class="bi bi-person-badge text-warning me-2"></i><strong>{{ u.username }}</strong></span>
-                    <div class="d-flex gap-2">
-                        <button class="btn btn-sm btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#resetModalFloor{{ u.id }}">
-                            <i class="bi bi-key"></i> Reset
-                        </button>
-                        <form method="post" action="{% url 'manage_delete_user' u.id %}" onsubmit="return confirm('Delete {{ u.username }}?');">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-sm btn-outline-danger"><i class="bi bi-trash"></i></button>
-                        </form>
-                    </div>
-                </li>
-                <div class="modal fade" id="resetModalFloor{{ u.id }}" tabindex="-1">
-                    <div class="modal-dialog modal-sm">
-                        <div class="modal-content">
-                            <div class="modal-header py-2">
-                                <h6 class="modal-title">Reset: {{ u.username }}</h6>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body py-2">
-                                <form method="post" action="{% url 'manage_reset_password' u.id %}">
-                                    {% csrf_token %}
-                                    <input type="password" name="new_password" class="form-control mb-2" placeholder="New password" required minlength="4">
-                                    <button type="submit" class="btn btn-primary w-100">Set Password</button>
-                                </form>
-                            </div>
+        <!-- CARD 2: SECURITY & DEVICE MONITOR -->
+        <div class="col-12 col-md-6">
+            <a href="?section=security" class="text-decoration-none h-100">
+                <div class="card h-100 shadow border-0 overflow-hidden menu-card" style="transition: all 0.3s ease; border-radius: 20px; background: linear-gradient(135deg, #ffffff 0%, #fefefe 100%);">
+                    <div class="card-body p-4 text-center">
+                        <div class="icon-box mb-3 mx-auto d-flex align-items-center justify-content-center" style="width: 80px; height: 80px; border-radius: 50%; background: rgba(220, 53, 69, 0.1);">
+                            <i class="bi bi-shield-lock-fill text-danger" style="font-size: 2.5rem;"></i>
+                        </div>
+                        <h4 class="fw-bold text-dark mb-2">Track Login Devices</h4>
+                        <p class="text-muted small px-3">Real-time "Security Shield" to monitor active session devices, IPs, and remotely revoke unauthorized access.</p>
+                        <div class="mt-4">
+                            <span class="btn btn-outline-danger rounded-pill px-4 shadow-sm">Security Hub <i class="bi bi-chevron-right ms-1"></i></span>
                         </div>
                     </div>
                 </div>
-                {% endfor %}
-            </ul>
-            {% else %}
-            <p class="text-muted small text-center py-3">No Floor accounts yet. Create one above.</p>
-            {% endif %}
+            </a>
         </div>
     </div>
+    <style>
+        .menu-card:hover { transform: translateY(-10px); box-shadow: 0 20px 40px rgba(0,0,0,0.1) !important; }
+        .menu-card { cursor: pointer; }
+    </style>
+    {% endif %}
+
 
     <!-- ============================================================ -->
-    <!-- SECTION 4: MECHANIC ROSTER -->
+    <!-- 👥 SECTION A: TEAM & ACCOUNT MANAGEMENT -->
     <!-- ============================================================ -->
-    <div class="card shadow-sm border-0 mb-4">
-        <div class="card-header py-3 d-flex justify-content-between align-items-center">
-            <h6 class="mb-0 fw-bold text-primary"><i class="bi bi-people-fill"></i> Mechanic Roster ({{ mechanics.count }})</h6>
-        </div>
-        <div class="card-body">
-            <!-- Add Mechanic -->
-            <form method="post" action="{% url 'manage_create_mechanic' %}" class="d-flex gap-2 mb-3">
-                {% csrf_token %}
-                <input type="text" name="name" class="form-control" placeholder="Mechanic name (e.g. Ali Reza)" required>
-                <button type="submit" class="btn btn-success text-nowrap"><i class="bi bi-plus-lg"></i> Add</button>
-            </form>
-
-            <!-- Mechanic List -->
-            {% if mechanics %}
-            <ul class="list-group list-group-flush">
-                {% for mechanic in mechanics %}
-                <li class="list-group-item d-flex justify-content-between align-items-center py-2">
-                    <span>
-                        {% if mechanic.is_active %}
-                        <i class="bi bi-circle-fill text-success me-2" style="font-size: 8px;"></i>
-                        {% else %}
-                        <i class="bi bi-circle-fill text-muted me-2" style="font-size: 8px;"></i>
-                        {% endif %}
-                        <strong>{{ mechanic.name }}</strong>
-                        {% if not mechanic.is_active %}<span class="badge bg-secondary ms-2">Retired</span>{% endif %}
-                    </span>
-                    <div class="d-flex gap-2">
-                        <!-- Edit Name -->
-                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editMechanic{{ mechanic.id }}">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <!-- Activate / Retire -->
-                        <form method="post" action="{% url 'manage_toggle_mechanic' mechanic.id %}">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-sm {% if mechanic.is_active %}btn-outline-secondary{% else %}btn-outline-success{% endif %}">
-                                {% if mechanic.is_active %}<i class="bi bi-pause"></i> Retire{% else %}<i class="bi bi-play"></i> Activate{% endif %}
-                            </button>
-                        </form>
+    {% if section == 'accounts' %}
+    <div class="mb-5 animate__animated animate__fadeIn">
+        <h5 class="fw-bold mb-3 border-bottom pb-2">
+            <i class="bi bi-people-fill text-primary"></i> Team & Account Control
+        </h5>
+        
+        <!-- Create Account Card -->
+        <div class="card shadow-sm border-0 mb-4 bg-light-subtle">
+            <div class="card-header py-2 bg-transparent border-0 mt-2">
+                <h6 class="mb-0 fw-bold text-dark"><i class="bi bi-person-plus-fill me-1"></i> Add New Staff Member</h6>
+            </div>
+            <div class="card-body pt-1">
+                <form method="post" action="{% url 'manage_create_user' %}" class="row g-3 align-items-end">
+                    {% csrf_token %}
+                    <div class="col-12 col-md-4">
+                        <label class="form-label small text-muted">Username</label>
+                        <input type="text" name="username" class="form-control" placeholder="e.g. sarah_office" required>
                     </div>
-                </li>
+                    <div class="col-12 col-md-3">
+                        <label class="form-label small text-muted">Password</label>
+                        <input type="password" name="password" class="form-control" placeholder="Min. 4 chars" required minlength="4">
+                    </div>
+                    <div class="col-6 col-md-3">
+                        <label class="form-label small text-muted">Role</label>
+                        <select name="role" class="form-select" required>
+                            <option value="">-- Role --</option>
+                            <option value="Office">🏢 Office</option>
+                            <option value="Floor">🔧 Floor</option>
+                        </select>
+                    </div>
+                    <div class="col-6 col-md-2">
+                        <button type="submit" class="btn btn-primary w-100 shadow-sm"><i class="bi bi-plus-lg"></i> Create</button>
+                    </div>
+                </form>
+            </div>
+        </div>
 
-                <!-- Edit Mechanic Modal -->
-                <div class="modal fade" id="editMechanic{{ mechanic.id }}" tabindex="-1">
-                    <div class="modal-dialog modal-sm">
-                        <div class="modal-content">
-                            <div class="modal-header py-2">
-                                <h6 class="modal-title"><i class="bi bi-pencil"></i> Rename Mechanic</h6>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                            </div>
-                            <div class="modal-body py-2">
-                                <form method="post" action="{% url 'manage_edit_mechanic' mechanic.id %}">
-                                    {% csrf_token %}
-                                    <input type="text" name="name" class="form-control mb-2"
-                                           value="{{ mechanic.name }}" required>
-                                    <button type="submit" class="btn btn-primary w-100">Save Name</button>
-                                </form>
-                            </div>
-                        </div>
+        <div class="row g-4 mb-4">
+            <!-- Office Accounts List -->
+            <div class="col-12 col-md-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-building text-primary"></i> Office Team</h6>
+                        <span class="badge bg-primary-subtle text-primary border border-primary">{{ office_users|length }}</span>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if office_users %}
+                        <ul class="list-group list-group-flush" style="max-height: 250px; overflow-y: auto;">
+                            {% for u in office_users %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                <span class="text-dark fw-bold">{{ u.username }}</span>
+                                <div class="d-flex gap-1">
+                                    <button class="btn btn-sm btn-light border py-1" data-bs-toggle="modal" data-bs-target="#resetModal{{ u.id }}">Reset</button>
+                                    <form method="post" action="{% url 'manage_delete_user' u.id %}" onsubmit="return confirm('Delete {{ u.username }}?');">
+                                        {% csrf_token %}<button type="submit" class="btn btn-sm btn-outline-danger py-1"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </div>
+                            </li>
+                            <div class="modal fade" id="resetModal{{ u.id }}" tabindex="-1"><div class="modal-dialog modal-sm"><div class="modal-content"><div class="modal-header py-2"><h6 class="modal-title">Reset: {{ u.username }}</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body py-2"><form method="post" action="{% url 'manage_reset_password' u.id %}">{% csrf_token %}<input type="password" name="new_password" class="form-control mb-2" placeholder="New password" required minlength="4"><button type="submit" class="btn btn-primary w-100">Set Password</button></form></div></div></div></div>
+                            {% endfor %}
+                        </ul>
+                        {% else %}<p class="text-muted small text-center py-3">No office accounts.</p>{% endif %}
                     </div>
                 </div>
-                {% endfor %}
-            </ul>
-            {% else %}
-            <p class="text-muted small text-center py-2">No mechanics yet. Add one above.</p>
-            {% endif %}
+            </div>
+
+            <!-- Floor Accounts List -->
+            <div class="col-12 col-md-6">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                        <h6 class="mb-0 fw-bold"><i class="bi bi-wrench-adjustable text-warning"></i> Workshop Team</h6>
+                        <span class="badge bg-warning-subtle text-dark border border-warning">{{ floor_users|length }}</span>
+                    </div>
+                    <div class="card-body p-0">
+                        {% if floor_users %}
+                        <ul class="list-group list-group-flush" style="max-height: 250px; overflow-y: auto;">
+                            {% for u in floor_users %}
+                            <li class="list-group-item d-flex justify-content-between align-items-center py-2">
+                                <span class="text-dark fw-bold">{{ u.username }}</span>
+                                <div class="d-flex gap-1">
+                                    <button class="btn btn-sm btn-light border py-1" data-bs-toggle="modal" data-bs-target="#resetModalFloor{{ u.id }}">Reset</button>
+                                    <form method="post" action="{% url 'manage_delete_user' u.id %}" onsubmit="return confirm('Delete {{ u.username }}?');">
+                                        {% csrf_token %}<button type="submit" class="btn btn-sm btn-outline-danger py-1"><i class="bi bi-trash"></i></button>
+                                    </form>
+                                </div>
+                            </li>
+                            <div class="modal fade" id="resetModalFloor{{ u.id }}" tabindex="-1"><div class="modal-dialog modal-sm"><div class="modal-content"><div class="modal-header py-2"><h6 class="modal-title">Reset: {{ u.username }}</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body py-2"><form method="post" action="{% url 'manage_reset_password' u.id %}">{% csrf_token %}<input type="password" name="new_password" class="form-control mb-2" placeholder="New password" required minlength="4"><button type="submit" class="btn btn-primary w-100">Set Password</button></form></div></div></div></div>
+                            {% endfor %}
+                        </ul>
+                        {% else %}<p class="text-muted small text-center py-3">No workshop accounts.</p>{% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mechanic Roster Card -->
+        <div class="card shadow-sm border-0">
+            <div class="card-header py-2 d-flex justify-content-between align-items-center">
+                <h6 class="mb-0 fw-bold text-success"><i class="bi bi-gear-wide-connected"></i> Licensed Mechanics ({{ mechanics.count }})</h6>
+            </div>
+            <div class="card-body py-2">
+                <form method="post" action="{% url 'manage_create_mechanic' %}" class="d-flex gap-2 mb-3">
+                    {% csrf_token %}
+                    <input type="text" name="name" class="form-control" placeholder="New mechanic name..." required>
+                    <button type="submit" class="btn btn-success text-nowrap"><i class="bi bi-plus-lg"></i> Add</button>
+                </form>
+                <div class="mt-2" style="max-height: 200px; overflow-y: auto;">
+                    <ul class="list-group list-group-flush">
+                        {% for m in mechanics %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center py-1">
+                            <span class="small {% if not m.is_active %}text-muted text-decoration-line-through{% endif %}">{{ m.name }}</span>
+                            <div class="d-flex gap-1">
+                                <button class="btn btn-sm btn-link p-0 text-primary me-2" data-bs-toggle="modal" data-bs-target="#editMechanic{{ m.id }}"><i class="bi bi-pencil"></i></button>
+                                <form method="post" action="{% url 'manage_toggle_mechanic' m.id %}">
+                                    {% csrf_token %}<button type="submit" class="btn p-0 text-{% if m.is_active %}secondary{% else %}success{% endif %}"><i class="bi bi-{% if m.is_active %}pause-fill{% else %}play-fill{% endif %}"></i></button>
+                                </form>
+                            </div>
+                        </li>
+                        <div class="modal fade" id="editMechanic{{ m.id }}" tabindex="-1"><div class="modal-dialog modal-sm"><div class="modal-content"><div class="modal-header py-2"><h6 class="modal-title">Rename: {{ m.name }}</h6><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body py-2"><form method="post" action="{% url 'manage_edit_mechanic' m.id %}">{% csrf_token %}<input type="text" name="name" class="form-control mb-2" value="{{ m.name }}" required><button type="submit" class="btn btn-primary w-100">Save</button></form></div></div></div></div>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
         </div>
     </div>
+    {% endif %}
+
+    <!-- ============================================================ -->
+    <!-- 🛡️ SECTION B: LIVE SECURITY & DEVICE MONITOR -->
+    <!-- ============================================================ -->
+    {% if section == 'security' %}
+    <div class="animate__animated animate__fadeIn">
+        <h5 class="fw-bold mb-3 border-bottom pb-2">
+            <i class="bi bi-shield-lock-fill text-danger"></i> HQ Security Shield
+        </h5>
+
+        <!-- HQ Shield Card -->
+        <div class="card shadow-sm border-0 mb-4 border-start border-5 border-danger">
+            <div class="card-header py-2 d-flex justify-content-between align-items-center bg-white border-0 mt-1">
+                <h6 class="mb-0 fw-bold text-danger"><i class="bi bi-shield-check"></i> Admin & Owner Access Monitor</h6>
+                <span class="badge bg-danger">LIVE TRACKING</span>
+            </div>
+            <div class="card-body p-0 pt-2">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
+                        <thead class="table-light text-muted" style="font-size: 0.7rem;">
+                            <tr><th class="ps-3">Account</th><th>Device Info</th><th>Last Seen</th><th class="text-end pe-3">Control</th></tr>
+                        </thead>
+                        <tbody>
+                            {% for s in owner_sessions %}
+                            <tr {% if s.session_key == current_session_key %}style="background-color: rgba(220, 53, 69, 0.05);"{% endif %}>
+                                <td class="ps-3 fw-bold text-dark">{{ s.user.username|upper }}</td>
+                                <td class="small text-muted"><i class="bi {% if 'Mobile' in s.device_info %}bi-phone-fill text-primary{% else %}bi-laptop text-secondary{% endif %} me-1"></i> {{ s.device_info }} ({{ s.ip_address }})</td>
+                                <td class="small">{{ s.last_activity|timesince }} ago</td>
+                                <td class="text-end pe-3">
+                                    {% if s.session_key != current_session_key %}
+                                    <form method="post" action="{% url 'manage_terminate_session' s.id %}?section=security">{% csrf_token %}<button type="submit" class="btn btn-sm btn-danger py-0 px-2 fw-bold" style="font-size: 0.7rem;">REVOKE</button></form>
+                                    {% else %}<span class="badge bg-success p-1 rounded-pill" style="font-size: 0.6rem;">MY DEVICE</span>{% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Staff Monitor Card -->
+        <div class="card shadow-sm border-0 border-start border-5 border-info">
+            <div class="card-header py-2 d-flex justify-content-between align-items-center bg-white border-0 mt-1">
+                <h6 class="mb-0 fw-bold text-info"><i class="bi bi-person-video2"></i> Team Login Monitor (Staff)</h6>
+                <span class="badge bg-info text-dark">{{ staff_sessions.count }} Active</span>
+            </div>
+            <div class="card-body p-0 pt-2">
+                <div class="table-responsive">
+                    <table class="table table-hover align-middle mb-0" style="font-size: 0.85rem;">
+                        <thead class="table-light text-muted" style="font-size: 0.7rem;">
+                            <tr><th class="ps-3">Staff</th><th>Device</th><th>Last Activity</th><th class="text-end pe-3">Status</th></tr>
+                        </thead>
+                        <tbody>
+                            {% if staff_sessions %}
+                                {% for s in staff_sessions %}
+                                <tr>
+                                    <td class="ps-3">
+                                        <div class="fw-bold">{{ s.user.username }}</div>
+                                        <div class="small text-muted" style="font-size: 0.65rem;">
+                                            {% if s.user|has_group:"Office" %}OFFICE{% else %}FLOOR{% endif %}
+                                        </div>
+                                    </td>
+                                    <td class="small text-muted"><i class="bi {% if 'Mobile' in s.device_info %}bi-phone-fill{% else %}bi-laptop{% endif %} me-1"></i> {{ s.device_info }}</td>
+                                    <td class="small">{{ s.last_activity|timesince }} ago</td>
+                                    <td class="text-end pe-3">
+                                        <form method="post" action="{% url 'manage_terminate_session' s.id %}?section=security" style="display:inline;">{% csrf_token %}<button type="submit" class="btn btn-sm btn-outline-secondary py-0 px-2" style="font-size: 0.75rem;">Kick</button></form>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}<tr><td colspan="4" class="text-center py-4 text-muted small">No staff currently logged in.</td></tr>{% endif %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 
 </div>
 {% endblock %}
