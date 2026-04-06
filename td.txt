@@ -1,0 +1,3960 @@
+﻿venv\Scripts\python.exe : 
+Using existing test 
+database for alias 
+'default'...
+At line:1 char:1
++ venv\Scripts\python.exe 
+manage.py test workshop 
+inventory --keepdb >  ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~
+    + CategoryInfo         
+     : NotSpecified: (Usi  
+  ng existing ...as 'def   
+ ault'...:String) [], R    
+emoteException
+    + FullyQualifiedErrorI 
+   d : NativeCommandError
+ 
+
+EEFEEFE..EE.EC:\Users\irsha
+\Downloads\formula-d-worksh
+op-main\formula-d-workshop-
+main\workshop\views.py:237:
+ UnorderedObjectListWarning
+: Pagination may yield 
+inconsistent results with 
+an unordered object_list: 
+<class 
+'workshop.models.JobCard'> 
+QuerySet.
+  paginator = Paginator(job
+card_list_query, 21)  # 
+Show 21 jobs per page
+E......FEEE.....EFFE
+===========================
+===========================
+================
+ERROR: 
+workshop.test_extras (unitt
+est.loader._FailedTest.work
+shop.test_extras)
+---------------------------
+---------------------------
+----------------
+ImportError: Failed to 
+import test module: 
+workshop.test_extras
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\AppD
+ata\Local\Programs\Python\P
+ython313\Lib\unittest\loade
+r.py", line 396, in 
+_find_test_path
+    module = self._get_modu
+le_from_name(name)
+  File "C:\Users\irsha\AppD
+ata\Local\Programs\Python\P
+ython313\Lib\unittest\loade
+r.py", line 339, in 
+_get_module_from_name
+    __import__(name)
+    ~~~~~~~~~~^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+workshop\test_extras.py", 
+line 3, in <module>
+    class 
+TemplateTagTests(TestCase):
+                           
+^^^^^^^^
+NameError: name 'TestCase' 
+is not defined
+
+
+===========================
+===========================
+================
+ERROR: test_admin_login_and
+_otp_comprehensive (worksho
+p.test_auth.AuthFlowTests.t
+est_admin_login_and_otp_com
+prehensive)
+---------------------------
+---------------------------
+----------------
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1035, in 
+find_library
+    return 
+parser.libraries[name]
+           
+~~~~~~~~~~~~~~~~^^^^^^
+KeyError: 'auth_extras'
+
+During handling of the 
+above exception, another 
+exception occurred:
+
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+workshop\test_auth.py", 
+line 66, in test_admin_logi
+n_and_otp_comprehensive
+    self.assertRedirects(re
+sponse, url_step2)
+    ~~~~~~~~~~~~~~~~~~~~^^^
+^^^^^^^^^^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\testcases.py", 
+line 519, in 
+assertRedirects
+    redirect_response = 
+response.client.get(
+        path,
+    ...<3 lines>...
+        **extra,
+    )
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+1124, in get
+    response = super().get(
+        path,
+    ...<4 lines>...
+        **extra,
+    )
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+475, in get
+    return self.generic(
+           ~~~~~~~~~~~~^
+        "GET",
+        ^^^^^^
+    ...<4 lines>...
+        **extra,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+671, in generic
+    return 
+self.request(**r)
+           
+~~~~~~~~~~~~^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+1087, in request
+    self.check_exception(re
+sponse)
+    ~~~~~~~~~~~~~~~~~~~~^^^
+^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+802, in check_exception
+    raise exc_value
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\core\handlers\exception.
+py", line 55, in inner
+    response = 
+get_response(request)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\core\handlers\base.py", 
+line 197, in _get_response
+    response = 
+wrapped_callback(request, 
+*callback_args, 
+**callback_kwargs)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+workshop\auth_views.py", 
+line 393, in 
+otp_verify_view
+    return render(request, 
+'workshop/auth/otp_verify.h
+tml', context)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\shortcuts.py", line 25, 
+in render
+    content = loader.render
+_to_string(template_name, 
+context, request, 
+using=using)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader.py", 
+line 62, in 
+render_to_string
+    return 
+template.render(context, 
+request)
+           ~~~~~~~~~~~~~~~^
+^^^^^^^^^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\backends\django
+.py", line 107, in render
+    return self.template.re
+nder(context)
+           ~~~~~~~~~~~~~~~~
+~~~~^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+172, in render
+    return 
+self._render(context)
+           
+~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\utils.py", line 
+114, in 
+instrumented_test_render
+    return self.nodelist.re
+nder(context)
+           ~~~~~~~~~~~~~~~~
+~~~~^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+1018, in render
+    return SafeString("".jo
+in([node.render_annotated(c
+ontext) for node in self]))
+                           
+    ~~~~~~~~~~~~~~~~~~~~~^^
+^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+979, in render_annotated
+    return 
+self.render(context)
+           
+~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader_tags.py"
+, line 134, in render
+    compiled_parent = 
+self.get_parent(context)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader_tags.py"
+, line 131, in get_parent
+    return 
+self.find_template(parent, 
+context)
+           ~~~~~~~~~~~~~~~~
+~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader_tags.py"
+, line 109, in 
+find_template
+    template, origin = cont
+ext.template.engine.find_te
+mplate(
+                       ~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~^
+        template_name,
+        ^^^^^^^^^^^^^^
+        skip=history,
+        ^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\engine.py", 
+line 159, in find_template
+    template = 
+loader.get_template(name, 
+skip=skip)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loaders\cached.
+py", line 57, in 
+get_template
+    template = super().get_
+template(template_name, 
+skip)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loaders\base.py
+", line 28, in get_template
+    return Template(
+        contents,
+    ...<2 lines>...
+        self.engine,
+    )
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+155, in __init__
+    self.nodelist = 
+self.compile_nodelist()
+                    
+~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+197, in compile_nodelist
+    nodelist = 
+parser.parse()
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+519, in parse
+    raise 
+self.error(token, e)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+517, in parse
+    compiled_result = 
+compile_func(self, token)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1097, in load
+    lib = 
+find_library(parser, name)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1037, in 
+find_library
+    raise 
+TemplateSyntaxError(
+    ...<5 lines>...
+    )
+django.template.exceptions.
+TemplateSyntaxError: 
+'auth_extras' is not a 
+registered tag library. 
+Must be one of:
+admin_list
+admin_modify
+admin_urls
+cache
+custom_filters
+i18n
+l10n
+log
+static
+tz
+
+===========================
+===========================
+================
+ERROR: test_staff_login_vie
+w_complete (workshop.test_a
+uth.AuthFlowTests.test_staf
+f_login_view_complete)
+---------------------------
+---------------------------
+----------------
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1035, in 
+find_library
+    return 
+parser.libraries[name]
+           
+~~~~~~~~~~~~~~~~^^^^^^
+KeyError: 'auth_extras'
+
+During handling of the 
+above exception, another 
+exception occurred:
+
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+workshop\test_auth.py", 
+line 36, in test_staff_logi
+n_view_complete
+    self.assertRedirects(re
+sponse, reverse('home'))
+    ~~~~~~~~~~~~~~~~~~~~^^^
+^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\testcases.py", 
+line 519, in 
+assertRedirects
+    redirect_response = 
+response.client.get(
+        path,
+    ...<3 lines>...
+        **extra,
+    )
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+1124, in get
+    response = super().get(
+        path,
+    ...<4 lines>...
+        **extra,
+    )
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+475, in get
+    return self.generic(
+           ~~~~~~~~~~~~^
+        "GET",
+        ^^^^^^
+    ...<4 lines>...
+        **extra,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+671, in generic
+    return 
+self.request(**r)
+           
+~~~~~~~~~~~~^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+1087, in request
+    self.check_exception(re
+sponse)
+    ~~~~~~~~~~~~~~~~~~~~^^^
+^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+802, in check_exception
+    raise exc_value
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\core\handlers\exception.
+py", line 55, in inner
+    response = 
+get_response(request)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\core\handlers\base.py", 
+line 197, in _get_response
+    response = 
+wrapped_callback(request, 
+*callback_args, 
+**callback_kwargs)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\contrib\auth\decorators.
+py", line 59, in 
+_view_wrapper
+    return 
+view_func(request, *args, 
+**kwargs)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+workshop\views.py", line 
+57, in home
+    return render(request, 
+'workshop/dashboard/dashboa
+rd_home.html', {
+        'active_jobcards': 
+page_obj, # Pass page_obj 
+as active_jobcards
+    ...<2 lines>...
+        'page_obj': 
+page_obj,
+    })
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\shortcuts.py", line 25, 
+in render
+    content = loader.render
+_to_string(template_name, 
+context, request, 
+using=using)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader.py", 
+line 61, in 
+render_to_string
+    template = get_template
+(template_name, 
+using=using)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader.py", 
+line 15, in get_template
+    return engine.get_templ
+ate(template_name)
+           ~~~~~~~~~~~~~~~~
+~~~^^^^^^^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\backends\django
+.py", line 79, in 
+get_template
+    return Template(self.en
+gine.get_template(template_
+name), self)
+                    ~~~~~~~
+~~~~~~~~~~~~~~~~~^^^^^^^^^^
+^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\engine.py", 
+line 177, in get_template
+    template, origin = self
+.find_template(template_nam
+e)
+                       ~~~~
+~~~~~~~~~~~~~~^^^^^^^^^^^^^
+^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\engine.py", 
+line 159, in find_template
+    template = 
+loader.get_template(name, 
+skip=skip)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loaders\cached.
+py", line 57, in 
+get_template
+    template = super().get_
+template(template_name, 
+skip)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loaders\base.py
+", line 28, in get_template
+    return Template(
+        contents,
+    ...<2 lines>...
+        self.engine,
+    )
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+155, in __init__
+    self.nodelist = 
+self.compile_nodelist()
+                    
+~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+197, in compile_nodelist
+    nodelist = 
+parser.parse()
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+519, in parse
+    raise 
+self.error(token, e)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+517, in parse
+    compiled_result = 
+compile_func(self, token)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader_tags.py"
+, line 299, in do_extends
+    nodelist = 
+parser.parse()
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+519, in parse
+    raise 
+self.error(token, e)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+517, in parse
+    compiled_result = 
+compile_func(self, token)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1097, in load
+    lib = 
+find_library(parser, name)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1037, in 
+find_library
+    raise 
+TemplateSyntaxError(
+    ...<5 lines>...
+    )
+django.template.exceptions.
+TemplateSyntaxError: 
+'auth_extras' is not a 
+registered tag library. 
+Must be one of:
+admin_list
+admin_modify
+admin_urls
+cache
+custom_filters
+i18n
+l10n
+log
+static
+tz
+
+===========================
+===========================
+================
+ERROR: test_manage_dashboar
+d_sections (workshop.test_m
+anagement.ManagementViewTes
+ts.test_manage_dashboard_se
+ctions)
+---------------------------
+---------------------------
+----------------
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1035, in 
+find_library
+    return 
+parser.libraries[name]
+           
+~~~~~~~~~~~~~~~~^^^^^^
+KeyError: 'auth_extras'
+
+During handling of the 
+above exception, another 
+exception occurred:
+
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+workshop\test_management.py
+", line 31, in test_manage_
+dashboard_sections
+    response = 
+self.client.get(url, 
+{'section': section})
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+1124, in get
+    response = super().get(
+        path,
+    ...<4 lines>...
+        **extra,
+    )
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+475, in get
+    return self.generic(
+           ~~~~~~~~~~~~^
+        "GET",
+        ^^^^^^
+    ...<4 lines>...
+        **extra,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+671, in generic
+    return 
+self.request(**r)
+           
+~~~~~~~~~~~~^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+1087, in request
+    self.check_exception(re
+sponse)
+    ~~~~~~~~~~~~~~~~~~~~^^^
+^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+802, in check_exception
+    raise exc_value
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\core\handlers\exception.
+py", line 55, in inner
+    response = 
+get_response(request)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\core\handlers\base.py", 
+line 197, in _get_response
+    response = 
+wrapped_callback(request, 
+*callback_args, 
+**callback_kwargs)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\contrib\auth\decorators.
+py", line 59, in 
+_view_wrapper
+    return 
+view_func(request, *args, 
+**kwargs)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+workshop\management_views.p
+y", line 49, in 
+manage_dashboard
+    return render(request, 
+'workshop/manage/manage_das
+hboard.html', {
+        'section': section,
+    ...<5 lines>...
+        
+'current_session_key': requ
+est.session.session_key,
+    })
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\shortcuts.py", line 25, 
+in render
+    content = loader.render
+_to_string(template_name, 
+context, request, 
+using=using)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader.py", 
+line 61, in 
+render_to_string
+    template = get_template
+(template_name, 
+using=using)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader.py", 
+line 15, in get_template
+    return engine.get_templ
+ate(template_name)
+           ~~~~~~~~~~~~~~~~
+~~~^^^^^^^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\backends\django
+.py", line 79, in 
+get_template
+    return Template(self.en
+gine.get_template(template_
+name), self)
+                    ~~~~~~~
+~~~~~~~~~~~~~~~~~^^^^^^^^^^
+^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\engine.py", 
+line 177, in get_template
+    template, origin = self
+.find_template(template_nam
+e)
+                       ~~~~
+~~~~~~~~~~~~~~^^^^^^^^^^^^^
+^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\engine.py", 
+line 159, in find_template
+    template = 
+loader.get_template(name, 
+skip=skip)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loaders\cached.
+py", line 57, in 
+get_template
+    template = super().get_
+template(template_name, 
+skip)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loaders\base.py
+", line 28, in get_template
+    return Template(
+        contents,
+    ...<2 lines>...
+        self.engine,
+    )
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+155, in __init__
+    self.nodelist = 
+self.compile_nodelist()
+                    
+~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+197, in compile_nodelist
+    nodelist = 
+parser.parse()
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+519, in parse
+    raise 
+self.error(token, e)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+517, in parse
+    compiled_result = 
+compile_func(self, token)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader_tags.py"
+, line 299, in do_extends
+    nodelist = 
+parser.parse()
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+519, in parse
+    raise 
+self.error(token, e)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+517, in parse
+    compiled_result = 
+compile_func(self, token)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1097, in load
+    lib = 
+find_library(parser, name)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1037, in 
+find_library
+    raise 
+TemplateSyntaxError(
+    ...<5 lines>...
+    )
+django.template.exceptions.
+TemplateSyntaxError: 
+'auth_extras' is not a 
+registered tag library. 
+Must be one of:
+admin_list
+admin_modify
+admin_urls
+cache
+custom_filters
+i18n
+l10n
+log
+static
+tz
+
+===========================
+===========================
+================
+ERROR: test_session_revocat
+ion_realtime (workshop.test
+_management.ManagementViewT
+ests.test_session_revocatio
+n_realtime)
+---------------------------
+---------------------------
+----------------
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1035, in 
+find_library
+    return 
+parser.libraries[name]
+           
+~~~~~~~~~~~~~~~~^^^^^^
+KeyError: 'auth_extras'
+
+During handling of the 
+above exception, another 
+exception occurred:
+
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+workshop\test_management.py
+", line 61, in test_session
+_revocation_realtime
+    self.assertRedirects(re
+sponse, reverse('manage_das
+hboard') + 
+'?section=security')
+    ~~~~~~~~~~~~~~~~~~~~^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\testcases.py", 
+line 519, in 
+assertRedirects
+    redirect_response = 
+response.client.get(
+        path,
+    ...<3 lines>...
+        **extra,
+    )
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+1124, in get
+    response = super().get(
+        path,
+    ...<4 lines>...
+        **extra,
+    )
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+475, in get
+    return self.generic(
+           ~~~~~~~~~~~~^
+        "GET",
+        ^^^^^^
+    ...<4 lines>...
+        **extra,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+671, in generic
+    return 
+self.request(**r)
+           
+~~~~~~~~~~~~^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+1087, in request
+    self.check_exception(re
+sponse)
+    ~~~~~~~~~~~~~~~~~~~~^^^
+^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+802, in check_exception
+    raise exc_value
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\core\handlers\exception.
+py", line 55, in inner
+    response = 
+get_response(request)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\core\handlers\base.py", 
+line 197, in _get_response
+    response = 
+wrapped_callback(request, 
+*callback_args, 
+**callback_kwargs)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\contrib\auth\decorators.
+py", line 59, in 
+_view_wrapper
+    return 
+view_func(request, *args, 
+**kwargs)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+workshop\management_views.p
+y", line 49, in 
+manage_dashboard
+    return render(request, 
+'workshop/manage/manage_das
+hboard.html', {
+        'section': section,
+    ...<5 lines>...
+        
+'current_session_key': requ
+est.session.session_key,
+    })
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\shortcuts.py", line 25, 
+in render
+    content = loader.render
+_to_string(template_name, 
+context, request, 
+using=using)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader.py", 
+line 61, in 
+render_to_string
+    template = get_template
+(template_name, 
+using=using)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader.py", 
+line 15, in get_template
+    return engine.get_templ
+ate(template_name)
+           ~~~~~~~~~~~~~~~~
+~~~^^^^^^^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\backends\django
+.py", line 79, in 
+get_template
+    return Template(self.en
+gine.get_template(template_
+name), self)
+                    ~~~~~~~
+~~~~~~~~~~~~~~~~~^^^^^^^^^^
+^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\engine.py", 
+line 177, in get_template
+    template, origin = self
+.find_template(template_nam
+e)
+                       ~~~~
+~~~~~~~~~~~~~~^^^^^^^^^^^^^
+^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\engine.py", 
+line 159, in find_template
+    template = 
+loader.get_template(name, 
+skip=skip)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loaders\cached.
+py", line 57, in 
+get_template
+    template = super().get_
+template(template_name, 
+skip)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loaders\base.py
+", line 28, in get_template
+    return Template(
+        contents,
+    ...<2 lines>...
+        self.engine,
+    )
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+155, in __init__
+    self.nodelist = 
+self.compile_nodelist()
+                    
+~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+197, in compile_nodelist
+    nodelist = 
+parser.parse()
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+519, in parse
+    raise 
+self.error(token, e)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+517, in parse
+    compiled_result = 
+compile_func(self, token)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader_tags.py"
+, line 299, in do_extends
+    nodelist = 
+parser.parse()
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+519, in parse
+    raise 
+self.error(token, e)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+517, in parse
+    compiled_result = 
+compile_func(self, token)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1097, in load
+    lib = 
+find_library(parser, name)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1037, in 
+find_library
+    raise 
+TemplateSyntaxError(
+    ...<5 lines>...
+    )
+django.template.exceptions.
+TemplateSyntaxError: 
+'auth_extras' is not a 
+registered tag library. 
+Must be one of:
+admin_list
+admin_modify
+admin_urls
+cache
+custom_filters
+i18n
+l10n
+log
+static
+tz
+
+===========================
+===========================
+================
+ERROR: 
+test_delivered_view_search 
+(workshop.test_views.Worksh
+opViewTests.test_delivered_
+view_search)
+---------------------------
+---------------------------
+----------------
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1035, in 
+find_library
+    return 
+parser.libraries[name]
+           
+~~~~~~~~~~~~~~~~^^^^^^
+KeyError: 'auth_extras'
+
+During handling of the 
+above exception, another 
+exception occurred:
+
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+workshop\test_views.py", 
+line 167, in 
+test_delivered_view_search
+    response = 
+self.client.get(url, {'q': 
+'KL01AB1111'})
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+1124, in get
+    response = super().get(
+        path,
+    ...<4 lines>...
+        **extra,
+    )
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+475, in get
+    return self.generic(
+           ~~~~~~~~~~~~^
+        "GET",
+        ^^^^^^
+    ...<4 lines>...
+        **extra,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+671, in generic
+    return 
+self.request(**r)
+           
+~~~~~~~~~~~~^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+1087, in request
+    self.check_exception(re
+sponse)
+    ~~~~~~~~~~~~~~~~~~~~^^^
+^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+802, in check_exception
+    raise exc_value
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\core\handlers\exception.
+py", line 55, in inner
+    response = 
+get_response(request)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\core\handlers\base.py", 
+line 197, in _get_response
+    response = 
+wrapped_callback(request, 
+*callback_args, 
+**callback_kwargs)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\contrib\auth\decorators.
+py", line 59, in 
+_view_wrapper
+    return 
+view_func(request, *args, 
+**kwargs)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+workshop\views.py", line 
+462, in delivered_list
+    return render(request, 
+'workshop/delivered/deliver
+ed_list.html', context)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\shortcuts.py", line 25, 
+in render
+    content = loader.render
+_to_string(template_name, 
+context, request, 
+using=using)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader.py", 
+line 62, in 
+render_to_string
+    return 
+template.render(context, 
+request)
+           ~~~~~~~~~~~~~~~^
+^^^^^^^^^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\backends\django
+.py", line 107, in render
+    return self.template.re
+nder(context)
+           ~~~~~~~~~~~~~~~~
+~~~~^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+172, in render
+    return 
+self._render(context)
+           
+~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\utils.py", line 
+114, in 
+instrumented_test_render
+    return self.nodelist.re
+nder(context)
+           ~~~~~~~~~~~~~~~~
+~~~~^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+1018, in render
+    return SafeString("".jo
+in([node.render_annotated(c
+ontext) for node in self]))
+                           
+    ~~~~~~~~~~~~~~~~~~~~~^^
+^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+979, in render_annotated
+    return 
+self.render(context)
+           
+~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader_tags.py"
+, line 134, in render
+    compiled_parent = 
+self.get_parent(context)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader_tags.py"
+, line 131, in get_parent
+    return 
+self.find_template(parent, 
+context)
+           ~~~~~~~~~~~~~~~~
+~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader_tags.py"
+, line 109, in 
+find_template
+    template, origin = cont
+ext.template.engine.find_te
+mplate(
+                       ~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~^
+        template_name,
+        ^^^^^^^^^^^^^^
+        skip=history,
+        ^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\engine.py", 
+line 159, in find_template
+    template = 
+loader.get_template(name, 
+skip=skip)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loaders\cached.
+py", line 57, in 
+get_template
+    template = super().get_
+template(template_name, 
+skip)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loaders\base.py
+", line 28, in get_template
+    return Template(
+        contents,
+    ...<2 lines>...
+        self.engine,
+    )
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+155, in __init__
+    self.nodelist = 
+self.compile_nodelist()
+                    
+~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+197, in compile_nodelist
+    nodelist = 
+parser.parse()
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+519, in parse
+    raise 
+self.error(token, e)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+517, in parse
+    compiled_result = 
+compile_func(self, token)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1097, in load
+    lib = 
+find_library(parser, name)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1037, in 
+find_library
+    raise 
+TemplateSyntaxError(
+    ...<5 lines>...
+    )
+django.template.exceptions.
+TemplateSyntaxError: 
+'auth_extras' is not a 
+registered tag library. 
+Must be one of:
+admin_list
+admin_modify
+admin_urls
+cache
+custom_filters
+i18n
+l10n
+log
+static
+tz
+
+===========================
+===========================
+================
+ERROR: test_financial_repor
+t_exhaustive_filters (works
+hop.test_views.WorkshopView
+Tests.test_financial_report
+_exhaustive_filters)
+---------------------------
+---------------------------
+----------------
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+workshop\test_views.py", 
+line 127, in test_financial
+_report_exhaustive_filters
+    url = 
+reverse('financial_report')
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\urls\base.py", line 98, 
+in reverse
+    resolved_url = resolver
+._reverse_with_prefix(view,
+ prefix, *args, **kwargs)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\urls\resolvers.py", 
+line 831, in 
+_reverse_with_prefix
+    raise 
+NoReverseMatch(msg)
+django.urls.exceptions.NoRe
+verseMatch: Reverse for 
+'financial_report' not 
+found. 'financial_report' 
+is not a valid view 
+function or pattern name.
+
+===========================
+===========================
+================
+ERROR: test_jobcard_edit_wi
+th_formsets (workshop.test_
+views.WorkshopViewTests.tes
+t_jobcard_edit_with_formset
+s)
+EXHAUSTIVE: Test editing a 
+job card with ALL 3 
+formsets (Concerns, 
+Spares, Labours).
+---------------------------
+---------------------------
+----------------
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1035, in 
+find_library
+    return 
+parser.libraries[name]
+           
+~~~~~~~~~~~~~~~~^^^^^^
+KeyError: 'auth_extras'
+
+During handling of the 
+above exception, another 
+exception occurred:
+
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+workshop\test_views.py", 
+line 89, in test_jobcard_ed
+it_with_formsets
+    response = 
+self.client.post(url, data)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+1153, in post
+    response = 
+super().post(
+        path,
+    ...<5 lines>...
+        **extra,
+    )
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+499, in post
+    return self.generic(
+           ~~~~~~~~~~~~^
+        "POST",
+        ^^^^^^^
+    ...<6 lines>...
+        **extra,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+671, in generic
+    return 
+self.request(**r)
+           
+~~~~~~~~~~~~^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+1087, in request
+    self.check_exception(re
+sponse)
+    ~~~~~~~~~~~~~~~~~~~~^^^
+^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+802, in check_exception
+    raise exc_value
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\core\handlers\exception.
+py", line 55, in inner
+    response = 
+get_response(request)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\core\handlers\base.py", 
+line 197, in _get_response
+    response = 
+wrapped_callback(request, 
+*callback_args, 
+**callback_kwargs)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\contrib\auth\decorators.
+py", line 59, in 
+_view_wrapper
+    return 
+view_func(request, *args, 
+**kwargs)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+workshop\views.py", line 
+323, in jobcard_edit
+    return render(request, 
+'workshop/jobcard/jobcard_f
+orm.html', context)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\shortcuts.py", line 25, 
+in render
+    content = loader.render
+_to_string(template_name, 
+context, request, 
+using=using)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader.py", 
+line 61, in 
+render_to_string
+    template = get_template
+(template_name, 
+using=using)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader.py", 
+line 15, in get_template
+    return engine.get_templ
+ate(template_name)
+           ~~~~~~~~~~~~~~~~
+~~~^^^^^^^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\backends\django
+.py", line 79, in 
+get_template
+    return Template(self.en
+gine.get_template(template_
+name), self)
+                    ~~~~~~~
+~~~~~~~~~~~~~~~~~^^^^^^^^^^
+^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\engine.py", 
+line 177, in get_template
+    template, origin = self
+.find_template(template_nam
+e)
+                       ~~~~
+~~~~~~~~~~~~~~^^^^^^^^^^^^^
+^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\engine.py", 
+line 159, in find_template
+    template = 
+loader.get_template(name, 
+skip=skip)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loaders\cached.
+py", line 57, in 
+get_template
+    template = super().get_
+template(template_name, 
+skip)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loaders\base.py
+", line 28, in get_template
+    return Template(
+        contents,
+    ...<2 lines>...
+        self.engine,
+    )
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+155, in __init__
+    self.nodelist = 
+self.compile_nodelist()
+                    
+~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+197, in compile_nodelist
+    nodelist = 
+parser.parse()
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+519, in parse
+    raise 
+self.error(token, e)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+517, in parse
+    compiled_result = 
+compile_func(self, token)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader_tags.py"
+, line 299, in do_extends
+    nodelist = 
+parser.parse()
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+519, in parse
+    raise 
+self.error(token, e)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+517, in parse
+    compiled_result = 
+compile_func(self, token)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1097, in load
+    lib = 
+find_library(parser, name)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1037, in 
+find_library
+    raise 
+TemplateSyntaxError(
+    ...<5 lines>...
+    )
+django.template.exceptions.
+TemplateSyntaxError: 
+'auth_extras' is not a 
+registered tag library. 
+Must be one of:
+admin_list
+admin_modify
+admin_urls
+cache
+custom_filters
+i18n
+l10n
+log
+static
+tz
+
+===========================
+===========================
+================
+ERROR: test_jobcard_search_
+and_pagination (workshop.te
+st_views.WorkshopViewTests.
+test_jobcard_search_and_pag
+ination)
+---------------------------
+---------------------------
+----------------
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1035, in 
+find_library
+    return 
+parser.libraries[name]
+           
+~~~~~~~~~~~~~~~~^^^^^^
+KeyError: 'auth_extras'
+
+During handling of the 
+above exception, another 
+exception occurred:
+
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+workshop\test_views.py", 
+line 58, in test_jobcard_se
+arch_and_pagination
+    response = 
+self.client.get(url, 
+{'page': 2})
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+1124, in get
+    response = super().get(
+        path,
+    ...<4 lines>...
+        **extra,
+    )
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+475, in get
+    return self.generic(
+           ~~~~~~~~~~~~^
+        "GET",
+        ^^^^^^
+    ...<4 lines>...
+        **extra,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+671, in generic
+    return 
+self.request(**r)
+           
+~~~~~~~~~~~~^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+1087, in request
+    self.check_exception(re
+sponse)
+    ~~~~~~~~~~~~~~~~~~~~^^^
+^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+802, in check_exception
+    raise exc_value
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\core\handlers\exception.
+py", line 55, in inner
+    response = 
+get_response(request)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\core\handlers\base.py", 
+line 197, in _get_response
+    response = 
+wrapped_callback(request, 
+*callback_args, 
+**callback_kwargs)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\contrib\auth\decorators.
+py", line 59, in 
+_view_wrapper
+    return 
+view_func(request, *args, 
+**kwargs)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+workshop\views.py", line 
+246, in jobcard_list
+    return render(request, 
+'workshop/jobcard/jobcard_l
+ist.html', {'jobcards': 
+jobcards, 'page_obj': 
+jobcards, 'q': q})
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\shortcuts.py", line 25, 
+in render
+    content = loader.render
+_to_string(template_name, 
+context, request, 
+using=using)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader.py", 
+line 61, in 
+render_to_string
+    template = get_template
+(template_name, 
+using=using)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader.py", 
+line 15, in get_template
+    return engine.get_templ
+ate(template_name)
+           ~~~~~~~~~~~~~~~~
+~~~^^^^^^^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\backends\django
+.py", line 79, in 
+get_template
+    return Template(self.en
+gine.get_template(template_
+name), self)
+                    ~~~~~~~
+~~~~~~~~~~~~~~~~~^^^^^^^^^^
+^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\engine.py", 
+line 177, in get_template
+    template, origin = self
+.find_template(template_nam
+e)
+                       ~~~~
+~~~~~~~~~~~~~~^^^^^^^^^^^^^
+^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\engine.py", 
+line 159, in find_template
+    template = 
+loader.get_template(name, 
+skip=skip)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loaders\cached.
+py", line 57, in 
+get_template
+    template = super().get_
+template(template_name, 
+skip)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loaders\base.py
+", line 28, in get_template
+    return Template(
+        contents,
+    ...<2 lines>...
+        self.engine,
+    )
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+155, in __init__
+    self.nodelist = 
+self.compile_nodelist()
+                    
+~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+197, in compile_nodelist
+    nodelist = 
+parser.parse()
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+519, in parse
+    raise 
+self.error(token, e)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+517, in parse
+    compiled_result = 
+compile_func(self, token)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader_tags.py"
+, line 299, in do_extends
+    nodelist = 
+parser.parse()
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+519, in parse
+    raise 
+self.error(token, e)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+517, in parse
+    compiled_result = 
+compile_func(self, token)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1097, in load
+    lib = 
+find_library(parser, name)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1037, in 
+find_library
+    raise 
+TemplateSyntaxError(
+    ...<5 lines>...
+    )
+django.template.exceptions.
+TemplateSyntaxError: 
+'auth_extras' is not a 
+registered tag library. 
+Must be one of:
+admin_list
+admin_modify
+admin_urls
+cache
+custom_filters
+i18n
+l10n
+log
+static
+tz
+
+===========================
+===========================
+================
+ERROR: 
+test_ip_lockout_trigger (wo
+rkshop.tests.SecurityHarden
+ingTests.test_ip_lockout_tr
+igger)
+Verify that 5 failed login 
+attempts from a single IP
+---------------------------
+---------------------------
+----------------
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1035, in 
+find_library
+    return 
+parser.libraries[name]
+           
+~~~~~~~~~~~~~~~~^^^^^^
+KeyError: 'auth_extras'
+
+During handling of the 
+above exception, another 
+exception occurred:
+
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+workshop\tests.py", line 
+49, in 
+test_ip_lockout_trigger
+    response = 
+self.client.post(url, {
+        'username': 
+'sahad_test',
+        'password': 
+'testpassword123' # 
+Correct password now
+    }, 
+REMOTE_ADDR=self.test_ip)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+1153, in post
+    response = 
+super().post(
+        path,
+    ...<5 lines>...
+        **extra,
+    )
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+499, in post
+    return self.generic(
+           ~~~~~~~~~~~~^
+        "POST",
+        ^^^^^^^
+    ...<6 lines>...
+        **extra,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+671, in generic
+    return 
+self.request(**r)
+           
+~~~~~~~~~~~~^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+1087, in request
+    self.check_exception(re
+sponse)
+    ~~~~~~~~~~~~~~~~~~~~^^^
+^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+802, in check_exception
+    raise exc_value
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\core\handlers\exception.
+py", line 55, in inner
+    response = 
+get_response(request)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\core\handlers\base.py", 
+line 197, in _get_response
+    response = 
+wrapped_callback(request, 
+*callback_args, 
+**callback_kwargs)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+workshop\auth_views.py", 
+line 282, in 
+admin_login_view
+    return render(request, 
+'workshop/auth/admin_login.
+html')
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\shortcuts.py", line 25, 
+in render
+    content = loader.render
+_to_string(template_name, 
+context, request, 
+using=using)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader.py", 
+line 62, in 
+render_to_string
+    return 
+template.render(context, 
+request)
+           ~~~~~~~~~~~~~~~^
+^^^^^^^^^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\backends\django
+.py", line 107, in render
+    return self.template.re
+nder(context)
+           ~~~~~~~~~~~~~~~~
+~~~~^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+172, in render
+    return 
+self._render(context)
+           
+~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\utils.py", line 
+114, in 
+instrumented_test_render
+    return self.nodelist.re
+nder(context)
+           ~~~~~~~~~~~~~~~~
+~~~~^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+1018, in render
+    return SafeString("".jo
+in([node.render_annotated(c
+ontext) for node in self]))
+                           
+    ~~~~~~~~~~~~~~~~~~~~~^^
+^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+979, in render_annotated
+    return 
+self.render(context)
+           
+~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader_tags.py"
+, line 134, in render
+    compiled_parent = 
+self.get_parent(context)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader_tags.py"
+, line 131, in get_parent
+    return 
+self.find_template(parent, 
+context)
+           ~~~~~~~~~~~~~~~~
+~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader_tags.py"
+, line 109, in 
+find_template
+    template, origin = cont
+ext.template.engine.find_te
+mplate(
+                       ~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~^
+        template_name,
+        ^^^^^^^^^^^^^^
+        skip=history,
+        ^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\engine.py", 
+line 159, in find_template
+    template = 
+loader.get_template(name, 
+skip=skip)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loaders\cached.
+py", line 57, in 
+get_template
+    template = super().get_
+template(template_name, 
+skip)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loaders\base.py
+", line 28, in get_template
+    return Template(
+        contents,
+    ...<2 lines>...
+        self.engine,
+    )
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+155, in __init__
+    self.nodelist = 
+self.compile_nodelist()
+                    
+~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+197, in compile_nodelist
+    nodelist = 
+parser.parse()
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+519, in parse
+    raise 
+self.error(token, e)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+517, in parse
+    compiled_result = 
+compile_func(self, token)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1097, in load
+    lib = 
+find_library(parser, name)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1037, in 
+find_library
+    raise 
+TemplateSyntaxError(
+    ...<5 lines>...
+    )
+django.template.exceptions.
+TemplateSyntaxError: 
+'auth_extras' is not a 
+registered tag library. 
+Must be one of:
+admin_list
+admin_modify
+admin_urls
+cache
+custom_filters
+i18n
+l10n
+log
+static
+tz
+
+===========================
+===========================
+================
+ERROR: 
+test_otp_failure_lockout (w
+orkshop.tests.SecurityHarde
+ningTests.test_otp_failure_
+lockout)
+Verify that entering the 
+wrong OTP 3 times clears 
+the 2FA session.
+---------------------------
+---------------------------
+----------------
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1035, in 
+find_library
+    return 
+parser.libraries[name]
+           
+~~~~~~~~~~~~~~~~^^^^^^
+KeyError: 'auth_extras'
+
+During handling of the 
+above exception, another 
+exception occurred:
+
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+workshop\tests.py", line 
+92, in 
+test_otp_failure_lockout
+    self.client.post(url, 
+{'otp': '000000'}, 
+REMOTE_ADDR=self.test_ip)
+    ~~~~~~~~~~~~~~~~^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+1153, in post
+    response = 
+super().post(
+        path,
+    ...<5 lines>...
+        **extra,
+    )
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+499, in post
+    return self.generic(
+           ~~~~~~~~~~~~^
+        "POST",
+        ^^^^^^^
+    ...<6 lines>...
+        **extra,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+671, in generic
+    return 
+self.request(**r)
+           
+~~~~~~~~~~~~^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+1087, in request
+    self.check_exception(re
+sponse)
+    ~~~~~~~~~~~~~~~~~~~~^^^
+^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+802, in check_exception
+    raise exc_value
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\core\handlers\exception.
+py", line 55, in inner
+    response = 
+get_response(request)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\core\handlers\base.py", 
+line 197, in _get_response
+    response = 
+wrapped_callback(request, 
+*callback_args, 
+**callback_kwargs)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+workshop\auth_views.py", 
+line 393, in 
+otp_verify_view
+    return render(request, 
+'workshop/auth/otp_verify.h
+tml', context)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\shortcuts.py", line 25, 
+in render
+    content = loader.render
+_to_string(template_name, 
+context, request, 
+using=using)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader.py", 
+line 62, in 
+render_to_string
+    return 
+template.render(context, 
+request)
+           ~~~~~~~~~~~~~~~^
+^^^^^^^^^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\backends\django
+.py", line 107, in render
+    return self.template.re
+nder(context)
+           ~~~~~~~~~~~~~~~~
+~~~~^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+172, in render
+    return 
+self._render(context)
+           
+~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\utils.py", line 
+114, in 
+instrumented_test_render
+    return self.nodelist.re
+nder(context)
+           ~~~~~~~~~~~~~~~~
+~~~~^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+1018, in render
+    return SafeString("".jo
+in([node.render_annotated(c
+ontext) for node in self]))
+                           
+    ~~~~~~~~~~~~~~~~~~~~~^^
+^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+979, in render_annotated
+    return 
+self.render(context)
+           
+~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader_tags.py"
+, line 134, in render
+    compiled_parent = 
+self.get_parent(context)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader_tags.py"
+, line 131, in get_parent
+    return 
+self.find_template(parent, 
+context)
+           ~~~~~~~~~~~~~~~~
+~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader_tags.py"
+, line 109, in 
+find_template
+    template, origin = cont
+ext.template.engine.find_te
+mplate(
+                       ~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~^
+        template_name,
+        ^^^^^^^^^^^^^^
+        skip=history,
+        ^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\engine.py", 
+line 159, in find_template
+    template = 
+loader.get_template(name, 
+skip=skip)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loaders\cached.
+py", line 57, in 
+get_template
+    template = super().get_
+template(template_name, 
+skip)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loaders\base.py
+", line 28, in get_template
+    return Template(
+        contents,
+    ...<2 lines>...
+        self.engine,
+    )
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+155, in __init__
+    self.nodelist = 
+self.compile_nodelist()
+                    
+~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+197, in compile_nodelist
+    nodelist = 
+parser.parse()
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+519, in parse
+    raise 
+self.error(token, e)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+517, in parse
+    compiled_result = 
+compile_func(self, token)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1097, in load
+    lib = 
+find_library(parser, name)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1037, in 
+find_library
+    raise 
+TemplateSyntaxError(
+    ...<5 lines>...
+    )
+django.template.exceptions.
+TemplateSyntaxError: 
+'auth_extras' is not a 
+registered tag library. 
+Must be one of:
+admin_list
+admin_modify
+admin_urls
+cache
+custom_filters
+i18n
+l10n
+log
+static
+tz
+
+===========================
+===========================
+================
+ERROR: test_session_revocat
+ion_integrity (workshop.tes
+ts.SecurityHardeningTests.t
+est_session_revocation_inte
+grity)
+Verify that revoking a 
+UserSession actually 
+blocks access to the app.
+---------------------------
+---------------------------
+----------------
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1035, in 
+find_library
+    return 
+parser.libraries[name]
+           
+~~~~~~~~~~~~~~~~^^^^^^
+KeyError: 'auth_extras'
+
+During handling of the 
+above exception, another 
+exception occurred:
+
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+workshop\tests.py", line 
+118, in test_session_revoca
+tion_integrity
+    response = self.client.
+get(reverse('home'))
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+1124, in get
+    response = super().get(
+        path,
+    ...<4 lines>...
+        **extra,
+    )
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+475, in get
+    return self.generic(
+           ~~~~~~~~~~~~^
+        "GET",
+        ^^^^^^
+    ...<4 lines>...
+        **extra,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+671, in generic
+    return 
+self.request(**r)
+           
+~~~~~~~~~~~~^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+1087, in request
+    self.check_exception(re
+sponse)
+    ~~~~~~~~~~~~~~~~~~~~^^^
+^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+802, in check_exception
+    raise exc_value
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\core\handlers\exception.
+py", line 55, in inner
+    response = 
+get_response(request)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\core\handlers\base.py", 
+line 197, in _get_response
+    response = 
+wrapped_callback(request, 
+*callback_args, 
+**callback_kwargs)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\contrib\auth\decorators.
+py", line 59, in 
+_view_wrapper
+    return 
+view_func(request, *args, 
+**kwargs)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+workshop\views.py", line 
+57, in home
+    return render(request, 
+'workshop/dashboard/dashboa
+rd_home.html', {
+        'active_jobcards': 
+page_obj, # Pass page_obj 
+as active_jobcards
+    ...<2 lines>...
+        'page_obj': 
+page_obj,
+    })
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\shortcuts.py", line 25, 
+in render
+    content = loader.render
+_to_string(template_name, 
+context, request, 
+using=using)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader.py", 
+line 61, in 
+render_to_string
+    template = get_template
+(template_name, 
+using=using)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader.py", 
+line 15, in get_template
+    return engine.get_templ
+ate(template_name)
+           ~~~~~~~~~~~~~~~~
+~~~^^^^^^^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\backends\django
+.py", line 79, in 
+get_template
+    return Template(self.en
+gine.get_template(template_
+name), self)
+                    ~~~~~~~
+~~~~~~~~~~~~~~~~~^^^^^^^^^^
+^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\engine.py", 
+line 177, in get_template
+    template, origin = self
+.find_template(template_nam
+e)
+                       ~~~~
+~~~~~~~~~~~~~~^^^^^^^^^^^^^
+^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\engine.py", 
+line 159, in find_template
+    template = 
+loader.get_template(name, 
+skip=skip)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loaders\cached.
+py", line 57, in 
+get_template
+    template = super().get_
+template(template_name, 
+skip)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loaders\base.py
+", line 28, in get_template
+    return Template(
+        contents,
+    ...<2 lines>...
+        self.engine,
+    )
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+155, in __init__
+    self.nodelist = 
+self.compile_nodelist()
+                    
+~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+197, in compile_nodelist
+    nodelist = 
+parser.parse()
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+519, in parse
+    raise 
+self.error(token, e)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+517, in parse
+    compiled_result = 
+compile_func(self, token)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader_tags.py"
+, line 299, in do_extends
+    nodelist = 
+parser.parse()
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+519, in parse
+    raise 
+self.error(token, e)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+517, in parse
+    compiled_result = 
+compile_func(self, token)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1097, in load
+    lib = 
+find_library(parser, name)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1037, in 
+find_library
+    raise 
+TemplateSyntaxError(
+    ...<5 lines>...
+    )
+django.template.exceptions.
+TemplateSyntaxError: 
+'auth_extras' is not a 
+registered tag library. 
+Must be one of:
+admin_list
+admin_modify
+admin_urls
+cache
+custom_filters
+i18n
+l10n
+log
+static
+tz
+
+===========================
+===========================
+================
+ERROR: 
+test_consumption_history (i
+nventory.tests.InventoryVie
+wTests.test_consumption_his
+tory)
+---------------------------
+---------------------------
+----------------
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+inventory\tests.py", line 
+149, in 
+test_consumption_history
+    response = self.client.
+get(reverse('inventory_cons
+umption_history'))
+                           
+    ~~~~~~~^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\urls\base.py", line 98, 
+in reverse
+    resolved_url = resolver
+._reverse_with_prefix(view,
+ prefix, *args, **kwargs)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\urls\resolvers.py", 
+line 831, in 
+_reverse_with_prefix
+    raise 
+NoReverseMatch(msg)
+django.urls.exceptions.NoRe
+verseMatch: Reverse for 'in
+ventory_consumption_history
+' not found. 'inventory_con
+sumption_history' is not a 
+valid view function or 
+pattern name.
+
+===========================
+===========================
+================
+ERROR: test_stock_restock_a
+nd_low_stock (inventory.tes
+ts.InventoryViewTests.test_
+stock_restock_and_low_stock
+)
+---------------------------
+---------------------------
+----------------
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1035, in 
+find_library
+    return 
+parser.libraries[name]
+           
+~~~~~~~~~~~~~~~~^^^^^^
+KeyError: 'auth_extras'
+
+During handling of the 
+above exception, another 
+exception occurred:
+
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+inventory\tests.py", line 
+133, in test_stock_restock_
+and_low_stock
+    response = self.client.
+get(reverse('inventory_rest
+ock'))
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+1124, in get
+    response = super().get(
+        path,
+    ...<4 lines>...
+        **extra,
+    )
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+475, in get
+    return self.generic(
+           ~~~~~~~~~~~~^
+        "GET",
+        ^^^^^^
+    ...<4 lines>...
+        **extra,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+671, in generic
+    return 
+self.request(**r)
+           
+~~~~~~~~~~~~^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+1087, in request
+    self.check_exception(re
+sponse)
+    ~~~~~~~~~~~~~~~~~~~~^^^
+^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\client.py", line 
+802, in check_exception
+    raise exc_value
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\core\handlers\exception.
+py", line 55, in inner
+    response = 
+get_response(request)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\core\handlers\base.py", 
+line 197, in _get_response
+    response = 
+wrapped_callback(request, 
+*callback_args, 
+**callback_kwargs)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\contrib\auth\decorators.
+py", line 59, in 
+_view_wrapper
+    return 
+view_func(request, *args, 
+**kwargs)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+inventory\views.py", line 
+119, in inventory_restock
+    return render(request, 
+'inventory/restock.html', 
+{'categories': page_obj, 
+'page_obj': page_obj, 'q': 
+q})
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\shortcuts.py", line 25, 
+in render
+    content = loader.render
+_to_string(template_name, 
+context, request, 
+using=using)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader.py", 
+line 62, in 
+render_to_string
+    return 
+template.render(context, 
+request)
+           ~~~~~~~~~~~~~~~^
+^^^^^^^^^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\backends\django
+.py", line 107, in render
+    return self.template.re
+nder(context)
+           ~~~~~~~~~~~~~~~~
+~~~~^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+172, in render
+    return 
+self._render(context)
+           
+~~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\test\utils.py", line 
+114, in 
+instrumented_test_render
+    return self.nodelist.re
+nder(context)
+           ~~~~~~~~~~~~~~~~
+~~~~^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+1018, in render
+    return SafeString("".jo
+in([node.render_annotated(c
+ontext) for node in self]))
+                           
+    ~~~~~~~~~~~~~~~~~~~~~^^
+^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+979, in render_annotated
+    return 
+self.render(context)
+           
+~~~~~~~~~~~^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader_tags.py"
+, line 134, in render
+    compiled_parent = 
+self.get_parent(context)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader_tags.py"
+, line 131, in get_parent
+    return 
+self.find_template(parent, 
+context)
+           ~~~~~~~~~~~~~~~~
+~~^^^^^^^^^^^^^^^^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loader_tags.py"
+, line 109, in 
+find_template
+    template, origin = cont
+ext.template.engine.find_te
+mplate(
+                       ~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~^
+        template_name,
+        ^^^^^^^^^^^^^^
+        skip=history,
+        ^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\engine.py", 
+line 159, in find_template
+    template = 
+loader.get_template(name, 
+skip=skip)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loaders\cached.
+py", line 57, in 
+get_template
+    template = super().get_
+template(template_name, 
+skip)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\loaders\base.py
+", line 28, in get_template
+    return Template(
+        contents,
+    ...<2 lines>...
+        self.engine,
+    )
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+155, in __init__
+    self.nodelist = 
+self.compile_nodelist()
+                    
+~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+197, in compile_nodelist
+    nodelist = 
+parser.parse()
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+519, in parse
+    raise 
+self.error(token, e)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\base.py", line 
+517, in parse
+    compiled_result = 
+compile_func(self, token)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1097, in load
+    lib = 
+find_library(parser, name)
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+venv\Lib\site-packages\djan
+go\template\defaulttags.py"
+, line 1037, in 
+find_library
+Found 33 test(s).
+System check identified no issues (0 silenced).
+=========================================
+[MOCK SMS] TO: +919567494933 | OTP: 106961
+=========================================
+    raise 
+TemplateSyntaxError(
+    ...<5 lines>...
+    )
+django.template.exceptions.
+TemplateSyntaxError: 
+'auth_extras' is not a 
+registered tag library. 
+Must be one of:
+admin_list
+admin_modify
+admin_urls
+cache
+custom_filters
+i18n
+l10n
+log
+static
+tz
+
+===========================
+===========================
+================
+FAIL: test_password_reset_f
+low_edge_cases (workshop.te
+st_auth.AuthFlowTests.test_
+password_reset_flow_edge_ca
+ses)
+---------------------------
+---------------------------
+----------------
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+workshop\test_auth.py", 
+line 87, in test_password_r
+eset_flow_edge_cases
+    self.assertContains(res
+ponse, "No Owner account 
+found")
+    ~~~~~~~~~~~~~~~~~~~^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^
+AssertionError: 302 != 200 
+: Couldn't retrieve 
+content: Response code was 
+302 (expected 200)
+
+===========================
+===========================
+================
+FAIL: 
+test_mechanic_management (w
+orkshop.test_management.Man
+agementViewTests.test_mecha
+nic_management)
+---------------------------
+---------------------------
+----------------
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+workshop\test_management.py
+", line 47, in 
+test_mechanic_management
+    self.assertFalse(Mechan
+ic.objects.filter(id=mech.i
+d).exists())
+    ~~~~~~~~~~~~~~~~^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^
+AssertionError: True is 
+not false
+
+===========================
+===========================
+================
+FAIL: test_ip_lockout_succe
+ss_reset (workshop.tests.Se
+curityHardeningTests.test_i
+p_lockout_success_reset)
+Verify that a successful 
+login resets the failure 
+counter for that IP.
+---------------------------
+---------------------------
+----------------
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+workshop\tests.py", line 
+75, in test_ip_lockout_succ
+ess_reset
+    self.assertEqual(attemp
+t.failures, 0)
+    ~~~~~~~~~~~~~~~~^^^^^^^
+^^^^^^^^^^^^^^
+AssertionError: 3 != 0
+
+===========================
+===========================
+================
+FAIL: test_inventory_manage
+_and_search (inventory.test
+s.InventoryViewTests.test_i
+nventory_manage_and_search)
+---------------------------
+---------------------------
+----------------
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+inventory\tests.py", line 
+83, in test_inventory_manag
+e_and_search
+    self.assertContains(res
+ponse, 'Brakes')
+    ~~~~~~~~~~~~~~~~~~~^^^^
+^^^^^^^^^^^^^^^^
+AssertionError: False is 
+not true : Couldn't find 
+'Brakes' in the following 
+response
+b''
+
+===========================
+===========================
+================
+FAIL: test_item_management 
+(inventory.tests.InventoryV
+iewTests.test_item_manageme
+nt)
+---------------------------
+---------------------------
+----------------
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Down
+loads\formula-d-workshop-ma
+in\formula-d-workshop-main\
+inventory\tests.py", line 
+108, in 
+test_item_management
+    self.assertContains(res
+ponse, 'Brake Pad')
+    ~~~~~~~~~~~~~~~~~~~^^^^
+^^^^^^^^^^^^^^^^^^^
+AssertionError: False is 
+not true : Couldn't find 
+'Brake Pad' in the 
+following response
+b''
+
+---------------------------
+---------------------------
+----------------
+Ran 33 tests in 41.416s
+
+FAILED (failures=5, 
+errors=14)
+Preserving test database 
+for alias 'default'...
+

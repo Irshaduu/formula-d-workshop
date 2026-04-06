@@ -13,6 +13,7 @@ class AuthFlowTests(TestCase):
     """
 
     def setUp(self):
+        FailedAttempt.objects.all().delete()
         # Groups
         self.owner_group, _ = Group.objects.get_or_create(name='Owner')
         self.office_group, _ = Group.objects.get_or_create(name='Office')
@@ -42,18 +43,18 @@ class AuthFlowTests(TestCase):
         self.assertContains(response, "Security Lockout")
         
         # Manually expire lockout to test reset
-        attempt = FailedAttempt.objects.get(ip_address=self.test_ip)
-        attempt.last_attempt = timezone.now() - timedelta(minutes=16)
-        attempt.save()
+        FailedAttempt.objects.filter(ip_address=self.test_ip).update(
+            last_attempt = timezone.now() - timedelta(minutes=16)
+        )
         response = self.client.get(url, REMOTE_ADDR=self.test_ip)
         self.assertNotContains(response, "Security Lockout")
 
         # 3. Invalid Credentials
-        response = self.client.post(url, {'username': 'office_test', 'password': 'wrong'})
+        response = self.client.post(url, {'username': 'office_test', 'password': 'wrong'}, follow=True)
         self.assertContains(response, "Invalid credentials")
 
         # 4. Block Owner
-        response = self.client.post(url, {'username': 'Sahad', 'password': 'ownerpassword'})
+        response = self.client.post(url, {'username': 'Sahad', 'password': 'ownerpassword'}, follow=True)
         self.assertContains(response, "Invalid credentials")
 
     def test_admin_login_and_otp_comprehensive(self):
@@ -83,12 +84,12 @@ class AuthFlowTests(TestCase):
         url_reset = reverse('owner_reset_password')
         
         # 1. Non-existent User
-        response = self.client.post(url_forgot, {'username': 'ghost_user'})
+        response = self.client.post(url_forgot, {'username': 'ghost_user'}, follow=True)
         self.assertContains(response, "No Owner account found")
         
         # 2. Cooldown check
         self.client.post(url_forgot, {'username': 'Sahad'})
-        response = self.client.post(url_forgot, {'username': 'Sahad'})
+        response = self.client.post(url_forgot, {'username': 'Sahad'}, follow=True)
         self.assertContains(response, "Please wait")
 
         # 3. Reset View: Password Match & Length
@@ -99,11 +100,11 @@ class AuthFlowTests(TestCase):
         session.save()
         
         # Short Password
-        response = self.client.post(url_reset, {'otp': '123456', 'new_password': '123', 'confirm_password': '123'})
+        response = self.client.post(url_reset, {'otp': '123456', 'new_password': '123', 'confirm_password': '123'}, follow=True)
         self.assertContains(response, "at least 8 characters")
         
         # Mismatch
-        response = self.client.post(url_reset, {'otp': '123456', 'new_password': 'password123', 'confirm_password': 'mismatch'})
+        response = self.client.post(url_reset, {'otp': '123456', 'new_password': 'password123', 'confirm_password': 'mismatch'}, follow=True)
         self.assertContains(response, "do not match")
         
         # Success

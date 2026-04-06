@@ -4,7 +4,8 @@ from django.urls import reverse
 from django.utils import timezone
 from .models import (
     JobCard, CarBrand, CarModel, Mechanic, SparePart, 
-    ConcernSolution, JobCardConcern, JobCardSpareItem, JobCardLabourItem
+    ConcernSolution, JobCardConcern, JobCardSpareItem, JobCardLabourItem,
+    FailedAttempt
 )
 import json
 from datetime import timedelta
@@ -32,7 +33,8 @@ class WorkshopViewTests(TestCase):
         # 2. Master Data
         self.brand = CarBrand.objects.create(name='Honda')
         self.car_model = CarModel.objects.create(brand=self.brand, name='City')
-        self.mechanic = Mechanic.objects.create(name='Irshad')
+        FailedAttempt.objects.all().delete()
+        self.mechanic = Mechanic.objects.create(name='Test Mech')
         self.spare = SparePart.objects.create(name='Oil Filter')
         self.sol = ConcernSolution.objects.create(concern='Engine Sound')
         
@@ -79,11 +81,14 @@ class WorkshopViewTests(TestCase):
             'spares-0-spare_part_name': 'Oil Filter',
             'spares-0-quantity': '1',
             'spares-0-unit_price': '500',
+            'spares-0-total_price': '600',
+            'spares-0-status': 'PENDING',
+            'spares-0-shop_name': 'Auto Shop',
             # Labour Formset
             'labours-TOTAL_FORMS': '1',
             'labours-INITIAL_FORMS': '0',
-            'labours-0-labour_description': 'Oil Change',
-            'labours-0-price': '200',
+            'labours-0-job_description': 'Oil Change',
+            'labours-0-amount': '200',
         }
         
         response = self.client.post(url, data)
@@ -122,11 +127,11 @@ class WorkshopViewTests(TestCase):
         self.assertFalse(JobCardSpareItem.objects.filter(pk=spare.id).exists())
 
     def test_financial_report_exhaustive_filters(self):
-        # Create a paid job
-        paid_job = JobCard.objects.create(registration_number='PAID001', admitted_date=timezone.now().date(), delivered=True, payment_status='PAID', total_amount=1000)
-        url = reverse('financial_report')
+        # 1. Access without filters
+        url = reverse('live_report')
+        paid_job = JobCard.objects.create(registration_number='PAID001', admitted_date=timezone.now().date(), delivered=True, payment_status='PAID')
         
-        # 1. Search filter
+        # 2. Search filter
         response = self.client.get(url, {'q': 'PAID001'})
         self.assertContains(response, 'PAID001')
         
@@ -143,19 +148,19 @@ class WorkshopViewTests(TestCase):
         self.client.login(username='Sahad', password='password')
         
         # Brand CRUD
-        response = self.client.post(reverse('car_brand_add'), {'name': 'BMW'})
+        response = self.client.post(reverse('brand_add'), {'name': 'BMW'})
         self.assertTrue(CarBrand.objects.filter(name='BMW').exists())
         
         # Model CRUD
-        response = self.client.post(reverse('car_model_add'), {'brand': self.brand.id, 'name': 'Accord'})
+        response = self.client.post(reverse('model_add_generic'), {'brand': self.brand.id, 'name': 'Accord'})
         self.assertTrue(CarModel.objects.filter(name='Accord').exists())
         
         # SparePart CRUD
-        response = self.client.post(reverse('spare_part_add'), {'name': 'Brake Pad'})
+        response = self.client.post(reverse('spare_add'), {'name': 'Brake Pad'})
         self.assertTrue(SparePart.objects.filter(name='Brake Pad').exists())
         
         # ConcernSolution CRUD
-        response = self.client.post(reverse('concern_solution_add'), {'concern': 'Brake Sound'})
+        response = self.client.post(reverse('concern_add'), {'concern': 'Brake Sound'})
         self.assertTrue(ConcernSolution.objects.filter(concern='Brake Sound').exists())
 
     def test_delivered_view_search(self):
@@ -163,6 +168,6 @@ class WorkshopViewTests(TestCase):
         self.jobcard.discharged_date = timezone.now().date()
         self.jobcard.save()
         
-        url = reverse('delivered_jobs')
+        url = reverse('delivered_list')
         response = self.client.get(url, {'q': 'KL01AB1111'})
         self.assertContains(response, 'KL01AB1111')

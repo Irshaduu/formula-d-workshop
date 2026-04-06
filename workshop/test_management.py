@@ -1,6 +1,7 @@
 from django.test import TestCase, Client
 from django.contrib.auth.models import User, Group
 from django.urls import reverse
+from django.utils import timezone
 from .models import Mechanic, UserSession
 from django.contrib.sessions.models import Session
 
@@ -32,18 +33,19 @@ class ManagementViewTests(TestCase):
 
     def test_mechanic_management(self):
         # 1. Add
-        response = self.client.post(reverse('manage_mechanic_add'), {'name': 'New Mech'})
+        response = self.client.post(reverse('manage_create_mechanic'), {'name': 'New Mech'})
         self.assertTrue(Mechanic.objects.filter(name='New Mech').exists())
         
         # 2. Rename
         mech = Mechanic.objects.create(name='Old Mech')
-        response = self.client.post(reverse('manage_mechanic_rename', args=[mech.id]), {'name': 'Renamed Mech'})
+        response = self.client.post(reverse('manage_edit_mechanic', args=[mech.id]), {'name': 'Renamed Mech'})
         mech.refresh_from_db()
         self.assertEqual(mech.name, 'Renamed Mech')
         
-        # 3. Delete
-        response = self.client.post(reverse('manage_mechanic_delete', args=[mech.id]))
-        self.assertFalse(Mechanic.objects.filter(id=mech.id).exists())
+        # 3. Delete (Toggle)
+        response = self.client.post(reverse('manage_toggle_mechanic', args=[mech.id]))
+        mech.refresh_from_db()
+        self.assertFalse(mech.is_active)
 
     def test_session_revocation_realtime(self):
         # 1. Create a fake session to revoke

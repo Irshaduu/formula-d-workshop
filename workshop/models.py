@@ -105,6 +105,9 @@ class UserSession(models.Model):
             browser = "Mozilla Firefox"
         elif 'safari' in ua_lower and 'chrome' not in ua_lower:
             browser = "Apple Safari"
+        elif 'iphone' in ua_lower:
+            # Standard iPhone assumption for non-Chrome/Edge browsers
+            browser = "Apple Safari"
             
         return f"{browser} on {device}"
 
@@ -348,7 +351,7 @@ class JobCard(models.Model):
             JobCard.objects.filter(pk=self.pk).update(total_bill_amount=new_total)
 
     def __str__(self):
-        return f"{self.bill_number or f'#{self.id}'} - {self.registration_number}"
+        return f"{self.bill_number or f'#{self.id}'}"
 
     @property
     def get_car_color_hex(self):

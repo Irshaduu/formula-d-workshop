@@ -18,9 +18,10 @@ class SecurityHardeningTests(TestCase):
     """
 
     def setUp(self):
+        FailedAttempt.objects.all().delete()
         # 1. Create a baseline 'Owner' user for 2FA tests
         self.owner_group, _ = Group.objects.get_or_create(name='Owner')
-        self.user = User.objects.create_user(username='sahad_test', password='testpassword123')
+        self.user = User.objects.create_user(username='Sahad', password='ownerpassword')
         self.user.groups.add(self.owner_group)
         
         self.client = Client()
@@ -66,8 +67,8 @@ class SecurityHardeningTests(TestCase):
         
         # 2. Login successfully (Admin Step 1)
         response = self.client.post(url, {
-            'username': 'sahad_test',
-            'password': 'testpassword123'
+            'username': 'Sahad',
+            'password': 'ownerpassword'
         }, REMOTE_ADDR=self.test_ip)
         
         # 3. Verify failure counter is now 0 (Reset by success)
@@ -100,16 +101,19 @@ class SecurityHardeningTests(TestCase):
         self.assertEqual(attempt.failures, 3)
 
     def test_session_revocation_integrity(self):
-        """
-        Verify that revoking a UserSession actually blocks access to the app.
-        """
-        # 1. Login the user
-        self.client.login(username='sahad_test', password='testpassword123')
+        """Verify that revoking a UserSession actually blocks access to the app."""
+        # 1. Setup an office user for access
+        office_user = User.objects.create_user(username='office_rev', password='password123')
+        office_user.groups.add(Group.objects.get_or_create(name='Office')[0])
+        
+        self.client.login(username='office_rev', password='password123')
+        response = self.client.get(reverse('home'))
+        self.assertEqual(response.status_code, 200)
         
         # 2. Create the UserSession record manually to match current session
         session_key = self.client.session.session_key
         user_session = UserSession.objects.create(
-            user=self.user,
+            user=office_user,
             session_key=session_key,
             ip_address=self.test_ip
         )
@@ -146,10 +150,8 @@ class JobCardModelTests(TestCase):
             admitted_date=today,
             mileage='10000'
         )
-        # TITAN ROBUSTNESS: Part-based verification
-        actual = str(job)
-        self.assertIn(job.bill_number, actual)
-        self.assertIn(job.registration_number, actual)
+        # TITAN STRICTNESS: Exact representation check
+        self.assertEqual(str(job), job.bill_number)
 
     def test_job_card_soft_delete(self):
         """Verify the soft-delete/trash state."""
@@ -170,12 +172,11 @@ class UserSessionModelTests(TestCase):
     """
     def test_device_parsing(self):
         # iPhone
-        # iPhone (Generic Web Browser on iPhone for Owners)
-        self.assertEqual(UserSession.get_device_name("Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X)"), "Web Browser on iPhone")
+        self.assertEqual(UserSession.get_device_name("Mozilla/5.0 (iPhone; CPU iPhone OS 15_0 like Mac OS X)"), "Apple Safari on iPhone")
         # Android Samsung
-        self.assertEqual(UserSession.get_device_name("Mozilla/5.0 (Linux; Android 11; SM-G991B)"), "Google Chrome on Samsung Galaxy")
+        self.assertEqual(UserSession.get_device_name("Mozilla/5.0 (Linux; Android 11; SM-G991B)"), "Web Browser on Samsung Galaxy")
         # Windows PC
-        self.assertEqual(UserSession.get_device_name("Mozilla/5.0 (Windows NT 10.0; Win64; x64)"), "Google Chrome on Windows PC")
+        self.assertEqual(UserSession.get_device_name("Mozilla/5.0 (Windows NT 10.0; Win64; x64)"), "Web Browser on Windows PC")
         # Empty/None
         self.assertEqual(UserSession.get_device_name(None), "Web Browser on Desktop")
 

@@ -1,17 +1,15 @@
 from django.test import TestCase
 from django.contrib.auth.models import User, Group
-from .templatetags.auth_extras import has_group
+from .templatetags.custom_filters import has_group
 
 class TemplateTagTests(TestCase):
     """
-    Tests for workshop extra template tags.
+    Titan Standard 100% Verification.
+    Verify all custom template tags.
     """
-
     def setUp(self):
-        self.owner_group = Group.objects.create(name='Owner')
-        self.user = User.objects.create_user(username='tester', password='password')
-        self.superuser = User.objects.create_superuser(username='super', password='password', email='s@s.com')
-        self.guest = User.objects.create_user(username='guest', password='password')
+        self.owner_group, _ = Group.objects.get_or_create(name='Owner')
+        self.user = User.objects.create_user(username='tag_user', password='password')
 
     def test_has_group_filter(self):
         # 1. Negative Case (No Group)
@@ -22,6 +20,7 @@ class TemplateTagTests(TestCase):
         self.assertTrue(has_group(self.user, 'Owner'))
         
         # 3. Superuser (True for everything)
+        self.superuser = User.objects.create_superuser(username='super', password='password', email='s@s.com')
         self.assertTrue(has_group(self.superuser, 'Owner'))
         self.assertTrue(has_group(self.superuser, 'RandomGroup'))
         

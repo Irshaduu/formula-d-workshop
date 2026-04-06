@@ -146,7 +146,7 @@ class InventoryViewTests(TestCase):
 
     def test_consumption_history(self):
         ConsumptionRecord.objects.create(user=self.user, item=self.item, quantity=2)
-        response = self.client.get(reverse('inventory_consumption_history'))
+        response = self.client.get(reverse('inventory_history'))
         self.assertContains(response, 'Brake Pad')
         self.assertContains(response, 'office_user')
  

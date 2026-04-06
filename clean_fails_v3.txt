@@ -1,0 +1,53 @@
+﻿STDOUT: Found 33 test(s).
+System check identified no issues (0 silenced).
+=========================================
+[MOCK SMS] TO: +919567494933 | OTP: 816464
+=========================================
+=========================================
+[MOCK SMS] TO: +919567494933 | OTP: 645371
+=========================================
+=========================================
+[MOCK SMS] TO: +919567494933 | OTP: 438462
+=========================================
+
+STDERR: Creating test database for alias 'default'...
+
+..F.........FC:\Users\irsha\Downloads\formula-d-workshop-main\formula-d-workshop-main\workshop\views.py:258: UnorderedObjectListWarning: Pagination may yield inconsistent results with an unordered object_list: <class 'workshop.models.JobCard'> QuerySet.
+  paginator = Paginator(jobcard_list_query, 21)  # Show 21 jobs per page
+..........F.........
+======================================================================
+FAIL: test_staff_login_view_complete (workshop.test_auth.AuthFlowTests.test_staff_login_view_complete)
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\irsha\Downloads\formula-d-workshop-main\formula-d-workshop-main\workshop\test_auth.py", line 58, in test_staff_login_view_complete
+    self.assertContains(response, "Invalid credentials")
+    ~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 302 != 200 : Couldn't retrieve content: Response code was 302 (expected 200)
+
+======================================================================
+FAIL: test_jobcard_edit_with_formsets (workshop.test_views.WorkshopViewTests.test_jobcard_edit_with_formsets)
+EXHAUSTIVE: Test editing a job card with ALL 3 formsets (Concerns, Spares, Labours).
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\irsha\Downloads\formula-d-workshop-main\formula-d-workshop-main\workshop\test_views.py", line 92, in test_jobcard_edit_with_formsets
+    self.assertEqual(response.status_code, 302)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 200 != 302
+
+======================================================================
+FAIL: test_session_revocation_integrity (workshop.tests.SecurityHardeningTests.test_session_revocation_integrity)
+Verify that revoking a UserSession actually blocks access to the app.
+----------------------------------------------------------------------
+Traceback (most recent call last):
+  File "C:\Users\irsha\Downloads\formula-d-workshop-main\formula-d-workshop-main\workshop\tests.py", line 120, in test_session_revocation_integrity
+    self.assertEqual(response.status_code, 200)
+    ~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AssertionError: 302 != 200
+
+----------------------------------------------------------------------
+Ran 33 tests in 73.522s
+
+FAILED (failures=3)
+Destroying test database for alias 'default'...
+
+

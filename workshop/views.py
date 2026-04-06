@@ -200,14 +200,35 @@ def live_report(request):
     SECTION 2.1: LIVE REPORT - Quick scroll for all roles.
     Shows active jobs, concerns, and spares status.
     """
-    from django.db.models import Count, Q
-    active_jobs = JobCard.objects.filter(delivered=False).select_related('lead_mechanic').prefetch_related('concerns', 'spares').annotate(
+    # Search and Filter support (Titan Exhaustive)
+    q = request.GET.get('q', '').strip()
+    status = request.GET.get('status', '').strip()
+    
+    active_jobs = JobCard.objects.filter(is_deleted=False).select_related('lead_mechanic').prefetch_related('concerns', 'spares').annotate(
         total_concerns=Count('concerns'),
         fixed_concerns=Count('concerns', filter=Q(concerns__status='FIXED'))
-    ).order_by('-updated_at')
+    )
+
+    if q:
+        for word in q.split():
+            active_jobs = active_jobs.filter(
+                Q(registration_number__icontains=word) |
+                Q(bill_number__icontains=word) |
+                Q(brand_name__icontains=word) |
+                Q(model_name__icontains=word)
+            )
+            
+    if status == 'PAID':
+        active_jobs = active_jobs.filter(payment_status='PAID')
+    elif status == 'PENDING':
+        active_jobs = active_jobs.filter(payment_status='PENDING')
+
+    active_jobs = active_jobs.order_by('-updated_at')
     
     return render(request, 'workshop/jobcard/live_report.html', {
         'active_jobs': active_jobs,
+        'q': q,
+        'status_filter': status,
     })
 
 
