@@ -1,6 +1,6 @@
-# 📱 WorkshopOS: Elite Industrial Handover Documentation (v4.6)
+# 📱 WorkshopOS: Elite Industrial Handover Documentation (v4.7)
 
-**Status**: 🛡️ TITAN VERIFIED (100% Pass) | 🚀 BINARY-PRECISION SCALE | **Last Updated**: April 2026
+**Status**: 🛡️ TITAN VERIFIED (100% Pass) | 🚀 INTEGRITY STRIKE v4.7 | **Last Updated**: April 2026
 
 ---
 
@@ -56,7 +56,7 @@ Any future code changes that break the "Titan Standard" will be immediately dete
 ### 🏰 1. Network-Level IP Defense
 Unlike basic session-based security, our `FailedAttempt` model tracks attackers by **Network IP**. 
 - **The Shield**: Even if an attacker clears cookies or changes browsers, the "Steel Gate" remains locked based on their network identity.
-- **Automatic Cooldown**: 5 failures trigger an immediate 30-minute lockdown.
+- **Automatic Cooldown**: 5 failures trigger an immediate 15-minute lockdown.
 
 ### 🤝 2. Collaborative Duty (Buddy Watch)
 WorkshopOS is built for the **Sahad & Rijas Partnership**:
