@@ -108,9 +108,8 @@
     <div class="col-md-6 col-lg-4">
         <div class="glass-card p-4 mt-5">
             <div class="text-center mb-4">
-                <i class="bi bi-phone-vibrate verify-icon"></i>
+                <i class="bi bi-shield-lock-fill verify-icon"></i>
                 <h2 class="text-white fw-bold mt-2 mb-0">IDENTITY CHECK</h2>
-                <p class="text-white-50 small">Verification code sent to <strong>{{ masked_phone }}</strong></p>
             </div>
 
             {% if messages %}
@@ -128,10 +127,10 @@
                 {% csrf_token %}
 
                 <div class="mb-4">
-                    <label class="hq-label d-block text-center mb-3">6-DIGIT PASSCODE</label>
+                    <label class="hq-label d-block text-center mb-3">PASSCODE</label>
                     <input type="text" name="otp" class="form-control otp-input fw-bold" 
                            maxlength="6" autocomplete="one-time-code" inputmode="numeric" 
-                           pattern="\d{6}" placeholder="••••••" required autofocus>
+                           pattern="\d{6}" placeholder="•••••" required autofocus>
                 </div>
 
                 <button type="submit" class="btn btn-hq w-100 text-white" id="verifyBtn">

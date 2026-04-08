@@ -1,0 +1,312 @@
+﻿.\venv\Scripts\python.exe 
+: Creating test database 
+for alias 'default'...
+At line:1 char:1
++ 
+.\venv\Scripts\python.exe 
+manage.py test workshop 
+inventory > test_re ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo        
+      : NotSpecified: (C  
+  reating test d...as '   
+ default'...:String) [    
+], RemoteException
+    + FullyQualifiedError 
+   Id : NativeCommandErr  
+  or
+ 
+
+.............C:\Users\irsh
+a\Downloads\formula-d-work
+shop-main\formula-d-worksh
+op-main\workshop\views.py:
+258: UnorderedObjectListWa
+rning: Pagination may 
+yield inconsistent 
+results with an unordered 
+object_list: <class 'works
+hop.models.JobCard'> 
+QuerySet.
+  paginator = Paginator(jo
+bcard_list_query, 21)  # 
+Show 21 jobs per page
+..........E.........
+==========================
+==========================
+==================
+ERROR: test_session_revoca
+tion_integrity (workshop.t
+ests.SecurityHardeningTest
+s.test_session_revocation_
+integrity)
+Verify that revoking a 
+UserSession actually 
+blocks access to the app.
+--------------------------
+--------------------------
+------------------
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Dow
+nloads\formula-d-workshop-
+main\formula-d-workshop-ma
+in\venv\Lib\site-packages\
+django\db\backends\utils.p
+y", line 105, in _execute
+    return 
+self.cursor.execute(sql, 
+params)
+           ~~~~~~~~~~~~~~~
+~~~~^^^^^^^^^^^^^
+  File "C:\Users\irsha\Dow
+nloads\formula-d-workshop-
+main\formula-d-workshop-ma
+in\venv\Lib\site-packages\
+django\db\backends\sqlite3
+\base.py", line 360, in 
+execute
+    return 
+super().execute(query, 
+params)
+           ~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^
+sqlite3.IntegrityError: 
+UNIQUE constraint failed: 
+workshop_usersession.sessi
+on_key
+
+The above exception was 
+the direct cause of the 
+following exception:
+
+Traceback (most recent 
+call last):
+  File "C:\Users\irsha\Dow
+nloads\formula-d-workshop-
+main\formula-d-workshop-ma
+in\workshop\tests.py", 
+line 115, in test_session_
+revocation_integrity
+    user_session = UserSes
+sion.objects.create(
+        user=office_user,
+        
+session_key=session_key,
+        
+ip_address=self.test_ip
+    )
+  File "C:\Users\irsha\Dow
+nloads\formula-d-workshop-
+main\formula-d-workshop-ma
+in\venv\Lib\site-packages\
+django\db\models\manager.p
+y", line 87, in 
+manager_method
+    return getattr(self.ge
+t_queryset(), 
+name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~^^^^^^^
+^^^^^^^^^^
+  File "C:\Users\irsha\Dow
+nloads\formula-d-workshop-
+main\formula-d-workshop-ma
+in\venv\Lib\site-packages\
+django\db\models\query.py"
+, line 665, in create
+    obj.save(force_insert=
+True, using=self.db)
+    ~~~~~~~~^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\irsha\Dow
+nloads\formula-d-workshop-
+main\formula-d-workshop-ma
+in\venv\Lib\site-packages\
+django\db\models\base.py",
+ line 902, in save
+    self.save_base(
+    ~~~~~~~~~~~~~~^
+        using=using,
+        ^^^^^^^^^^^^
+    ...<2 lines>...
+        update_fields=upda
+te_fields,
+        ^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\irsha\Dow
+nloads\formula-d-workshop-
+main\formula-d-workshop-ma
+in\venv\Lib\site-packages\
+django\db\models\base.py",
+ line 1008, in save_base
+    updated = 
+self._save_table(
+        raw,
+    ...<4 lines>...
+        update_fields,
+    )
+  File "C:\Users\irsha\Dow
+nloads\formula-d-workshop-
+main\formula-d-workshop-ma
+in\venv\Lib\site-packages\
+django\db\models\base.py",
+ line 1169, in _save_table
+    results = 
+self._do_insert(
+        
+cls._base_manager, using, 
+fields, returning_fields, 
+raw
+    )
+  File "C:\Users\irsha\Dow
+nloads\formula-d-workshop-
+main\formula-d-workshop-ma
+in\venv\Lib\site-packages\
+django\db\models\base.py",
+ line 1210, in _do_insert
+    return 
+manager._insert(
+           
+~~~~~~~~~~~~~~~^
+        [self],
+        ^^^^^^^
+    ...<3 lines>...
+        raw=raw,
+        ^^^^^^^^
+    )
+    ^
+  File "C:\Users\irsha\Dow
+nloads\formula-d-workshop-
+main\formula-d-workshop-ma
+in\venv\Lib\site-packages\
+django\db\models\manager.p
+y", line 87, in 
+manager_method
+    return getattr(self.ge
+t_queryset(), 
+name)(*args, **kwargs)
+           ~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~^^^^^^^
+^^^^^^^^^^
+  File "C:\Users\irsha\Dow
+nloads\formula-d-workshop-
+main\formula-d-workshop-ma
+in\venv\Lib\site-packages\
+django\db\models\query.py"
+, line 1873, in _insert
+    return query.get_compi
+ler(using=using).execute_s
+ql(returning_fields)
+           ~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~^^^^^^^^^^^^^^^^^^
+  File "C:\Users\irsha\Dow
+nloads\formula-d-workshop-
+main\formula-d-workshop-ma
+in\venv\Lib\site-packages\
+django\db\models\sql\compi
+ler.py", line 1882, in 
+execute_sql
+    cursor.execute(sql, 
+params)
+    ~~~~~~~~~~~~~~^^^^^^^^
+^^^^^
+  File "C:\Users\irsha\Dow
+nloads\formula-d-workshop-
+main\formula-d-workshop-ma
+in\venv\Lib\site-packages\
+django\db\backends\utils.p
+y", line 79, in execute
+    return self._execute_w
+ith_wrappers(
+           ~~~~~~~~~~~~~~~
+~~~~~~~~~~~~^
+        sql, params, 
+many=False, 
+executor=self._execute
+        ^^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+^^^
+    )
+    ^
+  File "C:\Users\irsha\Dow
+nloads\formula-d-workshop-
+main\formula-d-workshop-ma
+in\venv\Lib\site-packages\
+django\db\backends\utils.p
+y", line 92, in 
+_execute_with_wrappers
+    return executor(sql, 
+params, many, context)
+  File "C:\Users\irsha\Dow
+nloads\formula-d-workshop-
+main\formula-d-workshop-ma
+in\venv\Lib\site-packages\
+django\db\backends\utils.p
+y", line 100, in _execute
+    with self.db.wrap_data
+base_errors:
+         ^^^^^^^^^^^^^^^^^
+^^^^^^^^^^^
+  File "C:\Users\irsha\Dow
+nloads\formula-d-workshop-
+main\formula-d-workshop-ma
+in\venv\Lib\site-packages\
+django\db\utils.py", line 
+91, in __exit__
+    raise dj_exc_value.wit
+h_traceback(traceback) 
+from exc_value
+  File "C:\Users\irsha\Dow
+nloads\formula-d-workshop-
+main\formula-d-workshop-ma
+in\venv\Lib\site-packages\
+django\db\backends\utils.p
+y", line 105, in _execute
+    return 
+self.cursor.execute(sql, 
+params)
+           ~~~~~~~~~~~~~~~
+~~~~^^^^^^^^^^^^^
+  File "C:\Users\irsha\Dow
+nloads\formula-d-workshop-
+main\formula-d-workshop-ma
+in\venv\Lib\site-packages\
+django\db\backends\sqlite3
+\base.py", line 360, in 
+execute
+    return 
+super().execute(query, 
+params)
+           ~~~~~~~~~~~~~~~
+^^^^^^^^^^^^^^^
+django.db.utils.IntegrityE
+rror: UNIQUE constraint 
+failed: workshop_usersessi
+on.session_key
+
+--------------------------
+--------------------------
+------------------
+Ran 33 tests in 42.644s
+
+FAILED (errors=1)
+Destroying test database 
+for alias 'default'...
+
+Found 33 test(s).
+System check identified no issues (0 silenced).
+=========================================
+[MOCK SMS] TO: +919567494933 | OTP: 742106
+=========================================
+=========================================
+[MOCK SMS] TO: +919567494933 | OTP: 179959
+=========================================
+=========================================
+[MOCK SMS] TO: +919567494933 | OTP: 078811
+=========================================

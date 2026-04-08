@@ -7,6 +7,11 @@ import time
 from datetime import timedelta
 from django.utils import timezone
 from .models import UserSession, FailedAttempt
+from twilio.rest import Client
+import logging
+import requests
+
+logger = logging.getLogger(__name__)
 
 
 # ============================================================
@@ -129,86 +134,130 @@ def reset_login_failures(request):
 
 
 # ============================================================
-# SMS Function — prints to terminal (replace with Twilio later)
+# LIVE NOTIFICATION ENGINE (Twilio + Terminal Fallback)
 # ============================================================
-def send_otp_sms(mobile_number, otp):
-    print(f"=========================================")
-    print(f"[MOCK SMS] TO: {mobile_number} | OTP: {otp}")
-    print(f"=========================================")
-
-
-# ============================================================
-# Security Alert — Notify the OTHER owner about a login
-# ============================================================
-def send_owner_login_alert(user, request):
+def send_twilio_sms(to_mobile, message):
     """
-    If Sahad logs in, notify Rijas. If Rijas logs in, notify Sahad.
-    Includes device info and IP for immediate verification.
+    Dispatches a real SMS via Twilio. 
+    Falls back to Mock (terminal) if keys are missing.
     """
-    owner1_u = config('OWNER_1_USERNAME', default='').strip()
-    owner2_u = config('OWNER_2_USERNAME', default='').strip()
-    
-    current_username = user.username
-    target_mobile = None
-    other_owner_name = ""
-    
-    if current_username == owner1_u:
-        target_mobile = config('OWNER_2_MOBILE', default='').strip()
-        other_owner_name = config('OWNER_2_USERNAME', default='Assistant Owner')
-    elif current_username == owner2_u:
-        target_mobile = config('OWNER_1_MOBILE', default='').strip()
-        other_owner_name = config('OWNER_1_USERNAME', default='Main Owner')
-    
-    if target_mobile:
-        # Get Device Info
-        ua = request.META.get('HTTP_USER_AGENT', 'Unknown Device')
-        device_name = UserSession.get_device_name(ua)
-        ip = request.META.get('REMOTE_ADDR', 'Unknown IP')
-        
-        # 2. Build Message
-        msg = (
-            f"🛡️ SECURITY ALERT: {current_username} just logged into HQ Portal.\n"
-            f"📱 Device: {device_name}\n"
-            f"🌐 IP: {ip}\n"
-            f"If this wasn't expected, REVOKE access now from your dashboard!"
+    sid = config('TWILIO_ACCOUNT_SID', default='your_sid_here').strip()
+    token = config('TWILIO_AUTH_TOKEN', default='your_token_here').strip()
+    from_num = config('TWILIO_FROM_NUMBER', default='your_twilio_number_here').strip()
+
+    # Safety check: Is the user still using placeholders?
+    if 'your_sid_here' in sid or not sid:
+        print(f"--- [TITAN MOCK MODE] ---")
+        print(f"TO: {to_mobile}\nMESSAGE: {message}")
+        print(f"--------------------------")
+        return False
+
+    try:
+        client = Client(sid, token)
+        client.messages.create(
+            body=message,
+            from_=from_num,
+            to=to_mobile
         )
-        
-        print(f"=========================================")
-        print(f"[SECURITY ALERT SMS] TO: {target_mobile} ({other_owner_name})")
-        print(f"{msg}")
-        print(f"=========================================")
+        return True
+    except Exception as e:
+        logger.error(f"Titan SMS Failure: {str(e)}")
+        print(f"!!! SMS FAILED: {str(e)}")
+        return False
 
-
-def send_staff_login_alert(user, request):
+def send_telegram_msg(chat_id, message):
     """
-    When any staff (Office/Floor) logs in, notify BOTH owners.
+    Dispatches a message via Telegram Bot API natively.
+    """
+    token = config('TELEGRAM_BOT_TOKEN', default='').strip()
+    if not token or 'your_bot_token_here' in token or not chat_id:
+        return False
+        
+    url = f"https://api.telegram.org/bot{token}/sendMessage"
+    payload = {
+        'chat_id': chat_id,
+        'text': message,
+        'parse_mode': 'HTML'
+    }
+    
+    try:
+        response = requests.post(url, json=payload, timeout=10)
+        return response.status_code == 200
+    except Exception as e:
+        logger.error(f"Telegram Failure: {str(e)}")
+        return False
+
+def send_otp_sms(mobile_number, otp):
+    """Sends OTP for Owner 2FA via Twilio & Telegram."""
+    msg = f"Your WorkshopOS Login Code: <b>{otp}</b>"
+    
+    # 1. Twilio SMS
+    success_sms = send_twilio_sms(mobile_number, f"Your WorkshopOS Login Code: {otp}")
+    if success_sms:
+        print(f"✅ OTP Sent via SMS to {mobile_number}")
+    else:
+        print(f"⚠️ OTP SMS Fallback to Terminal: {mobile_number} | Code: {otp}")
+        
+    # 2. Telegram Broadcast
+    owner1_mobile = normalize_phone(config('OWNER_1_MOBILE', default=''))
+    owner2_mobile = normalize_phone(config('OWNER_2_MOBILE', default=''))
+    norm_target = normalize_phone(mobile_number)
+    
+    if norm_target == owner1_mobile:
+        chat_id = config('OWNER_1_CHAT_ID', default='').strip()
+        if send_telegram_msg(chat_id, msg):
+             print(f"✅ OTP Sent via Telegram to Owner 1")
+    elif norm_target == owner2_mobile:
+        chat_id = config('OWNER_2_CHAT_ID', default='').strip()
+        if send_telegram_msg(chat_id, msg):
+             print(f"✅ OTP Sent via Telegram to Owner 2")
+
+
+# ============================================================
+# Security Alert — Broadcast to BOTH Owners
+# ============================================================
+def send_titan_security_alert(user, request):
+    """
+    Broadcasts a high-priority security alert to BOTH owners (Sahad & Rijas).
+    Covers all HQ Portal entry points (Owner & Staff logins).
     """
     owner1_mobile = config('OWNER_1_MOBILE', default='').strip()
     owner2_mobile = config('OWNER_2_MOBILE', default='').strip()
     
-    # Get Device Info
+    # Get Device & Network Info
     ua = request.META.get('HTTP_USER_AGENT', 'Unknown Device')
     device_name = UserSession.get_device_name(ua)
     ip = request.META.get('REMOTE_ADDR', 'Unknown IP')
     
-    role = "Staff"
-    if user.groups.filter(name='Office').exists():
-        role = "Office"
-    elif user.groups.filter(name='Floor').exists():
-        role = "Floor"
-
+    # Format exactly as requested by user
     msg = (
-        f"📋 TEAM ALERT: {user.username} ({role}) just logged in.\n"
+        f"🛡️ SECURITY ALERT: {user.username} just logged into HQ Portal.\n"
         f"📱 Device: {device_name}\n"
-        f"🌐 IP: {ip}"
+        f"🌐 IP: {ip}\n"
+        f"If this wasn't expected, REVOKE access now from your dashboard!"
     )
-
-    for mobile in [owner1_mobile, owner2_mobile]:
+    
+    # Broadcast to both owners via Dual-Channel (SMS + Telegram)
+    recipients = [
+        (config('OWNER_1_USERNAME', default='Sahad'), owner1_mobile, config('OWNER_1_CHAT_ID', default='').strip()),
+        (config('OWNER_2_USERNAME', default='Rijas'), owner2_mobile, config('OWNER_2_CHAT_ID', default='').strip()),
+    ]
+    
+    for name, mobile, chat_id in recipients:
+        # Channel 1: Telegram (Primary, Free, Fast)
+        if chat_id:
+            if send_telegram_msg(chat_id, msg):
+                print(f"✅ Security Broadcast sent via Telegram to {name}")
+                
+        # Channel 2: Twilio SMS (Secondary/Fallback)
         if mobile:
-            print(f"=========================================")
-            print(f"[STAFF LOGIN ALERT] TO OWNER: {mobile}")
-            print(f"{msg}")
-            print(f"=========================================")
+            success = send_twilio_sms(mobile, msg)
+            if success:
+                print(f"✅ Security Broadcast sent via SMS to {name} ({mobile})")
+            else:
+                print(f"⚠️ Security Broadcast MOCK to {name}: {mobile}")
+                print(f"{msg}")
+
 
 
 # ============================================================
@@ -248,8 +297,8 @@ def staff_login_view(request):
             auth_login(request, user)
             reset_login_failures(request)
             
-            # --- Team Security Alert ---
-            send_staff_login_alert(user, request)
+            # --- Titan Security Alert ---
+            send_titan_security_alert(user, request)
             return redirect('home')
         else:
             record_login_failure(request)
@@ -263,15 +312,15 @@ def staff_login_view(request):
 # ============================================================
 def admin_login_view(request):
     """
-    Step 1 of the high-security Owner 2FA flow.
-    Validates password first, then initiates OTP challenge.
+    Streamlined HQ Portal Login for Owners (Sahad & Rijas).
+    Direct Access + High-Priority Broadcast Alerts.
     
     Algorithm:
     1. Performs 'Steel Gate' IP audit.
     2. Normalizes input (Username or Mobile).
     3. Verifies password against Owner Group membership.
-    4. Generates encrypted 6-digit random string (OTP).
-    5. Dispatches SMS challenge.
+    4. Logs in user immediately.
+    5. Dispatches TITAN SECURITY BROADCAST to both owners.
     """
     if request.user.is_authenticated:
         return redirect('home')
@@ -301,22 +350,15 @@ def admin_login_view(request):
                 messages.error(request, "Invalid credentials.")
                 return redirect('admin_login')
 
-            mobile = get_owner_mobile(login_username)
-            if not mobile:
-                messages.error(request, "Invalid credentials.")
-                return redirect('admin_login')
-
-            # Generate OTP
-            otp = get_random_string(length=6, allowed_chars='0123456789')
-            reset_login_failures(request) # Success! Reset before OTP phase
+            # --- DIRECT LOGIN SUCCESS ---
+            auth_login(request, user)
+            reset_login_failures(request)
             
-            request.session['pre_2fa_user_id'] = user.id
-            request.session['2fa_otp'] = otp
-            request.session['2fa_expire'] = time.time() + 300
-            request.session['masked_phone'] = mask_phone(mobile)
+            # --- Titan Security Alert (Broadcast to BOTH) ---
+            send_titan_security_alert(user, request)
             
-            send_otp_sms(mobile, otp)
-            return redirect('otp_verify')
+            messages.success(request, f"Welcome back, {user.username}! ✅")
+            return redirect('home')
         else:
             record_login_failure(request)
             messages.error(request, "Invalid credentials.")
@@ -325,72 +367,6 @@ def admin_login_view(request):
     return render(request, 'workshop/auth/admin_login.html')
 
 
-# ============================================================
-# OTP Verify — Owner 2FA Step 2 (OTP)
-# ============================================================
-def otp_verify_view(request):
-    """
-    Step 2 of Owner 2FA (OTP).
-    """
-    user_id = request.session.get('pre_2fa_user_id')
-    stored_otp = request.session.get('2fa_otp')
-    expire_time = request.session.get('2fa_expire')
-
-    if check_ip_lockout(request):
-        messages.error(request, "🛡️ Security Lockout: Too many failed attempts. Please wait 15 minutes.")
-        return render(request, 'workshop/auth/admin_login.html')
-
-    if not all([user_id, stored_otp, expire_time]):
-        messages.error(request, "Invalid credentials.")
-        return redirect('admin_login')
-
-    if time.time() > expire_time:
-        messages.error(request, "OTP expired (5 minutes). Please log in again.")
-        # Clean up
-        for key in ('pre_2fa_user_id', '2fa_otp', '2fa_expire'):
-            request.session.pop(key, None)
-        return redirect('admin_login')
-
-    if request.method == 'POST':
-        entered_otp = request.POST.get('otp', '').strip()
-
-        # Track failed attempts
-        attempts = request.session.get('2fa_attempts', 0)
-
-        if entered_otp == stored_otp:
-            from django.contrib.auth.models import User
-            user = User.objects.get(id=user_id)
-            auth_login(request, user)
-            reset_login_failures(request) # Success!
-
-            # --- Collaborative Security Alert ---
-            send_owner_login_alert(user, request)
-            # ---------------------------
-
-            # Clean up session
-            for key in ('pre_2fa_user_id', '2fa_otp', '2fa_expire', '2fa_attempts', 'masked_phone'):
-                request.session.pop(key, None)
-
-            messages.success(request, f"Welcome back, {user.username}! ✅")
-            return redirect('home')
-        else:
-            record_login_failure(request)
-            attempts += 1
-            request.session['2fa_attempts'] = attempts
-            remaining = 3 - attempts
-
-            if attempts >= 3:
-                for key in ('pre_2fa_user_id', '2fa_otp', '2fa_expire', '2fa_attempts', 'masked_phone'):
-                    request.session.pop(key, None)
-                messages.error(request, "🛡️ Too many wrong attempts. HQ Access blocked.")
-                return redirect('admin_login')
-            else:
-                messages.error(request, f"Incorrect OTP. {remaining} attempt(s) remaining.")
-
-    context = {
-        'masked_phone': request.session.get('masked_phone', 'your registered device')
-    }
-    return render(request, 'workshop/auth/otp_verify.html', context)
 
 
 # ============================================================

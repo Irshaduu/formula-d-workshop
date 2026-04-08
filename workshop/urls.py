@@ -86,7 +86,6 @@ urlpatterns = [
     # ------------------
     path('login/', auth_views.staff_login_view, name='login'),
     path('admin-login/', auth_views.admin_login_view, name='admin_login'),
-    path('otp-verify/', auth_views.otp_verify_view, name='otp_verify'),
     path('forgot-password/', auth_views.owner_forgot_password_view, name='owner_forgot_password'),
     path('reset-password/', auth_views.owner_reset_password_view, name='owner_reset_password'),
     path('logout/', django_auth_views.LogoutView.as_view(next_page='home'), name='logout'),

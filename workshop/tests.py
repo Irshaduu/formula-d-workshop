@@ -75,30 +75,24 @@ class SecurityHardeningTests(TestCase):
         attempt = FailedAttempt.objects.get(ip_address=self.test_ip)
         self.assertEqual(attempt.failures, 0)
 
-    def test_otp_failure_lockout(self):
+    def test_owner_direct_login(self):
         """
-        Verify that entering the wrong OTP 3 times clears the 2FA session.
+        Verify that an Owner can now log in directly with their password,
+        bypassing the 2FA OTP step entirely.
         """
-        # Set up a fake 2FA session
-        session = self.client.session
-        session['pre_2fa_user_id'] = self.user.id
-        session['2fa_otp'] = '123456'
-        session['2fa_expire'] = time.time() + 300
-        session.save()
+        url = reverse('admin_login')
         
-        url = reverse('otp_verify')
+        # 1. Login with correct owner credentials
+        response = self.client.post(url, {
+            'username': 'Sahad',
+            'password': 'ownerpassword'
+        }, REMOTE_ADDR=self.test_ip, follow=True)
         
-        # 1. Fail OTP 3 times
-        for i in range(3):
-            self.client.post(url, {'otp': '000000'}, REMOTE_ADDR=self.test_ip)
-            
-        # 2. Verify the 2FA session is wiped
-        session = self.client.session
-        self.assertNotIn('2fa_otp', session)
-        
-        # 3. Verify it recorded as a 'Steel Gate' IP failure
-        attempt = FailedAttempt.objects.get(ip_address=self.test_ip)
-        self.assertEqual(attempt.failures, 3)
+        # 2. Verify immediate access to Home (Status 200)
+        self.assertEqual(response.status_code, 200)
+        self.assertTrue(response.context['user'].is_authenticated)
+        # Verify it didn't stay on a login page
+        self.assertNotIn('admin_login', response.request['PATH_INFO'])
 
     def test_session_revocation_integrity(self):
         """Verify that revoking a UserSession actually blocks access to the app."""
@@ -110,13 +104,12 @@ class SecurityHardeningTests(TestCase):
         response = self.client.get(reverse('home'))
         self.assertEqual(response.status_code, 200)
         
-        # 2. Create the UserSession record manually to match current session
+        # 2. Fetch the UserSession record created by the middleware
         session_key = self.client.session.session_key
-        user_session = UserSession.objects.create(
-            user=office_user,
-            session_key=session_key,
-            ip_address=self.test_ip
-        )
+        user_session = UserSession.objects.get(session_key=session_key)
+        # Update IP to match our test IP if necessary (though middleware should have set it)
+        user_session.ip_address = self.test_ip
+        user_session.save()
         
         # 3. Access home (Verify OK)
         response = self.client.get(reverse('home'))

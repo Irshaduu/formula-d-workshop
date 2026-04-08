@@ -256,7 +256,7 @@
             <!-- Floor / Home -->
             <a class="nav-link-custom fw-bold {% if request.path == '/' %}active{% endif %}"
                href="{% url 'home' %}"
-               style="color: {% if request.user|has_group:'Owner' or request.user.is_superuser %}var(--color-danger){% elif request.user|has_group:'Office' %}#d97706{% else %}var(--color-text){% endif %} !important;">
+               style="color: {% if request.user|has_group:'Owner' or request.user.is_superuser %}var(--color-danger){% elif request.user|has_group:'Office' %}#d97706{% else %}#e5e7eb{% endif %} !important;">
                 {% if '/jobcards/live-report/' in request.path %}<i class="bi bi-chevron-left me-1"></i>{% endif %}
                 <i class="bi bi-house-door"></i> Floor
             </a>
