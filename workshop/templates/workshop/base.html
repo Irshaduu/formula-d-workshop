@@ -391,6 +391,17 @@
 
     <!-- CONTENT -->
     <main class="main-content">
+        {% if messages %}
+            <div class="container-fluid px-0 mb-4">
+                {% for message in messages %}
+                    <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} shadow-sm d-flex align-items-center mb-2" style="border-radius: 12px;">
+                        <i class="bi {% if message.tags == 'error' or message.tags == 'warning' %}bi-exclamation-triangle-fill{% elif message.tags == 'success' %}bi-check-circle-fill{% else %}bi-info-circle-fill{% endif %} me-2"></i>
+                        <div class="fw-medium">{{ message }}</div>
+                        <button type="button" class="btn-close ms-auto" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
         {% block content %}{% endblock %}
     </main>
 
