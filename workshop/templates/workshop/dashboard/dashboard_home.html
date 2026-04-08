@@ -54,11 +54,6 @@
                                 <i class="bi bi-eye me-2"></i>View Details
                             </a>
                         </li>
-                        <li>
-                            <a class="dropdown-item" href="{% url 'jobcard_edit' job.pk %}">
-                                <i class="bi bi-pencil-square me-2"></i>Edit / Update
-                            </a>
-                        </li>
                         {% if user.is_staff %}
                         <li>
                             <a class="dropdown-item" href="{% url 'invoice_view' job.pk %}" target="_blank">

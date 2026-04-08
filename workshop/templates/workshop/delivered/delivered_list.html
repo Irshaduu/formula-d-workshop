@@ -4,11 +4,11 @@
 
 {% block content %}
 <div class="inventory-dark-wrapper" style="background: transparent; padding: 0;">
-    <div class="d-flex justify-content-between align-items-center mb-4 gap-3">
-        <h1 class="mb-0 fw-bold h4">Delivered Vehicles</h1>
+    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2 gap-md-3">
+        <h1 class="mb-0 fw-bold delivered-title">Delivered Vehicles</h1>
         
         <!-- Tiny Search -->
-        <form id="deliveredSearchForm" class="flex-grow-1" style="max-width: 400px;">
+        <form id="deliveredSearchForm" class="flex-grow-1 search-form-mobile">
             <div class="position-relative">
                 <button type="submit" class="btn btn-link position-absolute top-50 start-0 translate-middle-y p-0 ms-3 text-muted" style="z-index: 5; border: none; text-decoration: none;">
                     <i class="bi bi-search opacity-50" style="font-size: 0.8rem;"></i>
@@ -20,7 +20,7 @@
             </div>
         </form>
 
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 filter-container-mobile">
             <!-- Date Filter Dropdown -->
             <div class="dropdown">
                 <button id="filterDropdownBtn" class="btn btn-sm dropdown-toggle d-flex align-items-center gap-2 px-3 py-2 shadow-sm" type="button"
@@ -221,6 +221,35 @@
 </script>
 
 <style>
+    .delivered-title {
+        font-size: 1.5rem;
+        white-space: nowrap;
+    }
+    @media (max-width: 576px) {
+        .delivered-title {
+            font-size: 1.15rem;
+            width: 100%;
+            margin-bottom: 0.25rem !important;
+        }
+        .search-form-mobile {
+            flex-grow: 1;
+            order: 2;
+            min-width: 0;
+        }
+        .filter-container-mobile {
+            order: 3;
+            flex-shrink: 0;
+        }
+        #filterDropdownBtn {
+            font-size: 0.8rem !important;
+            padding: 8px 12px !important;
+        }
+    }
+    @media (min-width: 577px) {
+        .search-form-mobile {
+            max-width: 400px;
+        }
+    }
     .card {
         border: 1px solid var(--color-border) !important;
         transition: transform 0.2s, box-shadow 0.2s;

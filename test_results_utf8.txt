@@ -1,312 +1,500 @@
-﻿.\venv\Scripts\python.exe 
-: Creating test database 
-for alias 'default'...
+﻿.\venv\Scripts\python.exe : 
+Creating test database for 
+alias 'default'...
 At line:1 char:1
-+ 
-.\venv\Scripts\python.exe 
-manage.py test workshop 
-inventory > test_re ...
-+ ~~~~~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo        
-      : NotSpecified: (C  
-  reating test d...as '   
- default'...:String) [    
-], RemoteException
-    + FullyQualifiedError 
-   Id : NativeCommandErr  
-  or
++ .\venv\Scripts\python.exe 
+manage.py test > 
+test_results.txt 2>&1; get 
+...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~
+    + CategoryInfo           
+   : NotSpecified: (Creatin  
+  g test d...as 'default'.   
+ ..:String) [], RemoteExc    
+eption
+    + FullyQualifiedErrorId  
+   : NativeCommandError
  
 
-.............C:\Users\irsh
-a\Downloads\formula-d-work
-shop-main\formula-d-worksh
-op-main\workshop\views.py:
-258: UnorderedObjectListWa
-rning: Pagination may 
-yield inconsistent 
-results with an unordered 
-object_list: <class 'works
-hop.models.JobCard'> 
+........E.........E..C:\Users
+\irsha\Downloads\formula-d-wo
+rkshop-main\formula-d-worksho
+p-main\workshop\views.py:258:
+ UnorderedObjectListWarning: 
+Pagination may yield 
+inconsistent results with an 
+unordered object_list: 
+<class 
+'workshop.models.JobCard'> 
 QuerySet.
-  paginator = Paginator(jo
-bcard_list_query, 21)  # 
-Show 21 jobs per page
-..........E.........
-==========================
-==========================
-==================
-ERROR: test_session_revoca
-tion_integrity (workshop.t
-ests.SecurityHardeningTest
-s.test_session_revocation_
-integrity)
-Verify that revoking a 
-UserSession actually 
-blocks access to the app.
---------------------------
---------------------------
-------------------
-Traceback (most recent 
-call last):
-  File "C:\Users\irsha\Dow
-nloads\formula-d-workshop-
-main\formula-d-workshop-ma
-in\venv\Lib\site-packages\
-django\db\backends\utils.p
-y", line 105, in _execute
-    return 
-self.cursor.execute(sql, 
-params)
-           ~~~~~~~~~~~~~~~
-~~~~^^^^^^^^^^^^^
-  File "C:\Users\irsha\Dow
-nloads\formula-d-workshop-
-main\formula-d-workshop-ma
-in\venv\Lib\site-packages\
-django\db\backends\sqlite3
-\base.py", line 360, in 
-execute
-    return 
-super().execute(query, 
-params)
-           ~~~~~~~~~~~~~~~
-^^^^^^^^^^^^^^^
-sqlite3.IntegrityError: 
-UNIQUE constraint failed: 
-workshop_usersession.sessi
-on_key
+  paginator = Paginator(jobca
+rd_list_query, 21)  # Show 
+21 jobs per page
+............
+=============================
+=============================
+============
+ERROR: test_admin_login_and_o
+tp_comprehensive (workshop.te
+st_auth.AuthFlowTests.test_ad
+min_login_and_otp_comprehensi
+ve)
+-----------------------------
+-----------------------------
+------------
+Traceback (most recent call 
+last):
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\worksh
+op\test_auth.py", line 62, 
+in test_admin_login_and_otp_c
+omprehensive
+    url_step2 = 
+reverse('otp_verify')
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\urls\
+base.py", line 98, in reverse
+    resolved_url = resolver._
+reverse_with_prefix(view, 
+prefix, *args, **kwargs)
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\urls\
+resolvers.py", line 831, in 
+_reverse_with_prefix
+    raise NoReverseMatch(msg)
+django.urls.exceptions.NoReve
+rseMatch: Reverse for 
+'otp_verify' not found. 
+'otp_verify' is not a valid 
+view function or pattern 
+name.
 
-The above exception was 
-the direct cause of the 
-following exception:
-
-Traceback (most recent 
-call last):
-  File "C:\Users\irsha\Dow
-nloads\formula-d-workshop-
-main\formula-d-workshop-ma
-in\workshop\tests.py", 
-line 115, in test_session_
-revocation_integrity
-    user_session = UserSes
-sion.objects.create(
-        user=office_user,
-        
-session_key=session_key,
-        
-ip_address=self.test_ip
-    )
-  File "C:\Users\irsha\Dow
-nloads\formula-d-workshop-
-main\formula-d-workshop-ma
-in\venv\Lib\site-packages\
-django\db\models\manager.p
-y", line 87, in 
-manager_method
-    return getattr(self.ge
-t_queryset(), 
-name)(*args, **kwargs)
-           ~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~^^^^^^^
-^^^^^^^^^^
-  File "C:\Users\irsha\Dow
-nloads\formula-d-workshop-
-main\formula-d-workshop-ma
-in\venv\Lib\site-packages\
-django\db\models\query.py"
-, line 665, in create
-    obj.save(force_insert=
-True, using=self.db)
-    ~~~~~~~~^^^^^^^^^^^^^^
-^^^^^^^^^^^^^^^^^^^^
-  File "C:\Users\irsha\Dow
-nloads\formula-d-workshop-
-main\formula-d-workshop-ma
-in\venv\Lib\site-packages\
-django\db\models\base.py",
- line 902, in save
-    self.save_base(
-    ~~~~~~~~~~~~~~^
-        using=using,
-        ^^^^^^^^^^^^
-    ...<2 lines>...
-        update_fields=upda
-te_fields,
-        ^^^^^^^^^^^^^^^^^^
-^^^^^^^^^^
-    )
-    ^
-  File "C:\Users\irsha\Dow
-nloads\formula-d-workshop-
-main\formula-d-workshop-ma
-in\venv\Lib\site-packages\
-django\db\models\base.py",
- line 1008, in save_base
-    updated = 
-self._save_table(
-        raw,
+=============================
+=============================
+============
+ERROR: test_financial_report_
+exhaustive_filters (workshop.
+test_views.WorkshopViewTests.
+test_financial_report_exhaust
+ive_filters)
+-----------------------------
+-----------------------------
+------------
+Traceback (most recent call 
+last):
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\worksh
+op\test_views.py", line 135, 
+in test_financial_report_exha
+ustive_filters
+    response = 
+self.client.get(url, {'q': 
+'PAID001'})
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\test\
+client.py", line 1124, in get
+    response = super().get(
+        path,
     ...<4 lines>...
-        update_fields,
+        **extra,
     )
-  File "C:\Users\irsha\Dow
-nloads\formula-d-workshop-
-main\formula-d-workshop-ma
-in\venv\Lib\site-packages\
-django\db\models\base.py",
- line 1169, in _save_table
-    results = 
-self._do_insert(
-        
-cls._base_manager, using, 
-fields, returning_fields, 
-raw
-    )
-  File "C:\Users\irsha\Dow
-nloads\formula-d-workshop-
-main\formula-d-workshop-ma
-in\venv\Lib\site-packages\
-django\db\models\base.py",
- line 1210, in _do_insert
-    return 
-manager._insert(
-           
-~~~~~~~~~~~~~~~^
-        [self],
-        ^^^^^^^
-    ...<3 lines>...
-        raw=raw,
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\test\
+client.py", line 475, in get
+    return self.generic(
+           ~~~~~~~~~~~~^
+        "GET",
+        ^^^^^^
+    ...<4 lines>...
+        **extra,
         ^^^^^^^^
     )
     ^
-  File "C:\Users\irsha\Dow
-nloads\formula-d-workshop-
-main\formula-d-workshop-ma
-in\venv\Lib\site-packages\
-django\db\models\manager.p
-y", line 87, in 
-manager_method
-    return getattr(self.ge
-t_queryset(), 
-name)(*args, **kwargs)
-           ~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~^^^^^^^
-^^^^^^^^^^
-  File "C:\Users\irsha\Dow
-nloads\formula-d-workshop-
-main\formula-d-workshop-ma
-in\venv\Lib\site-packages\
-django\db\models\query.py"
-, line 1873, in _insert
-    return query.get_compi
-ler(using=using).execute_s
-ql(returning_fields)
-           ~~~~~~~~~~~~~~~
-~~~~~~~~~~~~~~~~~~~~~~~~~~
-~~^^^^^^^^^^^^^^^^^^
-  File "C:\Users\irsha\Dow
-nloads\formula-d-workshop-
-main\formula-d-workshop-ma
-in\venv\Lib\site-packages\
-django\db\models\sql\compi
-ler.py", line 1882, in 
-execute_sql
-    cursor.execute(sql, 
-params)
-    ~~~~~~~~~~~~~~^^^^^^^^
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\test\
+client.py", line 671, in 
+generic
+    return self.request(**r)
+           ~~~~~~~~~~~~^^^^^
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\test\
+client.py", line 1087, in 
+request
+    self.check_exception(resp
+onse)
+    ~~~~~~~~~~~~~~~~~~~~^^^^^
 ^^^^^
-  File "C:\Users\irsha\Dow
-nloads\formula-d-workshop-
-main\formula-d-workshop-ma
-in\venv\Lib\site-packages\
-django\db\backends\utils.p
-y", line 79, in execute
-    return self._execute_w
-ith_wrappers(
-           ~~~~~~~~~~~~~~~
-~~~~~~~~~~~~^
-        sql, params, 
-many=False, 
-executor=self._execute
-        ^^^^^^^^^^^^^^^^^^
-^^^^^^^^^^^^^^^^^^^^^^^^^^
-^^^
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\test\
+client.py", line 802, in 
+check_exception
+    raise exc_value
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\core\
+handlers\exception.py", line 
+55, in inner
+    response = 
+get_response(request)
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\core\
+handlers\base.py", line 197, 
+in _get_response
+    response = 
+wrapped_callback(request, 
+*callback_args, 
+**callback_kwargs)
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\contr
+ib\auth\decorators.py", line 
+59, in _view_wrapper
+    return 
+view_func(request, *args, 
+**kwargs)
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\worksh
+op\views.py", line 228, in 
+live_report
+    return render(request, 'w
+orkshop/jobcard/live_report.h
+tml', {
+        'active_jobs': 
+active_jobs,
+        'q': q,
+        'status_filter': 
+status,
+    })
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\short
+cuts.py", line 25, in render
+    content = loader.render_t
+o_string(template_name, 
+context, request, 
+using=using)
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\loader.py", line 61, in 
+render_to_string
+    template = 
+get_template(template_name, 
+using=using)
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\loader.py", line 15, in 
+get_template
+    return engine.get_templat
+e(template_name)
+           ~~~~~~~~~~~~~~~~~~
+~^^^^^^^^^^^^^^^
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\backends\django.py", 
+line 79, in get_template
+    return Template(self.engi
+ne.get_template(template_name
+), self)
+                    ~~~~~~~~~
+~~~~~~~~~~~~~~~^^^^^^^^^^^^^^
+^
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\engine.py", line 177, in 
+get_template
+    template, origin = self.f
+ind_template(template_name)
+                       ~~~~~~
+~~~~~~~~~~~~^^^^^^^^^^^^^^^
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\engine.py", line 159, in 
+find_template
+    template = 
+loader.get_template(name, 
+skip=skip)
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\loaders\cached.py", line 
+57, in get_template
+    template = super().get_te
+mplate(template_name, skip)
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\loaders\base.py", line 
+28, in get_template
+    return Template(
+        contents,
+    ...<2 lines>...
+        self.engine,
     )
-    ^
-  File "C:\Users\irsha\Dow
-nloads\formula-d-workshop-
-main\formula-d-workshop-ma
-in\venv\Lib\site-packages\
-django\db\backends\utils.p
-y", line 92, in 
-_execute_with_wrappers
-    return executor(sql, 
-params, many, context)
-  File "C:\Users\irsha\Dow
-nloads\formula-d-workshop-
-main\formula-d-workshop-ma
-in\venv\Lib\site-packages\
-django\db\backends\utils.p
-y", line 100, in _execute
-    with self.db.wrap_data
-base_errors:
-         ^^^^^^^^^^^^^^^^^
-^^^^^^^^^^^
-  File "C:\Users\irsha\Dow
-nloads\formula-d-workshop-
-main\formula-d-workshop-ma
-in\venv\Lib\site-packages\
-django\db\utils.py", line 
-91, in __exit__
-    raise dj_exc_value.wit
-h_traceback(traceback) 
-from exc_value
-  File "C:\Users\irsha\Dow
-nloads\formula-d-workshop-
-main\formula-d-workshop-ma
-in\venv\Lib\site-packages\
-django\db\backends\utils.p
-y", line 105, in _execute
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\base.py", line 155, in 
+__init__
+    self.nodelist = 
+self.compile_nodelist()
+                    
+~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\base.py", line 197, in 
+compile_nodelist
+    nodelist = parser.parse()
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\base.py", line 519, in 
+parse
+    raise self.error(token, 
+e)
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\base.py", line 517, in 
+parse
+    compiled_result = 
+compile_func(self, token)
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\loader_tags.py", line 
+299, in do_extends
+    nodelist = parser.parse()
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\base.py", line 519, in 
+parse
+    raise self.error(token, 
+e)
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\base.py", line 517, in 
+parse
+    compiled_result = 
+compile_func(self, token)
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\loader_tags.py", line 
+234, in do_block
+    nodelist = 
+parser.parse(("endblock",))
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\base.py", line 519, in 
+parse
+    raise self.error(token, 
+e)
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\base.py", line 517, in 
+parse
+    compiled_result = 
+compile_func(self, token)
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\defaulttags.py", line 
+962, in do_if
+    nodelist = 
+parser.parse(("elif", 
+"else", "endif"))
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\base.py", line 519, in 
+parse
+    raise self.error(token, 
+e)
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\base.py", line 517, in 
+parse
+    compiled_result = 
+compile_func(self, token)
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\defaulttags.py", line 
+862, in do_for
+    nodelist_loop = 
+parser.parse(
+        (
+    ...<2 lines>...
+        )
+    )
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\base.py", line 519, in 
+parse
+    raise self.error(token, 
+e)
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\base.py", line 517, in 
+parse
+    compiled_result = 
+compile_func(self, token)
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\defaulttags.py", line 
+862, in do_for
+    nodelist_loop = 
+parser.parse(
+        (
+    ...<2 lines>...
+        )
+    )
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\base.py", line 519, in 
+parse
+    raise self.error(token, 
+e)
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\base.py", line 517, in 
+parse
+    compiled_result = 
+compile_func(self, token)
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\defaulttags.py", line 
+962, in do_if
+    nodelist = 
+parser.parse(("elif", 
+"else", "endif"))
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\base.py", line 490, in 
+parse
+    raise self.error(token, 
+e)
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\base.py", line 488, in 
+parse
+    filter_expression = self.
+compile_filter(token.contents
+)
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\base.py", line 610, in 
+compile_filter
     return 
-self.cursor.execute(sql, 
-params)
-           ~~~~~~~~~~~~~~~
-~~~~^^^^^^^^^^^^^
-  File "C:\Users\irsha\Dow
-nloads\formula-d-workshop-
-main\formula-d-workshop-ma
-in\venv\Lib\site-packages\
-django\db\backends\sqlite3
-\base.py", line 360, in 
-execute
-    return 
-super().execute(query, 
-params)
-           ~~~~~~~~~~~~~~~
-^^^^^^^^^^^^^^^
-django.db.utils.IntegrityE
-rror: UNIQUE constraint 
-failed: workshop_usersessi
-on.session_key
-
---------------------------
---------------------------
-------------------
-Ran 33 tests in 42.644s
-
-FAILED (errors=1)
-Destroying test database 
-for alias 'default'...
-
+FilterExpression(token, self)
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\base.py", line 706, in 
+__init__
 Found 33 test(s).
 System check identified no issues (0 silenced).
-=========================================
-[MOCK SMS] TO: +919567494933 | OTP: 742106
-=========================================
-=========================================
-[MOCK SMS] TO: +919567494933 | OTP: 179959
-=========================================
-=========================================
-[MOCK SMS] TO: +919567494933 | OTP: 078811
-=========================================
+[OK] OTP Sent via SMS to +919567494933
+[OK] Security Broadcast sent via SMS to Sahad (+919567494933)
+[OK] Security Broadcast sent via SMS to Rijas (+919207217978)
+[OK] Security Broadcast sent via SMS to Sahad (+919567494933)
+[OK] Security Broadcast sent via SMS to Rijas (+919207217978)
+    filter_func = parser.find
+_filter(filter_name)
+  File "C:\Users\irsha\Downlo
+ads\formula-d-workshop-main\f
+ormula-d-workshop-main\venv\L
+ib\site-packages\django\templ
+ate\base.py", line 616, in 
+find_filter
+    raise 
+TemplateSyntaxError("Invalid 
+filter: '%s'" % filter_name)
+django.template.exceptions.Te
+mplateSyntaxError: Invalid 
+filter: 'clean_qty'
+
+-----------------------------
+-----------------------------
+------------
+Ran 33 tests in 56.611s
+
+FAILED (errors=2)
+Destroying test database for 
+alias 'default'...
+
