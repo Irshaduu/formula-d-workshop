@@ -338,8 +338,8 @@
                 {% for spare in jobcard.spares.all %}
                 <tr>
                     <td>{{ spare.spare_part_name }}</td>
-                    <td class="text-right">{{ spare.quantity }}</td>
-                    <td class="text-right">₹ {{ spare.unit_price|floatformat:2 }}</td>
+                    <td class="text-right">{{ spare.quantity|clean_qty }}</td>
+                    <td class="text-right">₹ {{ spare.total_price|divide:spare.quantity|floatformat:2 }}</td>
                     <td class="text-right">₹ {{ spare.total_price|floatformat:2 }}</td>
                 </tr>
                 {% empty %}

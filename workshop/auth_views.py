@@ -194,9 +194,9 @@ def send_otp_sms(mobile_number, otp):
     # 1. Twilio SMS
     success_sms = send_twilio_sms(mobile_number, f"Your WorkshopOS Login Code: {otp}")
     if success_sms:
-        print(f"✅ OTP Sent via SMS to {mobile_number}")
+        print(f"[OK] OTP Sent via SMS to {mobile_number}")
     else:
-        print(f"⚠️ OTP SMS Fallback to Terminal: {mobile_number} | Code: {otp}")
+        print(f"[WARN] OTP SMS Fallback to Terminal: {mobile_number} | Code: {otp}")
         
     # 2. Telegram Broadcast
     owner1_mobile = normalize_phone(config('OWNER_1_MOBILE', default=''))
@@ -206,11 +206,11 @@ def send_otp_sms(mobile_number, otp):
     if norm_target == owner1_mobile:
         chat_id = config('OWNER_1_CHAT_ID', default='').strip()
         if send_telegram_msg(chat_id, msg):
-             print(f"✅ OTP Sent via Telegram to Owner 1")
+             print(f"[OK] OTP Sent via Telegram to Owner 1")
     elif norm_target == owner2_mobile:
         chat_id = config('OWNER_2_CHAT_ID', default='').strip()
         if send_telegram_msg(chat_id, msg):
-             print(f"✅ OTP Sent via Telegram to Owner 2")
+             print(f"[OK] OTP Sent via Telegram to Owner 2")
 
 
 # ============================================================
@@ -231,9 +231,9 @@ def send_titan_security_alert(user, request):
     
     # Format exactly as requested by user
     msg = (
-        f"🛡️ SECURITY ALERT: {user.username} just logged into HQ Portal.\n"
-        f"📱 Device: {device_name}\n"
-        f"🌐 IP: {ip}\n"
+        f"[SECURITY ALERT]: {user.username} just logged into HQ Portal.\n"
+        f"Device: {device_name}\n"
+        f"IP: {ip}\n"
         f"If this wasn't expected, REVOKE access now from your dashboard!"
     )
     
@@ -247,15 +247,15 @@ def send_titan_security_alert(user, request):
         # Channel 1: Telegram (Primary, Free, Fast)
         if chat_id:
             if send_telegram_msg(chat_id, msg):
-                print(f"✅ Security Broadcast sent via Telegram to {name}")
+                print(f"[OK] Security Broadcast sent via Telegram to {name}")
                 
         # Channel 2: Twilio SMS (Secondary/Fallback)
         if mobile:
             success = send_twilio_sms(mobile, msg)
             if success:
-                print(f"✅ Security Broadcast sent via SMS to {name} ({mobile})")
+                print(f"[OK] Security Broadcast sent via SMS to {name} ({mobile})")
             else:
-                print(f"⚠️ Security Broadcast MOCK to {name}: {mobile}")
+                print(f"[WARN] Security Broadcast MOCK to {name}: {mobile}")
                 print(f"{msg}")
 
 
@@ -279,7 +279,7 @@ def staff_login_view(request):
 
     # 1. IP Lockout Check
     if check_ip_lockout(request):
-        messages.error(request, "🛡️ Security Lockout: Too many failed attempts. Please wait 15 minutes.")
+        messages.error(request, "[Security Lockout]: Too many failed attempts. Please wait 15 minutes.")
         return render(request, 'workshop/auth/login.html')
 
     if request.method == 'POST':
@@ -327,7 +327,7 @@ def admin_login_view(request):
 
     # 1. IP Lockout Check (Steel Gate)
     if check_ip_lockout(request):
-        messages.error(request, "🛡️ Security Lockout: Too many failed attempts. Please wait 15 minutes.")
+        messages.error(request, "[Security Lockout]: Too many failed attempts. Please wait 15 minutes.")
         return render(request, 'workshop/auth/admin_login.html')
 
     if request.method == 'POST':
@@ -357,7 +357,7 @@ def admin_login_view(request):
             # --- Titan Security Alert (Broadcast to BOTH) ---
             send_titan_security_alert(user, request)
             
-            messages.success(request, f"Welcome back, {user.username}! ✅")
+            messages.success(request, f"Welcome back, {user.username}!")
             return redirect('home')
         else:
             record_login_failure(request)
@@ -506,7 +506,7 @@ def owner_reset_password_view(request):
         for key in ('pwd_reset_user_id', 'pwd_reset_otp', 'pwd_reset_expire', 'pwd_reset_attempts'):
             request.session.pop(key, None)
 
-        messages.success(request, "✅ Password changed successfully! Please log in with your new password.")
+        messages.success(request, "Password changed successfully! Please log in with your new password.")
         return redirect('admin_login')
 
     return render(request, 'workshop/auth/reset_password.html')

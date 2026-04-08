@@ -1,4 +1,5 @@
 {% extends 'workshop/base.html' %}
+{% load custom_filters %}
 
 {% block title %}Mini Report{% endblock %}
 
@@ -196,7 +197,7 @@
                 <div class="section-title">Spare Parts</div>
                 {% for spare in job.spares.all %}
                 <div class="item-row">
-                    <span class="item-text">{{ spare.spare_part_name }}{% if spare.quantity %} ({{ spare.quantity|floatformat:0 }}){% endif %}</span>
+                    <span class="item-text">{{ spare.spare_part_name }}{% if spare.quantity %} ({{ spare.quantity|clean_qty }}){% endif %}</span>
                     <span class="status-badge 
                         {% if spare.status == 'PENDING' %}status-pending
                         {% elif spare.status == 'ORDERED' %}status-ordered

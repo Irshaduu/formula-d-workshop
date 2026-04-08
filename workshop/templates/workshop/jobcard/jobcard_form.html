@@ -511,13 +511,13 @@
                                 <tr class="border-bottom">
                                     <th class="ps-3 col-part" style="min-width: 300px;">Part Name</th>
                                     <th class="text-center col-qty">Qty</th>
-                                    <th class="col-shop" style="min-width: 250px;">Shop</th>
                                     <th class="col-status">Status</th>
-                                    {% if request.user|has_group:"Office" or request.user|has_group:"Owner" or request.user.is_superuser %}
-                                    <th class="col-price">Shop Price</th>
-                                    <th class="col-price">Customer</th>
                                     <th class="col-date">Ordered</th>
                                     <th class="col-date">Received</th>
+                                    {% if request.user|has_group:"Office" or request.user|has_group:"Owner" or request.user.is_superuser %}
+                                    <th class="col-shop" style="min-width: 250px;">Shop</th>
+                                    <th class="col-price">Shop Price</th>
+                                    <th class="col-price">Customer</th>
                                     {% endif %}
                                 </tr>
                             </thead>
@@ -533,24 +533,24 @@
                                     <td class="col-qty">
                                         {{ s_form.quantity }}
                                     </td>
-                                    <td class="col-shop" style="min-width: 250px;">
-                                        {{ s_form.shop_name }}
-                                    </td>
                                     <td class="col-status">
                                         {{ s_form.status }}
-                                    </td>
-                                    {% if request.user|has_group:"Office" or request.user|has_group:"Owner" or request.user.is_superuser %}
-                                    <td class="col-price">
-                                        {{ s_form.unit_price }}
-                                    </td>
-                                    <td class="col-price">
-                                        {{ s_form.total_price }}
                                     </td>
                                     <td class="col-date">
                                         {{ s_form.ordered_date }}
                                     </td>
                                     <td class="col-date">
                                         {{ s_form.received_date }}
+                                    </td>
+                                    {% if request.user|has_group:"Office" or request.user|has_group:"Owner" or request.user.is_superuser %}
+                                    <td class="col-shop" style="min-width: 250px;">
+                                        {{ s_form.shop_name }}
+                                    </td>
+                                    <td class="col-price">
+                                        {{ s_form.unit_price }}
+                                    </td>
+                                    <td class="col-price">
+                                        {{ s_form.total_price }}
                                     </td>
                                     {% endif %}
                                 </tr>
@@ -605,24 +605,24 @@
                 <td class="col-qty">
                     {{ spare_formset.empty_form.quantity }}
                 </td>
-                <td class="col-shop">
-                    {{ spare_formset.empty_form.shop_name }}
-                </td>
                 <td class="col-status">
                     {{ spare_formset.empty_form.status }}
-                </td>
-                {% if user.is_authenticated %}
-                <td class="col-price">
-                    {{ spare_formset.empty_form.unit_price }}
-                </td>
-                <td class="col-price">
-                    {{ spare_formset.empty_form.total_price }}
                 </td>
                 <td class="col-date">
                     {{ spare_formset.empty_form.ordered_date }}
                 </td>
                 <td class="col-date">
                     {{ spare_formset.empty_form.received_date }}
+                </td>
+                {% if request.user|has_group:"Office" or request.user|has_group:"Owner" or request.user.is_superuser %}
+                <td class="col-shop">
+                    {{ spare_formset.empty_form.shop_name }}
+                </td>
+                <td class="col-price">
+                    {{ spare_formset.empty_form.unit_price }}
+                </td>
+                <td class="col-price">
+                    {{ spare_formset.empty_form.total_price }}
                 </td>
                 {% endif %}
             </tr>
@@ -637,7 +637,7 @@
         <div class="swipe-cell col-job">
             {{ labour_formset.empty_form.job_description }}
         </div>
-        {% if user.is_authenticated %}
+        {% if request.user|has_group:"Office" or request.user|has_group:"Owner" or request.user.is_superuser %}
         <div class="swipe-cell col-price">
             {{ labour_formset.empty_form.amount }}
         </div>
@@ -739,13 +739,28 @@
             });
         }
 
+        function cleanQuantityInputs() {
+            document.querySelectorAll('input[name*="quantity"]').forEach(input => {
+                if (input.value) {
+                    const val = parseFloat(input.value);
+                    if (!isNaN(val) && val === Math.floor(val)) {
+                        input.value = val; // Removes .0
+                    }
+                }
+            });
+        }
+
         // Apply colors on page load
         applyStatusColors();
+        cleanQuantityInputs();
 
-        // Apply colors when any select changes
+        // Apply colors and clean inputs when any select changes
         document.addEventListener('change', function (e) {
             if (e.target.tagName === 'SELECT' && e.target.name.includes('status')) {
                 applyStatusColors();
+            }
+            if (e.target.tagName === 'INPUT' && e.target.name.includes('quantity')) {
+                // If user types 1.0, leave it until they finish, but we can clean on blur
             }
         });
 
@@ -770,17 +785,22 @@
         window.toggleRecordLock = function(isHardLock) {
             const form = document.getElementById('jobcardForm');
             const submitBtn = form.querySelector('button[type="submit"]');
-            const allElements = form.querySelectorAll('input, select, textarea, button:not([onclick^="toggleRecordLock"])');
+            const editableElements = form.querySelectorAll('input:not([type="hidden"]), select, textarea, button:not([onclick^="toggleRecordLock"])');
             
-            const isCurrentlyLocked = allElements[0].disabled;
+            // TITAN-FIX: Use explicit attribute tracking instead of UI state guessing
+            const isLocked = form.getAttribute('data-locked') === 'true';
 
-            if (isCurrentlyLocked) {
-                // UNLOCKING (Tier 3 Only)
+            if (isLocked) {
+                // UNLOCKING
                 const confirmMsg = "⚠️ PROCEED WITH CAUTION!\n\nYou are unlocking a FINALIZED financial record.\nThis action should only be done for essential corrections. Continue?";
                 
                 if (confirm(confirmMsg)) {
-                    allElements.forEach(el => el.disabled = false);
-                    submitBtn.classList.remove('d-none');
+                    editableElements.forEach(el => el.disabled = false);
+                    if (submitBtn) {
+                        submitBtn.disabled = false;
+                        submitBtn.classList.remove('opacity-50');
+                    }
+                    form.setAttribute('data-locked', 'false');
                     
                     // High-impact notification
                     const toast = document.createElement('div');
@@ -792,21 +812,38 @@
                 }
             } else {
                 // LOCKING
-                allElements.forEach(el => el.disabled = true);
-                submitBtn.classList.add('d-none');
+                editableElements.forEach(el => el.disabled = true);
+                if (submitBtn) {
+                    submitBtn.disabled = true;
+                    submitBtn.classList.add('opacity-50');
+                }
+                form.setAttribute('data-locked', 'true');
             }
         };
+
+        // Form Submission Defense
+        document.getElementById('jobcardForm').addEventListener('submit', function(e) {
+            if (this.getAttribute('data-locked') === "true") {
+                e.preventDefault();
+                alert("🚫 RECORD IS LOCKED. You cannot update a finalized job card without unlocking it first.");
+                return false;
+            }
+        });
 
         // Auto-lock on load: ONLY for Tier 3 (PAID)
         {% if is_edit %}
             {% if jobcard.payment_status == 'PAID' %}
                 setTimeout(() => {
                     const form = document.getElementById('jobcardForm');
-                    const allElements = form.querySelectorAll('input, select, textarea, button:not([onclick^="toggleRecordLock"])');
+                    const editableElements = form.querySelectorAll('input:not([type="hidden"]), select, textarea, button:not([onclick^="toggleRecordLock"])');
                     const submitBtn = form.querySelector('button[type="submit"]');
                     
-                    allElements.forEach(el => el.disabled = true);
-                    submitBtn.classList.add('d-none');
+                    editableElements.forEach(el => el.disabled = true);
+                    if (submitBtn) {
+                        submitBtn.disabled = true;
+                        submitBtn.classList.add('opacity-50');
+                    }
+                    form.setAttribute('data-locked', 'true');
                 }, 100);
             {% endif %}
         {% endif %}

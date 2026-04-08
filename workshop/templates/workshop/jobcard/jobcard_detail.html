@@ -227,7 +227,14 @@ View Job Card - {{ jobcard.registration_number }}
                                 <div class="item-row">
                                     <div>
                                         <span class="item-text">{{ spare.spare_part_name }}</span>
-                                        <span class="item-subtext">Qty: {{ spare.quantity|default:"-" }} {% if spare.shop_name %}| From: {{ spare.shop_name }}{% endif %}</span>
+                                        <span class="item-subtext">
+                                            Qty: {{ spare.quantity|clean_qty|default:"-" }}
+                                            {% if spare.ordered_date %}| Ord: {{ spare.ordered_date|date:"d M" }}{% endif %}
+                                            {% if spare.received_date %}| Rec: {{ spare.received_date|date:"d M" }}{% endif %}
+                                            {% if request.user|has_group:"Office" or request.user|has_group:"Owner" or request.user.is_superuser %}
+                                                {% if spare.shop_name %}| From: {{ spare.shop_name }}{% endif %}
+                                            {% endif %}
+                                        </span>
                                     </div>
                                     <span class="status-badge 
                                         {% if spare.status == 'PENDING' %}status-pending

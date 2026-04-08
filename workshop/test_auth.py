@@ -57,27 +57,15 @@ class AuthFlowTests(TestCase):
         response = self.client.post(url, {'username': 'Sahad', 'password': 'ownerpassword'}, follow=True)
         self.assertContains(response, "Invalid credentials")
 
-    def test_admin_login_and_otp_comprehensive(self):
+    def test_admin_login_comprehensive(self):
         url_step1 = reverse('admin_login')
-        url_step2 = reverse('otp_verify')
         
-        # 1. Step 1: Mobile Resolution
+        # 1. Admin Login: Mobile Resolution (Direct Login in Titan Architecture)
         # Sahad's mobile is +919567494933 in .env
-        response = self.client.post(url_step1, {'username': '9567494933', 'password': 'ownerpassword'})
-        self.assertRedirects(response, url_step2)
-        
-        # 2. Step 2: Failed OTP Limit
-        session = self.client.session
-        session['2fa_otp'] = '999999'
-        session['2fa_expire'] = time.time() + 300
-        session['pre_2fa_user_id'] = self.owner.id
-        session.save()
-        
-        for i in range(2):
-            self.client.post(url_step2, {'otp': '000000'})
-        response = self.client.post(url_step2, {'otp': '000000'})
-        self.assertRedirects(response, url_step1)
-        self.assertNotIn('2fa_otp', self.client.session)
+        # The test client uses the database user, mobile resolution is handled in the view
+        response = self.client.post(url_step1, {'username': '9567494933', 'password': 'ownerpassword'}, follow=True)
+        self.assertContains(response, "Welcome back")
+        self.assertRedirects(response, reverse('home'))
 
     def test_password_reset_flow_edge_cases(self):
         url_forgot = reverse('owner_forgot_password')
