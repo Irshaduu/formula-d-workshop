@@ -62,3 +62,13 @@ def clean_qty(value):
         return f_val
     except (ValueError, TypeError):
         return value
+@register.filter
+def get_range(value):
+    """
+    Returns a range object for looping.
+    Example: {% for i in 20|get_range %}
+    """
+    try:
+        return range(int(value))
+    except (ValueError, TypeError):
+        return []

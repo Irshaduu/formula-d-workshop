@@ -34,7 +34,7 @@ def home(request):
     active_jobcards = JobCard.objects.filter(delivered=False, is_deleted=False).select_related('lead_mechanic').prefetch_related('concerns', 'spares', 'labours').annotate(
         total_concerns=Count('concerns'),
         fixed_concerns=Count('concerns', filter=Q(concerns__status='FIXED'))
-    ).order_by('-updated_at')
+    ).order_by('-updated_at', '-pk')
     
     # Count delivered today (Active only)
     delivered_count = JobCard.objects.filter(
@@ -59,6 +59,7 @@ def home(request):
         'delivered_count': delivered_count,
         'pending_bills_count': pending_bills_count,
         'page_obj': page_obj,
+        'today': date.today(),
     })
 
 

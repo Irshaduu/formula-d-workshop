@@ -3,85 +3,586 @@
 
 {% block title %}Workshop Dashboard{% endblock %}
 
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+
+<style>
+    /* =============================================
+       DASHBOARD — MOTORSPORT PIT BOARD AESTHETIC
+       ============================================= */
+
+    :root {
+        --pit-track: #0f172a;
+        --pit-steel: #1e293b;
+        --pit-chrome: #334155;
+        --pit-mist:   #f8fafc;
+        --pit-border: #e2e8f0;
+        --pit-red:    #ef4444;
+        --pit-green:  #22c55e;
+        --pit-amber:  #f59e0b;
+        --pit-blue:   #3b82f6;
+        --font-display: 'Barlow Condensed', sans-serif;
+        --font-body:    'Barlow', sans-serif;
+    }
+
+    /* ── Header ─────────────────────────────────── */
+    .pit-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 1.5rem;
+        margin-top: 0.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--pit-border);
+        position: relative;
+    }
+
+    .pit-header::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 48px;
+        height: 2px;
+        background: var(--pit-red);
+    }
+
+    .pit-stats {
+        display: flex;
+        align-items: baseline;
+        gap: 1.5rem;
+    }
+
+    .stat-item {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+    }
+
+    .stat-value {
+        font-family: var(--font-display);
+        font-size: 2rem;
+        font-weight: 800;
+        line-height: 1;
+        letter-spacing: -0.5px;
+        color: var(--pit-track);
+    }
+
+    .stat-value.delivered {
+        color: var(--pit-green);
+    }
+
+    .stat-label {
+        font-family: var(--font-body);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        color: #94a3b8;
+    }
+
+    .stat-divider {
+        width: 1px;
+        height: 36px;
+        background: var(--pit-border);
+        align-self: center;
+    }
+
+    /* Report Button */
+    .btn-report {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        font-family: var(--font-display);
+        font-size: 0.82rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        padding: 0.45rem 1rem;
+        border-radius: 6px;
+        border: 1.5px solid var(--pit-blue);
+        color: var(--pit-blue);
+        background: transparent;
+        text-decoration: none;
+        transition: background 0.15s, color 0.15s;
+    }
+
+    .btn-report:hover {
+        background: var(--pit-blue);
+        color: #fff;
+        text-decoration: none;
+    }
+
+    /* ── Card List ──────────────────────────────── */
+    .pit-board {
+        display: flex;
+        flex-direction: column;
+        gap: 0.85rem;
+    }
+
+    /* ── Vehicle Card ───────────────────────────── */
+    .job-card {
+        position: relative;
+        background: #fff;
+        border-radius: 12px;
+        /* overflow: visible !important; Removed hidden to prevent dropdown clipping */
+        cursor: pointer;
+        box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 16px rgba(0,0,0,0.04), 
+                    0 0 10px var(--card-glow, transparent); /* Ambient Glow Support */
+        border: 1px solid var(--pit-border);
+        display: flex;
+        /* transition: box-shadow 0.2s; /* Removed transform transition for zero-lag feel */
+    }
+
+    .job-card:hover {
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1), 0 0 12px var(--card-glow, transparent);
+    }
+
+    .job-card:active {
+        /* Feedback removed to prevent blinking */
+    }
+
+    /* ── Left colour stripe ─────────────────────── */
+    .card-stripe {
+        width: 6px;
+        flex-shrink: 0;
+        background: var(--stripe-color, #e2e8f0);
+        border-top-left-radius: 12px;
+        border-bottom-left-radius: 12px;
+    }
+
+    /* No colour assigned — diagonal hatch */
+    .card-stripe.stripe-unset {
+        background: repeating-linear-gradient(
+            -45deg,
+            #e2e8f0 0px,
+            #e2e8f0 3px,
+            #f8fafc 3px,
+            #f8fafc 8px
+        );
+        border-top-left-radius: 12px;
+        border-bottom-left-radius: 12px;
+    }
+
+    /* White car — white stripe with inset border for contrast */
+    .card-stripe.stripe-white {
+        background: #f8fafc;
+        box-shadow: inset -1px 0 0 #e2e8f0;
+        border-top-left-radius: 12px;
+        border-bottom-left-radius: 12px;
+    }
+
+    /* ── Card Body ──────────────────────────────── */
+    .card-body-inner {
+        flex: 1;
+        padding: 0.95rem 1rem 0.9rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+        min-width: 0;
+    }
+
+    /* ── Card Top Row ───────────────────────────── */
+    .card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 0.5rem;
+    }
+
+    .card-identity {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        min-width: 0;
+        flex: 1; /* Stretch to occupy middle space */
+    }
+
+    .car-name {
+        font-family: var(--font-display);
+        font-size: 1.25rem;
+        font-weight: 800;
+        letter-spacing: 0.3px;
+        color: var(--pit-track);
+        line-height: 1.1;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .car-meta {
+        display: flex;
+        align-items: center;
+        justify-content: space-between; /* Split badges and status */
+        gap: 6px;
+        flex-wrap: wrap;
+    }
+
+    /* License plate badge */
+    .reg-badge {
+        font-family: var(--font-display);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        padding: 2px 8px;
+        background: #f1f5f9;
+        border: 1px solid #cbd5e1;
+        border-radius: 4px;
+        color: var(--pit-steel);
+        white-space: nowrap;
+    }
+
+    /* Due date indicator */
+    .due-badge {
+        font-family: var(--font-display);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+        text-transform: uppercase;
+        padding: 2px 8px;
+        border-radius: 4px;
+    }
+
+    /* Status pill */
+    .status-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        font-family: var(--font-body);
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        padding: 2px 7px;
+        border-radius: 20px;
+    }
+
+    .status-pill.active {
+        background: rgba(34, 197, 128, 0.1); /* Updated to reflect the screenshot style */
+        color: #15803d;
+    }
+
+    /* Small Status Text for Car Name Line */
+    .car-status-small {
+        font-family: var(--font-body);
+        font-size: 0.62rem;
+        font-weight: 800; /* Bolder for racing aesthetic */
+        text-transform: uppercase;
+        letter-spacing: 0.8px; /* Premium letter-spacing nudge */
+        padding: 1.5px 7px;
+        border-radius: 4px;
+        margin-left: 6px;
+        margin-right: -2px; /* Nudge to align with column edge */
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        vertical-align: middle;
+    }
+    .car-status-small.active { background: rgba(22, 163, 74, 0.08); color: #16a34a; }
+    .car-status-small.hold   { background: rgba(220, 38, 38, 0.08); color: #dc2626; }
+
+    .status-pill.hold {
+        background: rgba(239, 68, 68, 0.1);
+        color: #dc2626;
+    }
+
+    .status-dot-sm {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .status-dot-sm.active { background: var(--pit-green); }
+    .status-dot-sm.hold   {
+        background: var(--pit-red);
+        animation: blink 2s infinite;
+    }
+
+    @keyframes blink {
+        0%, 100% { opacity: 1; }
+        50%       { opacity: 0.4; }
+    }
+
+    /* ── 3-dot menu button ──────────────────────── */
+    .dot-menu-btn {
+        background: none;
+        border: none;
+        color: #94a3b8;
+        padding: 4px 6px;
+        border-radius: 6px;
+        cursor: pointer;
+        line-height: 1;
+        transition: background 0.15s, color 0.15s;
+        flex-shrink: 0;
+    }
+
+    .dot-menu-btn:hover {
+        background: #f1f5f9;
+        color: var(--pit-steel);
+    }
+
+    .dot-menu-btn:active {
+        background: var(--pit-blue);
+        color: #fff;
+        /* transform: scale(0.92); Removed to prevent visual flicker/blink */
+    }
+
+    /* ── Progress Section ───────────────────────── */
+    .progress-section {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+    }
+
+    .progress-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .progress-label {
+        font-family: var(--font-body);
+        font-size: 0.68rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: #94a3b8;
+    }
+
+    .progress-pct {
+        font-family: var(--font-display);
+        font-size: 0.85rem;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+
+    .progress-pct.done-100  { color: var(--pit-green); }
+    .progress-pct.done-high { color: var(--pit-blue); }
+    .progress-pct.done-mid  { color: var(--pit-amber); }
+    .progress-pct.done-low  { color: var(--pit-red); }
+
+    /* Segmented fuel-gauge track */
+    .fuel-track {
+        display: flex;
+        gap: 3px;
+        align-items: center;
+        height: 8px;
+    }
+
+    .fuel-track .tick {
+        flex: 1;
+        height: 100%;
+        border-radius: 3px;
+        background: #e9ecef;
+    }
+
+    .fuel-track .tick.filled-100  { background: var(--pit-green); }
+    .fuel-track .tick.filled-high { background: var(--pit-blue); }
+    .fuel-track .tick.filled-mid  { background: var(--pit-amber); }
+    .fuel-track .tick.filled-low  { background: var(--pit-red); }
+
+    .no-concerns-tag {
+        font-family: var(--font-body);
+        font-size: 0.7rem;
+        font-style: italic;
+        color: #94a3b8;
+    }
+
+    /* ── Empty State ────────────────────────────── */
+    .pit-empty {
+        background: #fff;
+        border: 1px solid var(--pit-border);
+        border-radius: 14px;
+        padding: 3.5rem 1rem;
+        text-align: center;
+    }
+
+    .pit-empty .empty-icon {
+        font-size: 3rem;
+        color: #cbd5e1;
+        margin-bottom: 1rem;
+    }
+
+    .pit-empty h5 {
+        font-family: var(--font-display);
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #64748b;
+        margin-bottom: 0.4rem;
+    }
+
+    .pit-empty p {
+        font-family: var(--font-body);
+        font-size: 0.85rem;
+        color: #94a3b8;
+        margin-bottom: 0;
+    }
+
+    /* ── Dropdown overrides ─────────────────────── */
+    .pit-dropdown {
+        position: relative;
+        z-index: 10; /* Lifts the interactive area */
+    }
+
+    .pit-dropdown .dropdown-menu {
+        border-radius: 10px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        padding: 0.35rem 0;
+        min-width: 160px;
+        z-index: 100; /* Ensures it floats above all other card content */
+        animation: none !important; /* Eliminate opening lag */
+        transition: none !important; /* Ensure instant appearance */
+        /* Safe boundary for static positioning */
+        max-width: calc(100vw - 20px);
+        margin-right: 2px !important;
+    }
+
+    .pit-dropdown .dropdown-item {
+        font-family: var(--font-body);
+        font-size: 0.82rem;
+        font-weight: 500;
+        padding: 7px 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: none !important; /* Snappy hover status */
+    }
+
+    .pit-dropdown .dropdown-item:hover          { background: #f8fafc; }
+    .pit-dropdown .dropdown-item.text-success   { color: #16a34a !important; }
+    .pit-dropdown .dropdown-item.text-warning   { color: #d97706 !important; }
+    .pit-dropdown .dropdown-item.text-danger    { color: #dc2626 !important; }
+    .pit-dropdown .dropdown-item.text-info      { color: #0284c7 !important; }
+    .pit-dropdown .dropdown-divider             { margin: 0.2rem 0; border-color: #f1f5f9; }
+
+    /* Mobile compact */
+    @media (max-width: 480px) {
+        .stat-value { font-size: 1.7rem; }
+        .car-name   { font-size: 1.1rem; }
+        .btn-report { font-size: 0.75rem; padding: 0.4rem 0.8rem; }
+    }
+</style>
+{% endblock %}
+
 {% block content %}
-<!-- Header Section -->
-<div class="d-flex justify-content-between align-items-center mb-4 mt-2">
-    <div class="d-flex align-items-center gap-4">
-        <h6 class="mb-0 text-primary fw-bold" style="font-size: 0.85rem;">
-            <i class="bi bi-car-front"></i> Workshop ({{ page_obj.paginator.count|default:active_jobcards.count }})
-        </h6>
-        <h6 class="mb-0 text-success fw-bold" style="font-size: 0.85rem;">
-            <i class="bi bi-check-circle"></i> Delivered ({{ delivered_count|default:"0" }})
-        </h6>
+
+<!-- ── Header ── -->
+<div class="pit-header">
+    <div class="pit-stats">
+        <div class="stat-item">
+            <span class="stat-value">{{ page_obj.paginator.count|default:active_jobcards.count }}</span>
+            <span class="stat-label">In Workshop</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+            <span class="stat-value delivered">{{ delivered_count|default:"0" }}</span>
+            <span class="stat-label">Delivered</span>
+        </div>
     </div>
-    <a href="{% url 'live_report' %}" class="btn btn-outline-primary btn-sm py-1 px-3 d-flex align-items-center gap-2 shadow-sm" style="font-size: 0.82rem; border-radius: 8px;">
-        <i class="bi bi-clipboard-data"></i> Mini Report
+    <a href="{% url 'live_report' %}" class="btn-report">
+        <i class="bi bi-clipboard-data"></i> Report
     </a>
 </div>
 
-<!-- Vehicle Cards -->
+<!-- ── Vehicle Cards ── -->
 {% if active_jobcards %}
-<div class="vehicle-scroll mb-5 pb-5">
+<div class="pit-board mb-5 pb-4">
     {% for job in active_jobcards %}
-    <div class="vehicle-box-horizontal" data-edit-url="{% url 'jobcard_edit' job.pk %}"
-         style="border-left: 6px solid {{ job.get_car_color_hex|default:'#cbd5e1' }};">
-        <div class="vehicle-info-row w-100">
-            <!-- Top Row: Brand Model and Actions -->
-            <div class="d-flex justify-content-between align-items-center w-100 mb-2">
-                <div class="d-flex align-items-center gap-2">
-                    <h6 class="mb-0 fw-bold">
-                        {{ job.brand_name }} {{ job.model_name }}
-                    </h6>
-                    <span class="badge bg-light text-dark border">{{ job.registration_number }}</span>
 
-                    <!-- Status Dot Indicator -->
-                    <span class="status-dot {% if job.on_hold %}status-hold{% else %}status-active{% endif %}"
-                        title="{% if job.on_hold %}On Hold{% else %}Active{% endif %}"></span>
+    <!-- Define high-performance variables once -->
+    {% with color=job.get_car_color_hex|default:'#475569' %}
+    <div class="job-card" data-edit-url="{% url 'jobcard_edit' job.pk %}"
+         style="--card-glow: {{ color }}44;">
+
+        <!-- Left stripe — Rendered server-side for instant load -->
+        <div class="card-stripe 
+             {% if not job.car_color %}stripe-unset
+             {% elif job.car_color == 'White' %}stripe-white
+             {% endif %}"
+             style="--stripe-color: {{ color }};">
+        </div>
+
+        <!-- Main Body -->
+        <div class="card-body-inner">
+
+            <!-- Top Row -->
+            <div class="card-top">
+                <div class="card-identity">
+                    <div class="car-name">
+                        {{ job.brand_name }} {{ job.model_name }}
+                    </div>
+                    <div class="car-meta d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="reg-badge">{{ job.registration_number }}</span>
+                            
+                            <!-- Restored Discharge Due Date Badges -->
+                            {% if job.discharged_date %}
+                                {% with d=job.discharged_date %}
+                                <span class="due-badge 
+                                    {% if d < today %}bg-danger-subtle text-danger border border-danger-subtle
+                                    {% elif d == today %}bg-warning-subtle text-warning-emphasis border border-warning-subtle
+                                    {% elif d|is_tomorrow %}bg-info-subtle text-info-emphasis border border-info-subtle
+                                    {% else %}bg-light text-muted border{% endif %}"
+                                    title="{{ d|date:'D, d M' }}">
+                                    {% if d < today %}Overdue
+                                    {% elif d == today %}Today
+                                    {% elif d|is_tomorrow %}Tomorrow
+                                    {% else %}{{ d|date:"d M" }}{% endif %}
+                                </span>
+                                {% endwith %}
+                            {% endif %}
+                        </div>
+                        
+                        <span class="car-status-small {% if job.on_hold %}hold{% else %}active{% endif %}">
+                            <span class="status-dot-sm {% if job.on_hold %}hold{% else %}active{% endif %}"></span>
+                            {% if job.on_hold %}Hold{% else %}Active{% endif %}
+                        </span>
+                    </div>
                 </div>
 
-                <!-- 3-Dot Menu -->
-                <div class="dropdown">
-                    <button class="btn btn-sm btn-link text-muted p-0" type="button" data-bs-toggle="dropdown"
-                        aria-expanded="false">
+                <!-- 3-dot Menu -->
+                <div class="dropdown pit-dropdown">
+                    <button class="dot-menu-btn" type="button"
+                            data-bs-toggle="dropdown" 
+                            data-bs-display="static"
+                            aria-expanded="false">
                         <i class="bi bi-three-dots-vertical"></i>
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+                    <ul class="dropdown-menu dropdown-menu-end">
                         <li>
                             <a class="dropdown-item" href="{% url 'jobcard_detail' job.pk %}">
-                                <i class="bi bi-eye me-2"></i>View Details
+                                <i class="bi bi-eye"></i> View Details
                             </a>
                         </li>
                         {% if user.is_staff %}
                         <li>
-                            <a class="dropdown-item" href="{% url 'invoice_view' job.pk %}" target="_blank">
-                                <i class="bi bi-receipt me-2"></i>View Invoice
+                            <a class="dropdown-item text-info" href="{% url 'invoice_view' job.pk %}" target="_blank">
+                                <i class="bi bi-receipt"></i> View Invoice
                             </a>
                         </li>
                         {% endif %}
                         {% if user.is_authenticated %}
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
+                        <li><hr class="dropdown-divider"></li>
                         <li>
                             <form method="post" action="{% url 'toggle_hold' job.pk %}" class="d-inline">
                                 {% csrf_token %}
                                 <button type="submit"
-                                    class="dropdown-item {% if job.on_hold %}text-success{% else %}text-warning{% endif %}">
-                                    <i
-                                        class="bi {% if job.on_hold %}bi-play-circle{% else %}bi-pause-circle{% endif %} me-2"></i>
+                                        class="dropdown-item {% if job.on_hold %}text-success{% else %}text-warning{% endif %}">
+                                    <i class="bi {% if job.on_hold %}bi-play-circle{% else %}bi-pause-circle{% endif %}"></i>
                                     {% if job.on_hold %}Mark Active{% else %}Put On Hold{% endif %}
                                 </button>
                             </form>
                         </li>
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
+                        <li><hr class="dropdown-divider"></li>
                         <li>
                             <form method="post" action="{% url 'mark_delivered' job.pk %}" class="d-inline">
                                 {% csrf_token %}
                                 <button type="submit" class="dropdown-item text-success"
-                                    onclick="return confirm('Mark {{ job.registration_number }} as delivered?');">
-                                    <i class="bi bi-check-circle me-2"></i>Mark Delivered
+                                        onclick="return confirm('Mark {{ job.registration_number }} as delivered?');">
+                                    <i class="bi bi-check-circle"></i> Mark Delivered
                                 </button>
                             </form>
                         </li>
@@ -90,151 +591,84 @@
                 </div>
             </div>
 
-            <!-- Progress Section -->
-            <div class="d-flex align-items-center gap-3 w-100">
-                <div class="flex-grow-1">
-                    {% if job.total_concerns > 0 %}
-                    {% widthratio job.fixed_concerns job.total_concerns 100 as progress %}
-                    {% with p=progress|add:"0" %}
-                    <div class="d-flex justify-content-between align-items-center mb-1">
-                        <small class="text-muted" style="font-size: 0.75rem;">Status</small>
-                        <small class="fw-bold 
-                                {% if p == 100 %}text-success-custom
-                                {% elif p >= 60 %}text-info-custom
-                                {% elif p >= 30 %}text-warning
-                                {% else %}text-critical{% endif %}" style="font-size: 0.75rem;">
-                            {{ progress }}% Done
-                        </small>
+            <!-- Progress Section — Unified with Model Logic -->
+            <div class="progress-section">
+                {% if job.total_concerns > 0 %}
+                    {% with p=job.get_completion_percentage %}
+                    <div class="progress-meta">
+                        <span class="progress-label">Mission Progress</span>
+                        <span class="progress-pct
+                            {% if p == 100 %}done-100
+                            {% elif p >= 60 %}done-high
+                            {% elif p >= 30 %}done-mid
+                            {% else %}done-low{% endif %}">
+                            {{ p }}%
+                        </span>
                     </div>
-                    <div class="progress" style="height: 6px; background-color: #e9ecef; border-radius: 10px;">
-                        <div class="progress-bar 
-                                {% if p == 100 %}progress-success
-                                {% elif p >= 60 %}progress-info
-                                {% elif p >= 30 %}progress-warning
-                                {% else %}progress-critical{% endif %}" role="progressbar"
-                            style="width: {{ progress }}%; border-radius: 10px;" aria-valuenow="{{ progress }}"
-                            aria-valuemin="0" aria-valuemax="100">
-                        </div>
+
+                    <!-- 20-tick fuel gauge — Pre-filled for instant load -->
+                    <div class="fuel-track" data-progress="{{ p }}">
+                        {% for i in 20|get_range %}
+                            {% with limit=p|divide:5 %}
+                            <div class="tick 
+                                {% if i < limit %}
+                                    {% if p == 100 %}filled-100
+                                    {% elif p >= 60 %}filled-high
+                                    {% elif p >= 30 %}filled-mid
+                                    {% else %}filled-low{% endif %}
+                                {% endif %}">
+                            </div>
+                            {% endwith %}
+                        {% endfor %}
                     </div>
                     {% endwith %}
-                    {% else %}
-                    <!-- No concerns added yet -->
-                    <small class="text-muted fst-italic" style="font-size: 0.75rem;">No concerns listed</small>
-                    {% endif %}
-                </div>
+                {% else %}
+                    <span class="no-concerns-tag">Awaiting assignment...</span>
+                {% endif %}
             </div>
+
         </div>
     </div>
+    {% endwith %}
+
     {% endfor %}
 
     <!-- Pagination -->
     {% include 'workshop/includes/pagination.html' %}
 </div>
+
 {% else %}
 <!-- Empty State -->
-<div class="card shadow-sm mb-4 border-0">
-    <div class="card-body text-center py-5">
-        <i class="bi bi-car-front" style="font-size: 3rem; color: var(--color-text-muted);"></i>
-        <h5 class="mt-3 text-muted">No vehicles in workshop</h5>
-        <p class="text-muted">Create a job card to get started</p>
-    </div>
+<div class="pit-empty">
+    <div class="empty-icon"><i class="bi bi-car-front"></i></div>
+    <h5>Workshop is empty</h5>
+    <p>Create a job card to start tracking vehicles</p>
 </div>
 {% endif %}
 
-<style>
-    /* Simple cursor pointer for clickable cards */
-    .vehicle-box-horizontal {
-        cursor: pointer;
-    }
-
-    /* Vehicle Box Bordering */
-    .vehicle-box-horizontal {
-        cursor: pointer;
-        padding-left: 1rem !important;
-        transition: transform 0.2s, box-shadow 0.2s, border-left-width 0.2s;
-        border-top-left-radius: 4px;
-        border-bottom-left-radius: 4px;
-    }
-
-    .vehicle-box-horizontal:hover {
-        transform: translateX(4px);
-        box-shadow: 0 4px 12px var(--color-shadow);
-        border-left-width: 10px !important;
-    }
-
-    /* Status Dot Indicator */
-    .status-dot {
-        width: 10px;
-        height: 10px;
-        border-radius: 50%;
-        display: inline-block;
-        flex-shrink: 0;
-    }
-
-    .status-active {
-        background-color: #22C55E;
-        /* Green */
-        box-shadow: 0 0 4px rgba(34, 197, 94, 0.5);
-    }
-
-    .status-hold {
-        background-color: #EF4444;
-        /* Red */
-        box-shadow: 0 0 4px rgba(239, 68, 68, 0.5);
-        animation: pulse 2s infinite;
-    }
-
-    @keyframes pulse {
-
-        0%,
-        100% {
-            opacity: 1;
-        }
-
-        50% {
-            opacity: 0.6;
-        }
-    }
-</style>
-
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-
-        const tomorrow = new Date(today);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-
-        // Smart discharge date display
-        document.querySelectorAll('.discharge-due').forEach(function (el) {
-            const dateStr = el.getAttribute('data-date');
-            if (!dateStr) return;
-
-            const dischargeDate = new Date(dateStr + 'T00:00:00');
-
-            if (dischargeDate.getTime() === today.getTime()) {
-                el.innerHTML = '<span class="badge bg-warning text-dark">Today</span>';
-            } else if (dischargeDate.getTime() === tomorrow.getTime()) {
-                el.innerHTML = '<span class="badge bg-info text-dark">Tomorrow</span>';
-            } else if (dischargeDate < today) {
-                el.innerHTML = '<span class="text-danger fw-bold">' + el.textContent + ' (Overdue)</span>';
-            }
-        });
-
-        // Card Click Handler: Clicking card goes to edit page
-        document.querySelectorAll('.vehicle-box-horizontal').forEach(card => {
-            card.addEventListener('click', function (e) {
-                // Prevent if clicking inside the 3-dot dropdown or the 3-dot button itself
-                if (e.target.closest('.dropdown-menu') || e.target.closest('[data-bs-toggle="dropdown"]')) {
-                    return;
-                }
-                
-                const editUrl = this.getAttribute('data-edit-url');
-                if (editUrl) {
-                    window.location.href = editUrl;
-                }
-            });
+document.addEventListener('DOMContentLoaded', function () {
+    /* ── Quick-Fire Dropdown (Stop Propagation) ─ */
+    document.querySelectorAll('.dot-menu-btn').forEach(function (btn) {
+        btn.addEventListener('click', function (e) {
+            e.stopPropagation(); // Cuts the wire to parent card lag
         });
     });
+
+    /* ── Card click → edit page ─────────────────── */
+    document.querySelectorAll('.job-card').forEach(function (card) {
+        card.addEventListener('click', function (e) {
+            // Dropdown/button safety
+            if (e.target.closest('.dropdown-menu') ||
+                e.target.closest('[data-bs-toggle="dropdown"]') ||
+                e.target.closest('button') ||
+                e.target.closest('form')) {
+                return;
+            }
+            const url = this.getAttribute('data-edit-url');
+            if (url) window.location.href = url;
+        });
+    });
+});
 </script>
 {% endblock %}

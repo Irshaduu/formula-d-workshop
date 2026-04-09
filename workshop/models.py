@@ -228,7 +228,7 @@ class JobCard(models.Model):
     discharged_date = models.DateField(db_index=True, blank=True, null=True, help_text="Auto-filled when job is marked as delivered")
     
     # Delivery Status (separate from planning date)
-    delivered = models.BooleanField(default=False, help_text="Actually delivered (marked via Delivered button)")
+    delivered = models.BooleanField(default=False, db_index=True, help_text="Actually delivered (marked via Delivered button)")
     
     # On Hold Status (for jobs waiting for parts or paused)
     on_hold = models.BooleanField(default=False, help_text="Job is on hold (waiting for parts, etc.)")
@@ -293,7 +293,16 @@ class JobCard(models.Model):
 
     # Meta
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
+    updated_at = models.DateTimeField(auto_now=True, db_index=True)
+
+    class Meta:
+        # High-performance composite index for the dashboard query pattern.
+        # Covered: (is_deleted=False, delivered=False) sorted by updated_at DESC.
+        indexes = [
+            models.Index(fields=['is_deleted', 'delivered', '-updated_at']),
+        ]
+        verbose_name = "Job Card"
+        verbose_name_plural = "Job Cards"
 
     def save(self, *args, **kwargs):
         """
@@ -363,21 +372,21 @@ class JobCard(models.Model):
         
         mapping = {
             'Black': '#000000',
-            'White': '#FFFFFF',
-            'Silver': '#C0C0C0',
-            'Grey': '#9E9E9E',
-            'Red': '#F44336',
-            'Light Blue': '#81D4FA',
-            'Blue': '#2196F3',
-            'Dark Blue': '#1565C0',
-            'Yellow': '#FFEB3B',
-            'Light Green': '#81C784',
-            'Green': '#4CAF50',
-            'Dark Green': '#2E7D32',
-            'Brown': '#795548',
-            'Dark Brown': '#4E342E',
+            'White': '#f8fafc',  # Off-white for better visibility
+            'Silver': '#94a3b8', # Deeper metallic silver
+            'Grey': '#64748b',   # Slate Grey
+            'Red': '#dc2626',
+            'Light Blue': '#38bdf8',
+            'Blue': '#2563eb',
+            'Dark Blue': '#1d4ed8',
+            'Yellow': '#eab308',
+            'Light Green': '#4ade80',
+            'Green': '#16a34a',
+            'Dark Green': '#15803d',
+            'Brown': '#78350f',
+            'Dark Brown': '#451a03',
         }
-        return mapping.get(self.car_color, '#CED4DA')
+        return mapping.get(self.car_color, '#475569') # Solid Slate for unassigned
 
     @property
     def get_car_color_display(self):
