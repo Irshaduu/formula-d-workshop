@@ -142,9 +142,9 @@
         /* Feedback removed to prevent blinking */
     }
 
-    /* ── Left colour stripe ─────────────────────── */
+    /* ── Left colour stripe — TITAN WIDE IDENTITY ─────────────────────── */
     .card-stripe {
-        width: 6px;
+        width: 10px; /* Increased from 6px for high visibility */
         flex-shrink: 0;
         background: var(--stripe-color, #e2e8f0);
         border-top-left-radius: 12px;
@@ -160,16 +160,18 @@
             #f8fafc 3px,
             #f8fafc 8px
         );
-        border-top-left-radius: 12px;
-        border-bottom-left-radius: 12px;
     }
 
-    /* White car — white stripe with inset border for contrast */
+    /* Hold state — Zero impact on container (Identity Purity) */
+    .job-card.on-hold-card .card-stripe {
+        width: 10px;
+        background: var(--stripe-color, #e2e8f0);
+    }
+
+    /* White car — white stripe with inset border for contrast — TITAN STANDARD */
     .card-stripe.stripe-white {
         background: #f8fafc;
-        box-shadow: inset -1px 0 0 #e2e8f0;
-        border-top-left-radius: 12px;
-        border-bottom-left-radius: 12px;
+        box-shadow: inset -1px 0 0 #e2e8f0, inset 1px 0 0 #e2e8f0;
     }
 
     /* ── Card Body ──────────────────────────────── */
@@ -494,7 +496,7 @@
 
     <!-- Define high-performance variables once -->
     {% with color=job.get_car_color_hex|default:'#475569' %}
-    <div class="job-card" data-edit-url="{% url 'jobcard_edit' job.pk %}"
+    <div class="job-card {% if job.on_hold %}on-hold-card{% endif %}" data-edit-url="{% url 'jobcard_edit' job.pk %}"
          style="--card-glow: {{ color }}44;">
 
         <!-- Left stripe — Rendered server-side for instant load -->

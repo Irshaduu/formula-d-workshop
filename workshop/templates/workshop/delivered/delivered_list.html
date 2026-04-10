@@ -2,271 +2,347 @@
 
 {% block title %}Delivered Vehicles{% endblock %}
 
-{% block content %}
-<div class="inventory-dark-wrapper" style="background: transparent; padding: 0;">
-    <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2 gap-md-3">
-        <h1 class="mb-0 fw-bold delivered-title">Delivered Vehicles</h1>
-        
-        <!-- Tiny Search -->
-        <form id="deliveredSearchForm" class="flex-grow-1 search-form-mobile">
-            <div class="position-relative">
-                <button type="submit" class="btn btn-link position-absolute top-50 start-0 translate-middle-y p-0 ms-3 text-muted" style="z-index: 5; border: none; text-decoration: none;">
-                    <i class="bi bi-search opacity-50" style="font-size: 0.8rem;"></i>
-                </button>
-                <input type="text" id="deliveredSearch" name="q" class="form-control form-control-lg border-0 shadow-sm ps-5" 
-                    placeholder="Search Registration, Brand, or Customer..." 
-                    style="border-radius: 999px; background: var(--color-card); font-size: 0.85rem;" 
-                    value="{{ q }}">
-            </div>
-        </form>
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+{% endblock %}
 
-        <div class="d-flex gap-2 filter-container-mobile">
-            <!-- Date Filter Dropdown -->
-            <div class="dropdown">
-                <button id="filterDropdownBtn" class="btn btn-sm dropdown-toggle d-flex align-items-center gap-2 px-3 py-2 shadow-sm" type="button"
-                    data-bs-toggle="dropdown" style="border-radius: 999px; background: var(--color-card); border: 1px solid var(--color-border) !important; color: var(--color-text);">
-                    <i class="bi bi-funnel" style="color: var(--color-text-muted);"></i>
-                    <span id="filterLabel">
-                        {% if filter_type == 'today' %}Today
-                        {% elif filter_type == 'week' %}1 Week
-                        {% elif filter_type == 'month' %}1 Month
-                        {% elif filter_type == 'year' %}1 Year
-                        {% elif filter_type == 'custom' %}{% if start_date and end_date %}{{ start_date }} - {{ end_date }}{% else %}Custom{% endif %}
-                        {% else %}All{% endif %}
-                    </span>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0 mt-2" style="border-radius: 16px;">
-                    <li><a class="dropdown-item py-2 px-3 {% if filter_type == 'today' %}active{% endif %}" href="?filter=today">Today</a></li>
-                    <li><a class="dropdown-item py-2 px-3 {% if filter_type == 'week' %}active{% endif %}" href="?filter=week">1 Week</a></li>
-                    <li><a class="dropdown-item py-2 px-3 {% if filter_type == 'month' %}active{% endif %}" href="?filter=month">1 Month</a></li>
-                    <li><a class="dropdown-item py-2 px-3 {% if filter_type == 'year' %}active{% endif %}" href="?filter=year">1 Year</a></li>
-                    <li><a class="dropdown-item py-2 px-3 {% if filter_type == 'all' %}active{% endif %}" href="?filter=all">All</a></li>
-                    <li><hr class="dropdown-divider mx-3"></li>
-                    <li>
-                        <a id="customRangeToggle" class="dropdown-item py-2 px-3 {% if filter_type == 'custom' %}active{% endif %}" href="#">Custom Range</a>
-                    </li>
-                    <li id="customDatePicker" style="display: {% if filter_type == 'custom' %}block{% else %}none{% endif %};" onclick="event.stopPropagation()">
-                        <div class="px-3 py-2">
-                            <form id="customDateForm" method="get" class="d-flex flex-column gap-2">
-                                <input type="hidden" name="filter" value="custom">
-                                <label class="small text-muted mb-0">Start Date</label>
-                                <input type="date" name="start_date" id="start_date" class="form-control form-control-sm" value="{{ start_date }}" required>
-                                <label class="small text-muted mb-0">End Date</label>
-                                <input type="date" name="end_date" id="end_date" class="form-control form-control-sm" value="{{ end_date }}" required>
-                                <button type="submit" class="btn btn-primary btn-sm rounded-pill mt-1">Apply Range</button>
-                            </form>
-                        </div>
-                    </li>
-                </ul>
-            </div>
+{% block content %}
+
+<style>
+    :root {
+        --font-display: 'Barlow Condensed', sans-serif;
+        --font-body:    'Barlow', sans-serif;
+        --del-green:  #16a34a;
+        --del-amber:  #d97706;
+        --del-red:    #dc2626;
+        --del-blue:   #2563eb;
+    }
+
+    /* ── Page Header ─────────────────────────────── */
+    .del-page-header {
+        margin-bottom: 1.5rem;
+        margin-top: 0.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--color-border);
+        position: relative;
+    }
+
+    .del-page-header::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 48px;
+        height: 2px;
+        background: var(--del-green);
+    }
+
+    .del-header-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+    }
+
+    .del-page-title {
+        font-family: var(--font-display);
+        font-size: 1.6rem;
+        font-weight: 800;
+        letter-spacing: -0.3px;
+        color: var(--color-text);
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        white-space: nowrap;
+    }
+
+    .del-page-title .title-icon { color: var(--del-green); }
+
+    .del-count-pill {
+        font-family: var(--font-body);
+        font-size: 0.62rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        background: rgba(22, 163, 74, 0.1);
+        color: var(--del-green);
+        padding: 2px 8px;
+        border-radius: 20px;
+        border: 1px solid rgba(22, 163, 74, 0.2);
+        align-self: center;
+    }
+
+    /* ── Controls Row ────────────────────────────── */
+    .del-controls {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    /* Search */
+    .del-search-wrap {
+        position: relative;
+        flex: 1;
+        min-width: 0;
+    }
+
+    .del-search-wrap .search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--color-text-muted);
+        font-size: 0.75rem;
+        pointer-events: none;
+    }
+
+    .del-search-input {
+        width: 100%;
+        border: 1px solid var(--color-border);
+        border-radius: 999px;
+        background: var(--color-card);
+        font-family: var(--font-body);
+        font-size: 0.8rem;
+        color: var(--color-text);
+        padding: 7px 14px 7px 32px;
+        outline: none;
+        transition: border-color 0.15s, box-shadow 0.15s;
+        box-shadow: 0 1px 3px var(--color-shadow);
+    }
+
+    .del-search-input:focus {
+        border-color: var(--del-blue);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+    }
+
+    .del-search-input::placeholder { color: var(--color-text-muted); }
+
+    /* Filter Button */
+    .del-filter-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: var(--color-card);
+        border: 1px solid var(--color-border);
+        border-radius: 999px;
+        padding: 7px 12px;
+        font-family: var(--font-body);
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--color-text);
+        cursor: pointer;
+        box-shadow: 0 1px 3px var(--color-shadow);
+        white-space: nowrap;
+        flex-shrink: 0;
+        transition: border-color 0.15s;
+    }
+
+    .del-filter-btn:hover { border-color: var(--del-blue); }
+    .del-filter-btn .bi-funnel { font-size: 0.72rem; color: var(--color-text-muted); }
+    .del-filter-btn .bi-chevron-down { font-size: 0.6rem; opacity: 0.5; }
+
+    /* Filter Dropdown */
+    .del-dropdown-menu {
+        border-radius: 12px;
+        border: 1px solid var(--color-border);
+        box-shadow: 0 8px 32px rgba(0,0,0,0.12);
+        padding: 6px;
+        min-width: 175px;
+        margin-top: 6px !important;
+    }
+
+    .del-dropdown-menu .dropdown-item {
+        border-radius: 8px;
+        font-family: var(--font-body);
+        font-size: 0.8rem;
+        font-weight: 500;
+        padding: 7px 12px;
+        color: var(--color-text);
+        transition: background 0.1s;
+    }
+
+    .del-dropdown-menu .dropdown-item:hover,
+    .del-dropdown-menu .dropdown-item.active {
+        background: rgba(37, 99, 235, 0.07);
+        color: var(--del-blue);
+    }
+
+    .del-dropdown-menu .dropdown-divider { margin: 4px 8px; }
+
+    /* Custom date inputs */
+    .del-dropdown-menu .form-control-sm {
+        font-family: var(--font-body);
+        font-size: 0.78rem;
+        border-radius: 8px;
+    }
+</style>
+
+<div class="del-page-header">
+    <div class="del-header-top">
+        <div class="del-page-title">
+            <i class="bi bi-check-circle-fill title-icon"></i>
+            Delivered
+            <span class="del-count-pill">Completed</span>
         </div>
     </div>
 
-    <!-- Results Container -->
-    <div id="resultsContainer">
-        {% include "workshop/delivered/delivered_list_partial.html" %}
+    <!-- Controls: Search + Filter -->
+    <div class="del-controls">
+        <form id="deliveredSearchForm" class="del-search-wrap">
+            <i class="bi bi-search search-icon"></i>
+            <input type="text" id="deliveredSearch" name="q"
+                   class="del-search-input"
+                   placeholder="Search reg, brand, customer…"
+                   value="{{ q }}" autocomplete="off">
+        </form>
+
+        <div class="dropdown">
+            <button id="filterDropdownBtn" class="del-filter-btn" type="button"
+                    data-bs-toggle="dropdown">
+                <i class="bi bi-funnel"></i>
+                <span id="filterLabel">
+                    {% if filter_type == 'today' %}Today
+                    {% elif filter_type == 'week' %}1 Week
+                    {% elif filter_type == 'month' %}1 Month
+                    {% elif filter_type == 'year' %}1 Year
+                    {% elif filter_type == 'custom' %}{% if start_date and end_date %}{{ start_date }} – {{ end_date }}{% else %}Custom{% endif %}
+                    {% else %}All Time{% endif %}
+                </span>
+                <i class="bi bi-chevron-down"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end del-dropdown-menu">
+                <li><a class="dropdown-item {% if filter_type == 'today' %}active{% endif %}" href="?filter=today">Today</a></li>
+                <li><a class="dropdown-item {% if filter_type == 'week' %}active{% endif %}"  href="?filter=week">1 Week</a></li>
+                <li><a class="dropdown-item {% if filter_type == 'month' %}active{% endif %}" href="?filter=month">1 Month</a></li>
+                <li><a class="dropdown-item {% if filter_type == 'year' %}active{% endif %}"  href="?filter=year">1 Year</a></li>
+                <li><a class="dropdown-item {% if filter_type == 'all' %}active{% endif %}"   href="?filter=all">All Time</a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a id="customRangeToggle" class="dropdown-item {% if filter_type == 'custom' %}active{% endif %}" href="#">Custom Range</a></li>
+                <li id="customDatePicker"
+                    style="display: {% if filter_type == 'custom' %}block{% else %}none{% endif %};"
+                    onclick="event.stopPropagation()">
+                    <div class="px-2 pt-2 pb-1">
+                        <form id="customDateForm" method="get" class="d-flex flex-column gap-2">
+                            <input type="hidden" name="filter" value="custom">
+                            <label class="small text-muted mb-0" style="font-size:0.7rem; font-family: var(--font-body);">Start</label>
+                            <input type="date" name="start_date" id="start_date" class="form-control form-control-sm" value="{{ start_date }}" required>
+                            <label class="small text-muted mb-0" style="font-size:0.7rem; font-family: var(--font-body);">End</label>
+                            <input type="date" name="end_date" id="end_date" class="form-control form-control-sm" value="{{ end_date }}" required>
+                            <button type="submit" class="btn btn-primary btn-sm rounded-pill mt-1" style="font-family: var(--font-body); font-weight: 600;">Apply</button>
+                        </form>
+                    </div>
+                </li>
+            </ul>
+        </div>
     </div>
 </div>
 
+<!-- Results -->
+<div id="resultsContainer">
+    {% include "workshop/delivered/delivered_list_partial.html" %}
+</div>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const searchInput = document.getElementById('deliveredSearch');
-        const searchForm = document.getElementById('deliveredSearchForm');
-        const resultsContainer = document.getElementById('resultsContainer');
-        let currentFilter = '{{ filter_type }}';
-        let debounceTimer;
+document.addEventListener('DOMContentLoaded', function () {
+    const searchInput      = document.getElementById('deliveredSearch');
+    const searchForm       = document.getElementById('deliveredSearchForm');
+    const resultsContainer = document.getElementById('resultsContainer');
+    let currentFilter = '{{ filter_type }}';
+    let debounceTimer;
 
-        function updateResults(q, page = 1, event = null) {
-            if (event && event.type === 'submit') event.preventDefault();
-            const url = new URL(window.location.href);
-            url.searchParams.set('q', q);
-            url.searchParams.set('filter', currentFilter);
-            url.searchParams.set('page', page);
-
-            // Preserve custom date range if active
+    function updateResults(q, page = 1, event = null) {
+        if (event && event.type === 'submit') event.preventDefault();
+        const url = new URL(window.location.href);
+        url.searchParams.set('q', q);
+        url.searchParams.set('filter', currentFilter);
+        url.searchParams.set('page', page);
+        if (currentFilter === 'custom') {
+            const s = document.getElementById('start_date').value;
+            const e = document.getElementById('end_date').value;
+            if (s) url.searchParams.set('start_date', s);
+            if (e) url.searchParams.set('end_date', e);
+        } else {
+            url.searchParams.delete('start_date');
+            url.searchParams.delete('end_date');
+        }
+        const labelMap = { today: 'Today', week: '1 Week', month: '1 Month', year: '1 Year', all: 'All Time' };
+        const label = document.getElementById('filterLabel');
+        if (label) {
             if (currentFilter === 'custom') {
-                const startDate = document.getElementById('start_date').value;
-                const endDate = document.getElementById('end_date').value;
-                if (startDate) url.searchParams.set('start_date', startDate);
-                if (endDate) url.searchParams.set('end_date', endDate);
+                const s = document.getElementById('start_date')?.value;
+                const e = document.getElementById('end_date')?.value;
+                label.textContent = (s && e) ? `${s} – ${e}` : 'Custom';
             } else {
-                url.searchParams.delete('start_date');
-                url.searchParams.delete('end_date');
+                label.textContent = labelMap[currentFilter] || 'All Time';
             }
-
-            // Update Label text
-            const labelMap = {
-                'today': 'Today',
-                'week': '1 Week',
-                'month': '1 Month',
-                'year': '1 Year',
-                'all': 'All'
-            };
-            const label = document.getElementById('filterLabel');
-            if (label) {
-                if (currentFilter === 'custom') {
-                    const startDate = document.getElementById('start_date').value;
-                    const endDate = document.getElementById('end_date').value;
-                    label.textContent = (startDate && endDate) ? `${startDate} - ${endDate}` : 'Custom';
-                } else if (labelMap[currentFilter]) {
-                    label.textContent = labelMap[currentFilter];
-                }
-            }
-
-            // Sync Dropdown Active Class
-            document.querySelectorAll('.dropdown-menu a.dropdown-item').forEach(item => {
-                const href = item.getAttribute('href');
-                if (href && href.includes('filter=')) {
-                    const params = new URLSearchParams(href.split('?')[1]);
-                    if (params.get('filter') === currentFilter) {
-                        item.classList.add('active');
-                    } else {
-                        item.classList.remove('active');
-                    }
-                }
-            });
-
-            const delay = (event && event.type === 'submit') ? 0 : 300;
-            if (debounceTimer) clearTimeout(debounceTimer);
-
-            debounceTimer = setTimeout(() => {
-                fetch(url, {
-                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
-                })
+        }
+        const delay = (event && event.type === 'submit') ? 0 : 300;
+        if (debounceTimer) clearTimeout(debounceTimer);
+        debounceTimer = setTimeout(() => {
+            fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
                 .then(res => res.text())
                 .then(html => {
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(html, 'text/html');
-                    const newContent = doc.body.innerHTML;
-                    resultsContainer.innerHTML = newContent;
-                    
-                    // Update URL without reload
+                    resultsContainer.innerHTML = html;
                     window.history.pushState({}, '', url);
-                })
-                .catch(err => console.error('Search error:', err));
-            }, delay);
-        }
+                }).catch(err => console.error('Search error:', err));
+        }, delay);
+    }
 
-        searchInput.addEventListener('input', function() {
-            updateResults(this.value);
-        });
+    searchInput.addEventListener('input', function () { updateResults(this.value); });
+    searchForm.addEventListener('submit', function (e) { updateResults(searchInput.value, 1, e); });
 
-        searchForm.addEventListener('submit', function(e) {
-            updateResults(searchInput.value, 1, e);
-        });
-
-        // Handle pagination clicks within the partial
-        resultsContainer.addEventListener('click', function(e) {
-            const link = e.target.closest('.page-link');
-            if (link && !link.parentElement.classList.contains('disabled')) {
-                e.preventDefault();
-                const url = new URL(link.href);
-                const page = url.searchParams.get('page');
-                const q = searchInput.value || ''; // Get current search query
-                updateResults(q, page);
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-            }
-        });
-
-        // Update currentFilter when filter dropdown items are clicked
-        document.querySelectorAll('.dropdown-menu a.dropdown-item').forEach(item => {
-            item.addEventListener('click', function(e) {
-                const href = this.getAttribute('href');
-                if (href && href.includes('filter=')) {
-                    const params = new URLSearchParams(href.split('?')[1]);
-                    const newFilter = params.get('filter');
-                    
-                    if (newFilter && newFilter !== 'custom') { 
-                        e.preventDefault();
-                        currentFilter = newFilter;
-                        updateResults(searchInput.value);
-                    }
-                }
-            });
-        });
-
-        // Close the dropdown when clicking the "Custom Range" link
-        const customToggle = document.getElementById('customRangeToggle');
-        if (customToggle) {
-            customToggle.addEventListener('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                const picker = document.getElementById('customDatePicker');
-                if (picker) {
-                    picker.style.display = (picker.style.display === 'none') ? 'block' : 'none';
-                }
-            });
-        }
-
-        // Handle the custom date form submission
-        const customForm = document.getElementById('customDateForm');
-        if (customForm) {
-            customForm.addEventListener('submit', function(e) {
-                e.preventDefault();
-                const startDate = document.getElementById('start_date').value;
-                const endDate = document.getElementById('end_date').value;
-                
-                if (startDate && endDate) {
-                    currentFilter = 'custom';
-                    updateResults(searchInput.value, 1);
-                    
-                    // Close the dropdown (specifically the date filter one)
-                    const dropdownEl = document.getElementById('filterDropdownBtn');
-                    const dropdown = bootstrap.Dropdown.getInstance(dropdownEl);
-                    if (dropdown) dropdown.hide();
-                }
-            });
+    resultsContainer.addEventListener('click', function (e) {
+        const link = e.target.closest('.page-link');
+        if (link && !link.parentElement.classList.contains('disabled')) {
+            e.preventDefault();
+            const url = new URL(link.href);
+            updateResults(searchInput.value || '', url.searchParams.get('page'));
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     });
+
+    document.querySelectorAll('.del-dropdown-menu a.dropdown-item').forEach(item => {
+        item.addEventListener('click', function (e) {
+            const href = this.getAttribute('href');
+            if (href && href.includes('filter=')) {
+                const params = new URLSearchParams(href.split('?')[1]);
+                const newFilter = params.get('filter');
+                if (newFilter && newFilter !== 'custom') {
+                    e.preventDefault();
+                    currentFilter = newFilter;
+                    updateResults(searchInput.value);
+                }
+            }
+        });
+    });
+
+    const customToggle = document.getElementById('customRangeToggle');
+    if (customToggle) {
+        customToggle.addEventListener('click', function (e) {
+            e.preventDefault(); e.stopPropagation();
+            const picker = document.getElementById('customDatePicker');
+            if (picker) picker.style.display = picker.style.display === 'none' ? 'block' : 'none';
+        });
+    }
+
+    const customForm = document.getElementById('customDateForm');
+    if (customForm) {
+        customForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const s  = document.getElementById('start_date').value;
+            const en = document.getElementById('end_date').value;
+            if (s && en) {
+                currentFilter = 'custom';
+                updateResults(searchInput.value, 1);
+                const dropdownEl = document.getElementById('filterDropdownBtn');
+                const dropdown   = bootstrap.Dropdown.getInstance(dropdownEl);
+                if (dropdown) dropdown.hide();
+            }
+        });
+    }
+});
 </script>
 
-<style>
-    .delivered-title {
-        font-size: 1.5rem;
-        white-space: nowrap;
-    }
-    @media (max-width: 576px) {
-        .delivered-title {
-            font-size: 1.15rem;
-            width: 100%;
-            margin-bottom: 0.25rem !important;
-        }
-        .search-form-mobile {
-            flex-grow: 1;
-            order: 2;
-            min-width: 0;
-        }
-        .filter-container-mobile {
-            order: 3;
-            flex-shrink: 0;
-        }
-        #filterDropdownBtn {
-            font-size: 0.8rem !important;
-            padding: 8px 12px !important;
-        }
-    }
-    @media (min-width: 577px) {
-        .search-form-mobile {
-            max-width: 400px;
-        }
-    }
-    .card {
-        border: 1px solid var(--color-border) !important;
-        transition: transform 0.2s, box-shadow 0.2s;
-        border-radius: 16px;
-    }
-    .hover-up:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 24px rgba(0,0,0,0.12) !important;
-    }
-    .reg-badge {
-        background-color: var(--color-primary) !important;
-        color: white !important;
-        padding: 0.25rem 0.6rem !important;
-        font-weight: 700 !important;
-        font-size: 0.75rem !important;
-        letter-spacing: 0.5px !important;
-        border-radius: 6px;
-    }
-</style>
 {% endblock %}

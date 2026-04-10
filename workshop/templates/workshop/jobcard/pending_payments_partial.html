@@ -1,48 +1,287 @@
+{% load custom_filters %}
+
+<style>
+    :root {
+        --font-display: 'Barlow Condensed', sans-serif;
+        --font-body:    'Barlow', sans-serif;
+    }
+
+    /* ── Pending Card ────────────────────────────── */
+    .pp-card {
+        background: var(--color-card);
+        border-radius: 12px;
+        border: 1px solid var(--color-border);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.05), 0 4px 12px rgba(0,0,0,0.04);
+        position: relative;
+        display: flex;
+        flex-direction: row;
+        text-decoration: none;
+        color: inherit;
+        height: 100%;
+        transition: box-shadow 0.2s;
+        /* No overflow:hidden — prevents dropdown clipping */
+    }
+
+    .pp-card:hover {
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        text-decoration: none;
+        color: inherit;
+    }
+
+    /* ── Left car colour stripe — TITAN WIDE IDENTITY ─────────────────── */
+    .pp-stripe {
+        width: 10px; /* Increased to Titan Standard */
+        flex-shrink: 0;
+        background: var(--stripe-color, #e2e8f0);
+        border-top-left-radius: 12px;
+        border-bottom-left-radius: 12px;
+    }
+
+    .pp-stripe.stripe-unset {
+        background: repeating-linear-gradient(
+            -45deg,
+            #e2e8f0 0px, #e2e8f0 3px,
+            #f8fafc 3px, #f8fafc 8px
+        );
+    }
+
+    .pp-stripe.stripe-white {
+        background: #f8fafc;
+        box-shadow: inset -1px 0 0 #e2e8f0, inset 1px 0 0 #e2e8f0;
+    }
+
+    /* ── Card body ───────────────────────────────── */
+    .pp-body {
+        flex: 1;
+        padding: 0.9rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        min-width: 0;
+    }
+
+    /* Top row: status badge + date */
+    .pp-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .pp-status-badge {
+        font-family: var(--font-body);
+        font-size: 0.58rem;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        padding: 2px 8px;
+        border-radius: 20px;
+    }
+
+    .pp-badge-pending { background: rgba(220,38,38,0.08);  color: #dc2626; border: 1px solid rgba(220,38,38,0.2); }
+    .pp-badge-partial { background: rgba(217,119,6,0.1);   color: #d97706; border: 1px solid rgba(217,119,6,0.25); }
+
+    .pp-date {
+        font-family: var(--font-body);
+        font-size: 0.68rem;
+        font-weight: 500;
+        color: var(--color-text-muted);
+    }
+
+    /* Vehicle name */
+    .pp-vehicle {
+        font-family: var(--font-display);
+        font-size: 1.3rem; /* Slightly larger for impact */
+        font-weight: 800;
+        letter-spacing: 0.2px;
+        color: var(--color-text);
+        line-height: 1.1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    /* Reg Badge below Car Name */
+    .pp-reg-row {
+        margin-top: -2px;
+        margin-bottom: 4px;
+    }
+
+    .pp-reg {
+        font-family: var(--font-display);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        padding: 2px 8px;
+        background: #f1f5f9;
+        border: 1px solid #cbd5e1;
+        border-radius: 4px;
+        color: #334155;
+        white-space: nowrap;
+        display: inline-block;
+    }
+
+    .pp-customer {
+        font-family: var(--font-body);
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: var(--color-text-muted);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        margin-bottom: 6px;
+    }
+
+    .pp-customer i { font-size: 0.65rem; flex-shrink: 0; }
+
+    /* ── Financials block ────────────────────────── */
+    .pp-financials {
+        background: #f8fafc;
+        border: 1px solid #f1f5f9;
+        border-radius: 8px;
+        padding: 9px 12px;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        margin-top: 2px;
+    }
+
+    .pp-fin-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 4px 0;
+    }
+
+    .pp-fin-row + .pp-fin-row {
+        border-top: 1px dashed #e2e8f0;
+    }
+
+    .pp-fin-label {
+        font-family: var(--font-body);
+        font-size: 0.62rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: #94a3b8;
+    }
+
+    .pp-fin-value {
+        font-family: var(--font-display);
+        font-size: 1rem;
+        font-weight: 800;
+        color: var(--color-text);
+        letter-spacing: 0.3px;
+    }
+
+    .pp-fin-value.success { color: #16a34a; }
+    .pp-fin-value.danger { color: #dc2626; }
+
+    /* ── Empty State ─────────────────────────────── */
+    .pp-empty {
+        background: var(--color-card);
+        border: 1px solid var(--color-border);
+        border-radius: 14px;
+        padding: 3.5rem 1rem;
+        text-align: center;
+    }
+
+    .pp-empty .empty-icon {
+        font-size: 3rem;
+        color: #22c55e;
+        opacity: 0.5;
+        display: block;
+        margin-bottom: 1rem;
+    }
+
+    .pp-empty h5 {
+        font-family: var(--font-display);
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #64748b;
+        margin-bottom: 0.4rem;
+    }
+
+    .pp-empty p {
+        font-family: var(--font-body);
+        font-size: 0.85rem;
+        color: #94a3b8;
+        margin-bottom: 0;
+    }
+</style>
+
+{% if pending_jobs %}
 <div class="row g-3">
     {% for job in pending_jobs %}
+    {% with color=job.get_car_color_hex|default:'#475569' %}
     <div class="col-12 col-md-6 col-lg-4">
-        <div class="job-card shadow-sm h-100 position-relative {% if job.payment_status == 'PARTIAL' %}border-warning{% else %}border-danger{% endif %}">
-            <a href="{% url 'invoice_view' job.pk %}?back={{ request.get_full_path|urlencode }}" class="text-decoration-none card-link">
-                <div class="card-body p-3">
-                    <div class="d-flex justify-content-between mb-2">
-                        <span class="badge {% if job.payment_status == 'PARTIAL' %}bg-warning{% else %}bg-danger{% endif %}">
-                            {{ job.get_payment_status_display }}
-                        </span>
-                        <small class="text-muted">{{ job.updated_at|date:"d M, Y" }}</small>
-                    </div>
+        <a href="{% url 'invoice_view' job.pk %}?back={{ request.get_full_path|urlencode }}" class="pp-card"
+           style="--card-glow: {{ color }}22;">
 
-                    <h5 class="card-title fw-bold mb-1" style="color: var(--color-primary);">
-                        {{ job.brand_name }} {{ job.model_name }}
-                    </h5>
-                    <div class="customer-name small mb-3">
-                        <i class="bi bi-person me-1"></i> {{ job.customer_name }}
-                    </div>
+            <!-- Left stripe — car colour, same logic as floor dashboard -->
+            <div class="pp-stripe
+                {% if not job.car_color %}stripe-unset
+                {% elif job.car_color == 'White' %}stripe-white
+                {% endif %}"
+                style="--stripe-color: {{ color }};"></div>
 
-                    <div class="p-2 bg-light rounded d-flex justify-content-between align-items-center mb-1">
-                        <span class="small text-muted">Total Bill:</span>
-                        <span class="fw-bold">₹{{ job.total_bill|floatformat:2 }}</span>
-                    </div>
-                    <div class="p-2 bg-light rounded d-flex justify-content-between align-items-center mb-2">
-                        <span class="small text-muted text-danger">Balance:</span>
-                        <span class="fw-bold text-danger">₹{{ job.balance_amount|floatformat:2 }}</span>
-                    </div>
+            <div class="pp-body">
 
-                    <div class="reg-badge fw-bold px-2 py-1 mt-2">
-                        {{ job.registration_number }}
+                <!-- Status + Date -->
+                <div class="pp-top">
+                    {% if job.payment_status == 'PARTIAL' %}
+                        <span class="pp-status-badge pp-badge-partial">Partial</span>
+                    {% else %}
+                        <span class="pp-status-badge pp-badge-pending">Pending</span>
+                    {% endif %}
+                    <span class="pp-date">{{ job.updated_at|date:"d M, Y" }}</span>
+                </div>
+
+                <!-- Vehicle name -->
+                <div class="pp-vehicle">{{ job.brand_name }} {{ job.model_name }}</div>
+
+                <!-- Registration — TITAN HIERARCHY -->
+                <div class="pp-reg-row">
+                    <span class="pp-reg">{{ job.registration_number }}</span>
+                </div>
+
+                <!-- Customer -->
+                <div class="pp-customer">
+                    <i class="bi bi-person"></i>
+                    {{ job.customer_name|default:"—" }}
+                </div>
+
+                <!-- Financials -->
+                <div class="pp-financials">
+                    <div class="pp-fin-row">
+                        <span class="pp-fin-label">Total Bill</span>
+                        <span class="pp-fin-value">₹{{ job.total_bill|floatformat:2 }}</span>
+                    </div>
+                    {% if job.received_amount > 0 %}
+                    <div class="pp-fin-row">
+                        <span class="pp-fin-label">Received</span>
+                        <span class="pp-fin-value success">₹{{ job.received_amount|floatformat:2 }}</span>
+                    </div>
+                    {% endif %}
+                    <div class="pp-fin-row">
+                        <span class="pp-fin-label">Balance Due</span>
+                        <span class="pp-fin-value danger">₹{{ job.balance_amount|floatformat:2 }}</span>
                     </div>
                 </div>
-            </a>
-        </div>
+
+            </div>
+        </a>
     </div>
-    {% empty %}
-    <div class="col-12 text-center py-5">
-        <div class="mb-3 text-success" style="opacity: 0.5;">
-            <i class="bi bi-check-circle-fill display-1"></i>
-        </div>
-        <p class="text-muted">No pending bills! All clear.</p>
-    </div>
+    {% endwith %}
     {% endfor %}
 </div>
 
-<!-- Pagination Controls (Reusable) -->
 {% include 'workshop/includes/pagination.html' %}
+
+{% else %}
+<div class="pp-empty">
+    <i class="bi bi-check-circle-fill empty-icon"></i>
+    <h5>All clear!</h5>
+    <p>No pending bills right now.</p>
+</div>
+{% endif %}

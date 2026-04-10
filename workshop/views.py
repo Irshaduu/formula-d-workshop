@@ -843,13 +843,16 @@ def pending_payments_list(request):
         payment_status__in=['PENDING', 'PARTIAL']
     )
 
-    # 2. AJAX Search (Registration or Customer Name)
-    q = request.GET.get('q', '').strip()
+    # 2. AJAX Search (Smart Reset: Clear on full refresh)
+    is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
+    q = request.GET.get('q', '').strip() if is_ajax else ''
     if q:
         for word in q.split():
             pending_jobs = pending_jobs.filter(
                 Q(registration_number__icontains=word) |
-                Q(customer_name__icontains=word)
+                Q(customer_name__icontains=word) |
+                Q(brand_name__icontains=word) |
+                Q(model_name__icontains=word)
             )
 
     # 3. SQL Annotations (The Scale Optimizer)

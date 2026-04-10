@@ -1,179 +1,373 @@
-<style>
-    .job-card {
-        padding: 0 !important;
-        border-radius: 12px !important;
-        overflow: hidden !important;
-        background: var(--color-surface) !important;
-        border: 1px solid var(--color-border) !important;
-        transition: transform 0.2s, box-shadow 0.2s;
-    }
-    .job-card:hover {
-        transform: translateY(-3px);
-        box-shadow: 0 10px 30px rgba(0,0,0,0.2) !important;
-    }
-    .status-ribbon {
-        width: 5px;
-        position: absolute;
-        left: 0;
-        top: 0;
-        bottom: 0;
-        z-index: 5;
-    }
-    .ribbon-active { 
-        background-color: #28a745; 
-        box-shadow: 2px 0 10px rgba(40, 167, 69, 0.3);
-    }
-    .ribbon-delivered { background-color: #ffc107; }
-    .ribbon-billed { background-color: #dc3545; }
+{% load custom_filters %}
 
-    .color-square {
-        width: 14px;
-        height: 14px;
-        border-radius: 2px;
-        display: inline-block;
-        vertical-align: middle;
-        border: 1px solid rgba(0,0,0,0.1);
-        margin-top: -3px;
+<style>
+    :root {
+        --font-display: 'Barlow Condensed', sans-serif;
+        --font-body:    'Barlow', sans-serif;
     }
-    .registration-plate {
-        font-size: 0.75rem;
-        letter-spacing: 0.5px;
-        background: rgba(52, 152, 219, 0.1);
-        color: #3498db;
-        border: 1px solid rgba(52, 152, 219, 0.2);
-        border-radius: 4px;
+
+    /* ── Job Card ────────────────────────────────── */
+    .jl-card {
+        background: var(--color-card);
+        border-radius: 12px;
+        border: 1px solid var(--color-border);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.05), 0 4px 12px rgba(0,0,0,0.04);
+        position: relative;
+        /* Removed overflow:hidden to prevent dropdown clipping */
+        display: flex;
+        flex-direction: row; /* Horizontal layout for left stripe */
+        height: 100%;
+        transition: box-shadow 0.2s;
+    }
+
+    .jl-card:hover {
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    /* Left car colour stripe (matches Dashboard standards) */
+    .jl-stripe {
+        width: 10px; /* Increased from 6px */
+        flex-shrink: 0;
+        background: var(--stripe-color, #e2e8f0);
+        border-top-left-radius: 12px;
+        border-bottom-left-radius: 12px;
+    }
+    /* No colour assigned — diagonal racing hatch */
+    .jl-stripe.stripe-unset {
+        background: repeating-linear-gradient(
+            -45deg,
+            #e2e8f0 0px, #e2e8f0 3px,
+            #f8fafc 3px, #f8fafc 8px
+        );
+    }
+
+    /* White car contrast — TITAN STANDARD */
+    .jl-stripe.stripe-white {
+        background: #f8fafc;
+        box-shadow: inset -1px 0 0 #e2e8f0, inset 1px 0 0 #e2e8f0;
+    }
+
+    /* Hold state — Zero impact on container (Identity Purity) */
+    .jl-card.on-hold-card .jl-stripe {
+        width: 10px;
+        background: var(--stripe-color, #e2e8f0);
+    }
+
+    /* Card body */
+    .jl-body {
+        padding: 0.9rem 1rem;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+        min-width: 0;
+    }
+
+    /* Top row: reg + 3-dot */
+    .jl-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .jl-reg {
+        font-family: var(--font-display);
+        font-size: 0.7rem;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
         padding: 2px 8px;
-        font-weight: 800;
-        text-transform: uppercase;
-    }
-    .status-badge {
-        font-size: 0.6rem;
-        font-weight: 800;
-        letter-spacing: 0.5px;
-        padding: 2px 6px;
+        background: #f1f5f9;
+        border: 1px solid #cbd5e1;
         border-radius: 4px;
-        text-transform: uppercase;
-        display: inline-block;
+        color: #334155;
+        white-space: nowrap;
     }
-    .status-active-badge { 
-        background-color: rgba(40, 167, 169, 0.1); 
-        color: #28a745; 
-        border: 1px solid rgba(40, 167, 169, 0.2);
+
+    /* 3-dot button */
+    .jl-dots-btn {
+        background: none;
+        border: none;
+        color: #94a3b8;
+        padding: 3px 5px;
+        border-radius: 6px;
+        cursor: pointer;
+        line-height: 1;
+        transition: background 0.15s, color 0.15s;
+        flex-shrink: 0;
     }
-    .status-delivered-badge { 
-        background-color: rgba(255, 193, 7, 0.1); 
-        color: #ffc107; 
-        border: 1px solid rgba(255, 193, 7, 0.2);
+
+    .jl-dots-btn:hover {
+        background: #f1f5f9;
+        color: #1e293b;
     }
-    .status-billed-badge { 
-        background-color: rgba(220, 53, 69, 0.1); 
-        color: #dc3545; 
-        border: 1px solid rgba(220, 53, 69, 0.2);
+
+    /* Larger tap target for mobile "Pit Master" usage */
+    @media (max-width: 768px) {
+        .jl-dots-btn {
+            padding: 8px 10px;
+            font-size: 1.2rem;
+        }
     }
-    .action-dots {
+
+    /* Vehicle name */
+    .jl-vehicle {
+        font-family: var(--font-display);
+        font-size: 1.2rem;
+        font-weight: 800;
+        letter-spacing: 0.2px;
+        color: var(--color-text);
+        line-height: 1.1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        text-decoration: none;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+    .jl-vehicle:hover { color: #2563eb; text-decoration: none; }
+
+    /* Car colour dot */
+    .jl-color-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 2px;
+        border: 1px solid rgba(0,0,0,0.1);
+        flex-shrink: 0;
+    }
+
+    /* Footer */
+    .jl-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        border-top: 1px dashed var(--color-border);
+        padding-top: 8px;
+        margin-top: auto;
+    }
+
+    .jl-meta {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .jl-meta-item {
+        font-family: var(--font-body);
+        font-size: 0.69rem;
+        font-weight: 500;
         color: var(--color-text-muted);
-        opacity: 0.5;
-        transition: opacity 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 4px;
     }
-    .action-dots:hover {
-        opacity: 1;
-        color: var(--color-primary);
+
+    .jl-meta-item i { font-size: 0.65rem; }
+
+    /* Status + customer block */
+    .jl-status-block {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 3px;
+    }
+
+    .jl-customer {
+        font-family: var(--font-body);
+        font-size: 0.62rem;
+        font-weight: 600;
+        color: var(--color-text-muted);
+        text-align: right;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        max-width: 110px;
+    }
+
+    /* Status badge */
+    .jl-status-badge {
+        font-family: var(--font-body);
+        font-size: 0.58rem;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        padding: 2px 8px;
+        border-radius: 20px;
+        white-space: nowrap;
+    }
+
+    .jl-badge-active    { background: rgba(22,163,74,0.1);  color: #16a34a; border: 1px solid rgba(22,163,74,0.25); }
+    .jl-badge-delivered { background: rgba(217,119,6,0.1);  color: #d97706; border: 1px solid rgba(217,119,6,0.25); }
+    .jl-badge-billed    { background: rgba(37,99,235,0.08); color: #2563eb; border: 1px solid rgba(37,99,235,0.2); }
+
+    /* Dropdown */
+    .jl-dropdown-menu {
+        border-radius: 10px;
+        border: 1px solid var(--color-border);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        padding: 0.35rem 0;
+        min-width: 155px;
+        z-index: 1050;
+    }
+
+    .jl-dropdown-menu .dropdown-item {
+        font-family: var(--font-body);
+        font-size: 0.8rem;
+        font-weight: 500;
+        padding: 7px 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: background 0.1s;
+    }
+
+    .jl-dropdown-menu .dropdown-item:hover     { background: #f8fafc; }
+    .jl-dropdown-menu .dropdown-item.text-danger { color: #dc2626 !important; }
+    .jl-dropdown-menu .dropdown-divider        { margin: 0.2rem 0; border-color: #f1f5f9; }
+
+    /* ── Empty State ─────────────────────────────── */
+    .jl-empty {
+        background: var(--color-card);
+        border: 1px solid var(--color-border);
+        border-radius: 14px;
+        padding: 3.5rem 1rem;
+        text-align: center;
+    }
+
+    .jl-empty .empty-icon {
+        font-size: 3rem;
+        color: #cbd5e1;
+        display: block;
+        margin-bottom: 1rem;
+    }
+
+    .jl-empty h5 {
+        font-family: var(--font-display);
+        font-size: 1.3rem;
+        font-weight: 700;
+        color: #64748b;
+        margin-bottom: 0.4rem;
+    }
+
+    .jl-empty p {
+        font-family: var(--font-body);
+        font-size: 0.85rem;
+        color: #94a3b8;
+        margin-bottom: 1rem;
     }
 </style>
 
 <div id="job-count-data" data-count="{{ jobcards.paginator.count }}" style="display:none;"></div>
+
+{% if jobcards %}
 <div class="row g-3">
     {% for job in jobcards %}
+    {% with color=job.get_car_color_hex|default:'#475569' %}
     <div class="col-12 col-md-6 col-lg-4">
-        <div class="job-card shadow-sm h-100 position-relative">
-            <!-- 1. STATUS RIBBON (Left Stripe) -->
-            <div class="status-ribbon {% if job.payment_status == 'PAID' %}ribbon-billed{% elif job.delivered %}ribbon-delivered{% else %}ribbon-active{% endif %}"></div>
+        <div class="jl-card {% if job.on_hold %}on-hold-card{% endif %}">
 
-            <div class="ps-3 p-3 h-100 d-flex flex-column" style="margin-left: 5px;">
-                <!-- 2. HEADER: ID & OPTIONS -->
-                <div class="d-flex justify-content-between align-items-center mb-3 text-nowrap">
-                    <span class="registration-plate">
-                        {{ job.registration_number }}
-                    </span>
+            <!-- Left stripe — actual car colour, like dashboard_home.html -->
+            <div class="jl-stripe
+                {% if not job.car_color %}stripe-unset
+                {% elif job.car_color == 'White' %}stripe-white
+                {% endif %}"
+                style="--stripe-color: {{ color }};"></div>
+
+            <div class="jl-body">
+
+                <!-- Top Row: Vehicle name + 3-dot -->
+                <div class="jl-top">
+                    <a href="{% url 'jobcard_detail' job.pk %}" class="jl-vehicle">
+                        {{ job.brand_name }} {{ job.model_name }}
+                    </a>
                     
                     <div class="dropdown">
-                        <button class="btn btn-link p-0 action-dots text-decoration-none" type="button" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-three-dots-vertical fs-5"></i>
+                        <button class="jl-dots-btn" type="button"
+                                data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-three-dots-vertical"></i>
                         </button>
-                        <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="font-size: 0.85rem; border-radius: 10px; z-index: 1050;">
-                            <li><a class="dropdown-item py-2" href="{% url 'jobcard_detail' job.pk %}"><i class="bi bi-eye me-2"></i>View Job</a></li>
-                            <li><a class="dropdown-item py-2" href="{% url 'invoice_view' job.pk %}" target="_blank"><i class="bi bi-receipt me-2"></i>View Invoice</a></li>
+                        <ul class="dropdown-menu dropdown-menu-end jl-dropdown-menu">
+                            <li>
+                                <a class="dropdown-item" href="{% url 'jobcard_detail' job.pk %}">
+                                    <i class="bi bi-eye"></i> View Job
+                                </a>
+                            </li>
+                            <li>
+                                <a class="dropdown-item" href="{% url 'invoice_view' job.pk %}" target="_blank">
+                                    <i class="bi bi-receipt"></i> View Invoice
+                                </a>
+                            </li>
+                            {% if request.user|has_group:"Office" or request.user|has_group:"Owner" or request.user.is_superuser %}
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item py-2 text-danger" href="{% url 'jobcard_delete' job.pk %}"><i class="bi bi-trash me-2"></i>Delete Record</a></li>
+                            <li>
+                                <a class="dropdown-item text-danger" href="{% url 'jobcard_delete' job.pk %}">
+                                    <i class="bi bi-trash"></i> Delete
+                                </a>
+                            </li>
+                            {% endif %}
                         </ul>
                     </div>
                 </div>
 
-                <!-- 3. CENTERPIECE: VEHICLE (Link Area) -->
-                <a href="{% url 'jobcard_detail' job.pk %}" class="text-decoration-none card-link h-100 d-flex flex-column">
-                    <div class="mb-4">
-                        <h4 class="card-title fw-bold mb-0 text-truncate" style="letter-spacing: -0.5px; color: var(--color-primary); font-size: 1.1rem;">
-                            {% if job.car_color %}
-                            <span class="color-square me-2" style="background-color: {{ job.get_car_color_hex }};"></span>
-                            {% endif %}
-                            {{ job.brand_name }} {{ job.model_name }}
-                        </h4>
+                <!-- Second Row: Registration Number -->
+                <div class="mb-1">
+                    <span class="jl-reg">{{ job.registration_number }}</span>
+                </div>
+
+                <!-- Footer -->
+                <div class="jl-footer">
+                    <div class="jl-meta">
+                        {% if job.lead_mechanic %}
+                        <span class="jl-meta-item">
+                            <i class="bi bi-person"></i>
+                            {{ job.lead_mechanic.name }}
+                        </span>
+                        {% endif %}
+                        <span class="jl-meta-item">
+                            <i class="bi bi-calendar3"></i>
+                            {{ job.updated_at|date:"d M" }}
+                        </span>
                     </div>
 
-                    <!-- 4. FOOTER: METADATA & STATUS -->
-                    <div class="mt-auto pt-3 d-flex justify-content-between align-items-end" style="border-top: 1px dotted var(--color-border-light); opacity: 0.8;">
-                        <div class="d-flex flex-column">
-                            {% if job.lead_mechanic %}
-                            <small class="text-muted mb-1" style="font-size: 0.7rem;">
-                                <i class="bi bi-person me-1"></i> {{ job.lead_mechanic.name }}
-                            </small>
-                            {% endif %}
-                            <small class="text-muted" style="font-size: 0.7rem;">
-                                <i class="bi bi-calendar3 me-1"></i> {{ job.updated_at|date:"d M" }}
-                            </small>
-                        </div>
-                        
-                        <div class="text-end">
-                            {% if job.customer_name and job.customer_name|lower != 'none' %}
-                            <span class="d-block mb-1 text-muted fw-bold" style="font-size: 0.6rem;">
-                                {{ job.customer_name|truncatechars:15 }}
-                            </span>
-                            {% endif %}
-                            
-                            <div class="status-wrap">
-                                {% if job.payment_status == 'PAID' %}
-                                    <span class="status-badge status-billed-badge">BILLED</span>
-                                {% elif job.delivered %}
-                                    <span class="status-badge status-delivered-badge">DELIVERED</span>
-                                {% else %}
-                                    <span class="status-badge status-active-badge">ACTIVE</span>
-                                {% endif %}
-                            </div>
-                        </div>
+                    <div class="jl-status-block">
+                        {% if job.customer_name and job.customer_name|lower != 'none' %}
+                        <span class="jl-customer">{{ job.customer_name|truncatechars:14 }}</span>
+                        {% endif %}
+                        {% if job.payment_status == 'PAID' %}
+                            <span class="jl-status-badge jl-badge-billed">Billed</span>
+                        {% elif job.delivered %}
+                            <span class="jl-status-badge jl-badge-delivered">Delivered</span>
+                        {% else %}
+                            <span class="jl-status-badge jl-badge-active">Active</span>
+                        {% endif %}
                     </div>
-                </a>
+                </div>
+
             </div>
         </div>
     </div>
-    {% empty %}
-    <div class="col-12 text-center py-5">
-        {% if request.GET.q %}
-            <i class="bi bi-search mb-3 d-block" style="font-size: 3rem; color: var(--color-text-muted); opacity: 0.3;"></i>
-            <h5 class="text-muted fw-bold">No matching jobs found</h5>
-            <p class="text-muted small">Try searching for a different registration, brand, or model.</p>
-            <a href="{% url 'jobcard_list' %}" class="btn btn-sm btn-outline-primary rounded-pill px-4 mt-2">
-                Clear Search
-            </a>
-        {% else %}
-            <div class="mb-3" style="color: var(--color-text-muted); opacity: 0.5;">
-                <i class="bi bi-clipboard-data display-1"></i>
-            </div>
-            <p style="color: var(--color-text-muted);" class="mb-3">No job cards found.</p>
-            <a href="{% url 'home' %}" class="btn btn-lg btn-primary">Create First Job</a>
-        {% endif %}
-    </div>
+    {% endwith %}
     {% endfor %}
 </div>
 
-<!-- Pagination Controls (Reusable) -->
 {% include 'workshop/includes/pagination.html' %}
+
+{% else %}
+<div class="jl-empty">
+    {% if request.GET.q %}
+        <i class="bi bi-search empty-icon"></i>
+        <h5>No results found</h5>
+        <p>No jobs matching "{{ request.GET.q }}"</p>
+        <a href="{% url 'jobcard_list' %}" class="btn btn-sm btn-outline-primary rounded-pill px-4"
+           style="font-family: var(--font-body); font-weight: 600;">Clear Search</a>
+    {% else %}
+        <i class="bi bi-clipboard-data empty-icon"></i>
+        <h5>No job cards yet</h5>
+        <p>Create a job card to start tracking work</p>
+        <a href="{% url 'home' %}" class="btn btn-primary rounded-pill px-5"
+           style="font-family: var(--font-body); font-weight: 600;">Create First Job</a>
+    {% endif %}
+</div>
+{% endif %}
