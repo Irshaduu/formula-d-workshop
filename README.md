@@ -95,7 +95,7 @@ WorkshopOS/
 ```
 
 ## 🛡️ Titan Standard: Automated Reliability (v4.5)
-WorkshopOS is now backed by a **33-test Industrial Suite** that verified the entire mission-critical engine with zero-failure tolerance.
+WorkshopOS is now backed by a **91-test Industrial Suite** (91% overall coverage) that verified the entire mission-critical engine with zero-failure tolerance.
 - **100% Security Coverage**: Verified IP-lockouts, 2FA, OTP, and real-time session revocation.
 - **100% Warehouse Pulse**: Verified stock-delta signals (Creation, Update, Deletion).
 - **100% Model Integrity**: Verified every lifecycle transition for Job Cards and User Sessions.

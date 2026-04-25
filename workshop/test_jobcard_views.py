@@ -1,0 +1,223 @@
+from django.test import TestCase, Client
+from django.contrib.auth.models import User, Group
+from django.urls import reverse
+from workshop.models import (
+    JobCard, Mechanic, CarBrand, CarModel,
+    SparePart, ConcernSolution
+)
+from datetime import date
+
+
+class JobCardViewsTestCase(TestCase):
+    def setUp(self):
+        self.floor_group, _ = Group.objects.get_or_create(name='Floor')
+        self.office_group, _ = Group.objects.get_or_create(name='Office')
+
+        self.user = User.objects.create_user(username='staff', password='password')
+        self.user.groups.add(self.floor_group)
+        self.client = Client()
+        self.client.login(username='staff', password='password')
+
+        self.mechanic = Mechanic.objects.create(name='Lead Tech')
+        self.job = JobCard.objects.create(
+            admitted_date=date.today(),
+            brand_name='Toyota',
+            model_name='Corolla',
+            registration_number='KL01A1234',
+            customer_name='John',
+            customer_contact='1234567890'
+        )
+
+    def _base_formset_data(self, reg='MH123456'):
+        """Helper: returns valid POST data for the create/edit view."""
+        return {
+            'registration_number': reg,
+            'admitted_date': str(date.today()),
+            'customer_name': 'Alice',
+            'customer_contact': '9876543210',
+            'brand_name': 'Honda',
+            'model_name': 'City',
+            'mileage': '10k',
+            'lead_mechanic': self.mechanic.id,
+            'car_color': 'Black',
+
+            'concerns-TOTAL_FORMS': '1',
+            'concerns-INITIAL_FORMS': '0',
+            'concerns-MIN_NUM_FORMS': '0',
+            'concerns-MAX_NUM_FORMS': '1000',
+            'concerns-0-concern_text': 'Oil change',
+            'concerns-0-status': 'PENDING',
+
+            'spares-TOTAL_FORMS': '1',
+            'spares-INITIAL_FORMS': '0',
+            'spares-MIN_NUM_FORMS': '0',
+            'spares-MAX_NUM_FORMS': '1000',
+            'spares-0-spare_part_name': 'Engine Oil',
+            'spares-0-quantity': '1',
+            'spares-0-unit_price': '500',
+            'spares-0-total_price': '600',
+            'spares-0-status': 'PENDING',
+            'spares-0-shop_name': '',
+            'spares-0-ordered_date': '',
+            'spares-0-received_date': '',
+
+            'labours-TOTAL_FORMS': '1',
+            'labours-INITIAL_FORMS': '0',
+            'labours-MIN_NUM_FORMS': '0',
+            'labours-MAX_NUM_FORMS': '1000',
+            'labours-0-job_description': 'Service',
+            'labours-0-amount': '400',
+        }
+
+    def test_jobcard_create_get(self):
+        """GET request should render the blank create form."""
+        url = reverse('jobcard_create')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'workshop/jobcard/jobcard_form.html')
+
+    def test_jobcard_create_post_success(self):
+        """Successful POST should create job card and redirect to edit page."""
+        url = reverse('jobcard_create')
+        data = self._base_formset_data(reg='MH123456')
+
+        response = self.client.post(url, data)
+
+        # Should have created the job
+        job_new = JobCard.objects.filter(registration_number__iexact='MH123456').first()
+        self.assertIsNotNone(job_new, "Job card was not created")
+
+        # Should redirect to edit page
+        self.assertRedirects(response, reverse('jobcard_edit', args=[job_new.pk]))
+
+        # Verify inline data was saved
+        self.assertEqual(job_new.concerns.count(), 1)
+        self.assertEqual(job_new.spares.count(), 1)
+        self.assertEqual(job_new.labours.count(), 1)
+        self.assertEqual(job_new.concerns.first().concern_text, 'Oil change')
+        self.assertEqual(job_new.spares.first().spare_part_name, 'Engine Oil')
+        self.assertEqual(job_new.labours.first().job_description, 'Service')
+
+    def test_jobcard_create_post_autolearning(self):
+        """Auto-learning should save new brands, models, concerns, and spares."""
+        url = reverse('jobcard_create')
+        data = self._base_formset_data(reg='NEW999')
+        self.client.post(url, data)
+
+        self.assertTrue(ConcernSolution.objects.filter(concern='Oil change').exists())
+        self.assertTrue(SparePart.objects.filter(name='Engine Oil').exists())
+
+    def test_jobcard_create_duplicate_warning(self):
+        """Creating a job for a plate that already has an active job should show warning."""
+        url = reverse('jobcard_create')
+        # Use the existing job's plate (KL01A1234 — active, not delivered)
+        data = self._base_formset_data(reg='KL01A1234')
+
+        # First attempt — should warn and NOT save
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, 200)  # Re-renders with warning
+
+        # Count should still be 1 (original job only)
+        self.assertEqual(JobCard.objects.filter(
+            registration_number__iexact='KL01A1234'
+        ).count(), 1)
+
+        # Second attempt — still warns (confirm_count now 1)
+        response = self.client.post(url, data)
+        self.assertEqual(response.status_code, 200)
+
+        # Third attempt — bypasses duplicate check and saves
+        response = self.client.post(url, data)
+        self.assertEqual(JobCard.objects.filter(
+            registration_number__iexact='KL01A1234'
+        ).count(), 2)
+
+    def test_jobcard_edit_get(self):
+        """GET to edit view should render pre-filled form."""
+        url = reverse('jobcard_edit', args=[self.job.pk])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'workshop/jobcard/jobcard_form.html')
+
+    def test_jobcard_edit_post_success(self):
+        """Valid POST to edit should save changes and redirect to same edit page."""
+        url = reverse('jobcard_edit', args=[self.job.pk])
+
+        data = {
+            'registration_number': 'KL01A1234',
+            'admitted_date': str(date.today()),
+            'customer_name': 'John Edited',
+            'customer_contact': '1234567890',
+            'brand_name': 'Toyota',
+            'model_name': 'Corolla',
+            'car_color': 'White',
+
+            'concerns-TOTAL_FORMS': '1',
+            'concerns-INITIAL_FORMS': '0',
+            'concerns-MIN_NUM_FORMS': '0',
+            'concerns-MAX_NUM_FORMS': '1000',
+            'concerns-0-concern_text': 'New Brake Issue',
+            'concerns-0-status': 'PENDING',
+
+            'spares-TOTAL_FORMS': '0',
+            'spares-INITIAL_FORMS': '0',
+            'spares-MIN_NUM_FORMS': '0',
+            'spares-MAX_NUM_FORMS': '1000',
+
+            'labours-TOTAL_FORMS': '0',
+            'labours-INITIAL_FORMS': '0',
+            'labours-MIN_NUM_FORMS': '0',
+            'labours-MAX_NUM_FORMS': '1000',
+        }
+
+        response = self.client.post(url, data)
+        # Edit redirects back to the same edit page
+        self.assertRedirects(response, reverse('jobcard_edit', args=[self.job.pk]))
+
+        self.job.refresh_from_db()
+        self.assertEqual(self.job.customer_name, 'John Edited')
+        # Auto-learning: new concern should appear in master list
+        self.assertTrue(ConcernSolution.objects.filter(concern='New Brake Issue').exists())
+
+    def test_invoice_view_access_control(self):
+        """Floor-only user should be redirected away from invoice view."""
+        url = reverse('invoice_view', args=[self.job.pk])
+
+        # Floor user — no office_required permission → redirected to login
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 302)  # Any redirect is correct
+
+        # Add Office group — should now be able to view
+        self.user.groups.add(self.office_group)
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_jobcard_detail_view(self):
+        """Detail view should be accessible to all staff."""
+        url = reverse('jobcard_detail', args=[self.job.pk])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'workshop/jobcard/jobcard_detail.html')
+
+    def test_car_profile_detail(self):
+        """Car profile detail shows all job history for a plate."""
+        self.user.groups.add(self.office_group)
+        url = reverse('car_profile_detail', args=['KL01A1234'])
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, 200)
+
+    def test_update_bill_status(self):
+        """update_bill_status should save payment info and redirect to invoice."""
+        self.user.groups.add(self.office_group)
+        url = reverse('update_bill_status', args=[self.job.pk])
+
+        response = self.client.post(url, {
+            'received_amount': '500',
+            'payment_method': 'Cash',
+            'payment_status': 'PAID',
+        })
+
+        self.assertRedirects(response, reverse('invoice_view', args=[self.job.pk]))
+        self.job.refresh_from_db()
+        self.assertEqual(float(self.job.received_amount), 500.0)
+        self.assertEqual(self.job.payment_status, 'PAID')

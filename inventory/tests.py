@@ -150,4 +150,61 @@ class InventoryViewTests(TestCase):
         response = self.client.get(reverse('inventory_history'))
         self.assertContains(response, 'Brake Pad')
         self.assertContains(response, 'office_user')
+
+    def test_get_methods(self):
+        # inventory_home redirects to restock
+        response = self.client.get(reverse('inventory_home'))
+        self.assertRedirects(response, reverse('inventory_restock'))
+
+        # delete_category GET (no POST body) → safe redirect, does NOT delete
+        response = self.client.get(
+            reverse('inventory_delete_category', args=[self.category.id])
+        )
+        self.assertRedirects(response, reverse('inventory_manage'))
+        self.assertTrue(Category.objects.filter(id=self.category.id).exists())
+
+        # add_item GET → redirect to category_detail (no template needed)
+        response = self.client.get(
+            reverse('inventory_add_item', args=[self.category.id])
+        )
+        self.assertRedirects(
+            response,
+            reverse('inventory_category_detail', args=[self.category.id])
+        )
+
+        # edit_item GET → redirect to category_detail
+        response = self.client.get(
+            reverse('inventory_edit_item', args=[self.item.id])
+        )
+        self.assertRedirects(
+            response,
+            reverse('inventory_category_detail', args=[self.item.category.id])
+        )
+
+        # delete_item GET → redirect to manage
+        response = self.client.get(
+            reverse('inventory_delete_item', args=[self.item.id])
+        )
+        self.assertRedirects(response, reverse('inventory_manage'))
+        self.assertTrue(Item.objects.filter(id=self.item.id).exists())
+
+        # inventory_restock with empty search
+        response = self.client.get(reverse('inventory_restock'), {'q': ''})
+        self.assertEqual(response.status_code, 200)
+
+        # update_stock POST without next_url → redirect to restock
+        response = self.client.post(
+            reverse('inventory_update_stock', args=[self.item.id]),
+            {'current_stock': 50}
+        )
+        self.assertRedirects(response, reverse('inventory_restock'))
+        self.item.refresh_from_db()
+        self.assertEqual(self.item.current_stock, 50)
+
+        # update_stock POST with next_url → redirect to that url
+        response = self.client.post(
+            reverse('inventory_update_stock', args=[self.item.id]),
+            {'current_stock': 25, 'next': reverse('inventory_manage')}
+        )
+        self.assertRedirects(response, reverse('inventory_manage'))
  
