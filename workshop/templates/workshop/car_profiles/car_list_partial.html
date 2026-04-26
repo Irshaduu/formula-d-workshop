@@ -4,36 +4,41 @@
 <div class="row g-3">
     {% for car in car_profiles %}
     <div class="col-12 col-md-6 col-lg-4">
-        <a href="{% url 'car_profile_detail' car.registration %}" class="car-card shadow-sm h-100 position-relative">
-            <div class="car-header">
-                <!-- Vehicle Row (Full Width) -->
-                <h6 class="car-name mb-2">
-                    {% if car.color_hex %}
-                    <span class="color-square me-1" title="{{ car.color_name }}" 
-                          style="background-color: {{ car.color_hex }};"></span>
-                    {% endif %}
-                    {{ car.brand }} {{ car.model }}
-                </h6>
-                <span class="reg-number">{{ car.registration }}</span>
-            </div>
-
-            <div class="car-info">
-                <div class="info-item">
-                    <i class="bi bi-arrow-repeat"></i>
-                    <span>{{ car.total_visits }} visit{{ car.total_visits|pluralize }}</span>
+        <a href="{% url 'car_profile_detail' car.registration %}" class="car-card shadow-sm h-100 d-flex flex-column"
+           style="border-left: 6px solid {{ car.color_hex|default:'var(--color-primary)' }};">
+            
+            <!-- Top Section: Name and Plate -->
+            <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-start mb-2">
+                    <h6 class="car-name mb-0 text-dark fw-bold" style="font-size: 1.1rem; letter-spacing: -0.5px;">
+                        {{ car.brand }} {{ car.model }}
+                    </h6>
                 </div>
-                <div class="info-item">
-                    <i class="bi bi-calendar3"></i>
-                    <span>Last visit: {{ car.latest_date|date:"d M Y" }}</span>
+                
+                <div class="mb-2">
+                    <span class="badge bg-light text-dark border px-2 py-1" style="font-size: 0.85rem; letter-spacing: 1px;">
+                        {{ car.registration }}
+                    </span>
+                    <span class="badge bg-light text-success border px-2 py-1 ms-1" style="font-size: 0.75rem;">
+                        <i class="bi bi-arrow-repeat me-1"></i>{{ car.total_visits }} visit{{ car.total_visits|pluralize }}
+                    </span>
                 </div>
             </div>
 
-            <!-- Owner Name (Bottom-Right Corner) -->
-            {% if car.customer %}
-            <div class="owner-corner">
-                <i class="bi bi-person-fill me-1"></i>{{ car.customer }}
+            <!-- Dotted Separator -->
+            <div style="border-top: 1px dashed var(--color-border); margin: 0.75rem 0;"></div>
+
+            <!-- Bottom Section: Owner and Date -->
+            <div class="d-flex justify-content-between align-items-center text-muted" style="font-size: 0.8rem; font-weight: 500;">
+                <div class="d-flex align-items-center gap-1 text-truncate" style="max-width: 50%;">
+                    <i class="bi bi-person" style="opacity: 0.7;"></i>
+                    <span class="text-truncate">{{ car.customer|default:"&mdash;" }}</span>
+                </div>
+                <div class="d-flex align-items-center gap-1">
+                    <i class="bi bi-calendar3" style="opacity: 0.7;"></i>
+                    <span>{{ car.latest_date|date:"d M Y"|default:"-" }}</span>
+                </div>
             </div>
-            {% endif %}
         </a>
     </div>
     {% endfor %}
