@@ -1,0 +1,898 @@
+{% extends 'workshop/base.html' %}
+{% load humanize custom_filters %}
+
+{% block title %}{{ bulk_payer.customer_name }} — Bulk Payer{% endblock %}
+
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+{% endblock %}
+
+{% block content %}
+
+<style>
+    :root {
+        --font-display: 'Barlow Condensed', sans-serif;
+        --font-body:    'Barlow', sans-serif;
+        --bd-red: #dc2626;
+        --bd-amber: #d97706;
+        --bd-blue: #2563eb;
+        --bd-green: #16a34a;
+    }
+
+    /* ── Page Header ─────────────────────────────── */
+    .bd-page-header {
+        margin-bottom: 1.5rem;
+        margin-top: 0.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--color-border);
+        position: relative;
+    }
+    .bd-page-header::after {
+        content: '';
+        position: absolute;
+        bottom: -2px;
+        left: 0;
+        width: 48px;
+        height: 2px;
+        background: var(--bd-blue);
+    }
+
+    .bd-header-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 12px;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+    }
+
+    .bd-title-block {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .bd-back-link {
+        font-family: var(--font-body);
+        font-size: 0.72rem;
+        font-weight: 600;
+        color: var(--bd-blue);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .bd-back-link:hover { text-decoration: underline; }
+
+    .bd-page-title {
+        font-family: var(--font-display);
+        font-size: 1.6rem;
+        font-weight: 800;
+        letter-spacing: -0.3px;
+        color: var(--color-text);
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .bd-page-title .title-icon { color: var(--bd-blue); }
+
+    .bd-count-pill {
+        font-family: var(--font-body);
+        font-size: 0.6rem;
+        font-weight: 700;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        background: rgba(37,99,235,0.1);
+        color: var(--bd-blue);
+        padding: 2px 8px;
+        border-radius: 20px;
+        border: 1px solid rgba(37,99,235,0.2);
+    }
+
+    /* ── Financial Summary ────────────────────────── */
+    .bd-summary {
+        display: flex;
+        gap: 1px;
+        background: var(--color-border);
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 1rem;
+    }
+    .bd-summary-item {
+        flex: 1;
+        background: var(--color-card);
+        padding: 12px 14px;
+        text-align: center;
+    }
+    .bd-summary-label {
+        font-family: var(--font-body);
+        font-size: 0.58rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1.2px;
+        color: #94a3b8;
+        display: block;
+    }
+    .bd-summary-value {
+        font-family: var(--font-display);
+        font-size: 1.35rem;
+        font-weight: 800;
+        letter-spacing: -0.5px;
+    }
+    .bd-summary-value.danger { color: var(--bd-red); }
+    .bd-summary-value.success { color: var(--bd-green); }
+
+    /* ── Pay + Add Controls ──────────────────────── */
+    .bd-controls {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+    .bd-pay-form {
+        display: flex;
+        flex: 1;
+        gap: 8px;
+        min-width: 0;
+    }
+    .bd-pay-input {
+        flex: 1;
+        min-width: 100px;
+        border: 1px solid var(--color-border);
+        border-radius: 10px;
+        background: var(--color-card);
+        font-family: var(--font-display);
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--color-text);
+        padding: 8px 12px;
+        outline: none;
+        transition: border-color 0.15s;
+    }
+    .bd-pay-input:focus { border-color: var(--bd-blue); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+    .bd-pay-input::placeholder { color: #94a3b8; font-weight: 500; }
+
+    .bd-method-select {
+        border: 1px solid var(--color-border);
+        border-radius: 10px;
+        background: var(--color-card);
+        font-family: var(--font-body);
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--color-text);
+        padding: 8px 10px;
+        outline: none;
+        width: auto;
+    }
+
+    .bd-pay-btn {
+        border: none;
+        border-radius: 10px;
+        background: var(--bd-blue);
+        color: #fff;
+        font-family: var(--font-body);
+        font-size: 0.82rem;
+        font-weight: 700;
+        padding: 8px 20px;
+        cursor: pointer;
+        white-space: nowrap;
+        transition: background 0.15s, transform 0.1s;
+    }
+    .bd-pay-btn:hover { background: #1d4ed8; transform: translateY(-1px); }
+
+    .bd-add-btn {
+        border: 1px dashed var(--color-border);
+        border-radius: 10px;
+        background: transparent;
+        font-family: var(--font-body);
+        font-size: 0.78rem;
+        font-weight: 600;
+        color: var(--bd-blue);
+        padding: 8px 14px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        white-space: nowrap;
+        transition: background 0.15s, border-color 0.15s;
+    }
+    .bd-add-btn:hover { background: rgba(37,99,235,0.05); border-color: var(--bd-blue); }
+
+    /* ── Page 3-dot menu (header) ───────────────── */
+    .bd-page-menu-btn {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 1px solid var(--color-border);
+        background: var(--color-card);
+        color: #64748b;
+        font-size: 0.95rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s;
+        flex-shrink: 0;
+    }
+    .bd-page-menu-btn:hover { background: #f1f5f9; color: #334155; }
+
+    /* ── Payment History ──────────────────────────── */
+    .bd-history-section {
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+    }
+    .bd-history-title {
+        font-family: var(--font-display);
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--color-text);
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .bd-history-title i { color: var(--bd-blue); font-size: 0.9rem; }
+    .bd-history-item {
+        background: var(--color-card);
+        border: 1px solid var(--color-border);
+        border-radius: 10px;
+        padding: 12px 14px;
+        margin-bottom: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        position: relative;
+    }
+    .bd-history-left {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+        min-width: 0;
+    }
+    .bd-history-amount {
+        font-family: var(--font-display);
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: var(--bd-green);
+    }
+    .bd-history-meta {
+        font-family: var(--font-body);
+        font-size: 0.68rem;
+        font-weight: 500;
+        color: #94a3b8;
+    }
+    .bd-history-meta span { margin-right: 10px; }
+    .bd-history-empty {
+        text-align: center;
+        padding: 1.5rem;
+        color: #94a3b8;
+        font-family: var(--font-body);
+        font-size: 0.82rem;
+    }
+
+    /* ── Add Card Panel ──────────────────────────── */
+    .bd-add-panel {
+        background: var(--color-card);
+        border: 1px solid var(--color-border);
+        border-radius: 12px;
+        padding: 14px;
+        margin-bottom: 1rem;
+        display: none;
+    }
+    .bd-add-panel.active { display: block; }
+    .bd-add-panel form {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+    .bd-add-panel input {
+        flex: 1;
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        background: var(--color-bg);
+        font-family: var(--font-body);
+        font-size: 0.82rem;
+        font-weight: 500;
+        color: var(--color-text);
+        padding: 7px 12px;
+        outline: none;
+        text-transform: uppercase;
+    }
+    .bd-add-panel input:focus { border-color: var(--bd-blue); }
+    .bd-add-panel button {
+        border: none;
+        border-radius: 8px;
+        background: var(--bd-blue);
+        color: #fff;
+        font-family: var(--font-body);
+        font-size: 0.78rem;
+        font-weight: 600;
+        padding: 7px 16px;
+        cursor: pointer;
+    }
+
+    /* ── Car Cards ────────────────────────────────── */
+    .bd-card {
+        background: var(--color-card);
+        border-radius: 12px;
+        border: 1px solid var(--color-border);
+        box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+        position: relative;
+        display: flex;
+        flex-direction: row;
+        height: 100%;
+        transition: box-shadow 0.2s;
+    }
+    .bd-card:hover {
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+
+    /* Left stripe */
+    .bd-stripe {
+        width: 10px;
+        flex-shrink: 0;
+        background: var(--stripe-color, #e2e8f0);
+        border-top-left-radius: 12px;
+        border-bottom-left-radius: 12px;
+    }
+    .bd-stripe.stripe-unset {
+        background: repeating-linear-gradient(-45deg, #e2e8f0 0px, #e2e8f0 3px, #f8fafc 3px, #f8fafc 8px);
+    }
+    .bd-stripe.stripe-white {
+        background: #f8fafc;
+        box-shadow: inset -1px 0 0 #e2e8f0, inset 1px 0 0 #e2e8f0;
+    }
+
+    .bd-body {
+        flex: 1;
+        padding: 0.9rem 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        min-width: 0;
+    }
+
+    .bd-card-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .bd-visit-badge {
+        font-family: var(--font-body);
+        font-size: 0.55rem;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        padding: 2px 8px;
+        border-radius: 20px;
+        background: rgba(37,99,235,0.08);
+        color: var(--bd-blue);
+        border: 1px solid rgba(37,99,235,0.15);
+    }
+    .bd-status-badge {
+        font-family: var(--font-body);
+        font-size: 0.55rem;
+        font-weight: 700;
+        letter-spacing: 0.8px;
+        text-transform: uppercase;
+        padding: 2px 8px;
+        border-radius: 20px;
+    }
+    .bd-badge-pending { background: rgba(220,38,38,0.08); color: #dc2626; border: 1px solid rgba(220,38,38,0.2); }
+    .bd-badge-partial { background: rgba(217,119,6,0.1); color: #d97706; border: 1px solid rgba(217,119,6,0.25); }
+
+    .bd-vehicle {
+        font-family: var(--font-display);
+        font-size: 1.25rem;
+        font-weight: 800;
+        letter-spacing: 0.2px;
+        color: var(--color-text);
+        line-height: 1.1;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .bd-reg-row { margin-top: -2px; }
+    .bd-reg {
+        font-family: var(--font-display);
+        font-size: 0.72rem;
+        font-weight: 700;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        padding: 2px 8px;
+        background: #f1f5f9;
+        border: 1px solid #cbd5e1;
+        border-radius: 4px;
+        color: #334155;
+        white-space: nowrap;
+        display: inline-block;
+    }
+
+    .bd-date {
+        font-family: var(--font-body);
+        font-size: 0.65rem;
+        font-weight: 500;
+        color: var(--color-text-muted);
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+
+    /* Financials */
+    .bd-financials {
+        background: #f8fafc;
+        border: 1px solid #f1f5f9;
+        border-radius: 8px;
+        padding: 8px 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        margin-top: 2px;
+    }
+    .bd-fin-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 3px 0;
+    }
+    .bd-fin-row + .bd-fin-row { border-top: 1px dashed #e2e8f0; }
+    .bd-fin-label {
+        font-family: var(--font-body);
+        font-size: 0.6rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        color: #94a3b8;
+    }
+    .bd-fin-value {
+        font-family: var(--font-display);
+        font-size: 0.95rem;
+        font-weight: 800;
+        color: var(--color-text);
+    }
+    .bd-fin-value.success { color: var(--bd-green); }
+    .bd-fin-value.danger { color: var(--bd-red); }
+
+    /* 3-dot menu */
+    .bd-menu-btn {
+        position: absolute;
+        top: 8px;
+        right: 8px;
+        width: 28px;
+        height: 28px;
+        border-radius: 50%;
+        border: none;
+        background: transparent;
+        color: #94a3b8;
+        font-size: 1rem;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: background 0.15s;
+        z-index: 5;
+    }
+    .bd-menu-btn:hover { background: #f1f5f9; color: #334155; }
+
+    .bd-dropdown {
+        border-radius: 10px;
+        border: 1px solid var(--color-border);
+        box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+        padding: 4px;
+        min-width: 160px;
+    }
+    .bd-dropdown .dropdown-item {
+        border-radius: 6px;
+        font-family: var(--font-body);
+        font-size: 0.78rem;
+        font-weight: 600;
+        padding: 7px 12px;
+    }
+
+    /* Click area for card */
+    .bd-card-link {
+        text-decoration: none;
+        color: inherit;
+        display: flex;
+        flex: 1;
+        flex-direction: row;
+    }
+    .bd-card-link:hover { text-decoration: none; color: inherit; }
+
+    /* ── Empty State ──────────────────────────────── */
+    .bd-empty {
+        background: var(--color-card);
+        border: 1px solid var(--color-border);
+        border-radius: 14px;
+        padding: 3rem 1rem;
+        text-align: center;
+    }
+    .bd-empty .empty-icon {
+        font-size: 3rem;
+        color: var(--bd-blue);
+        opacity: 0.3;
+        display: block;
+        margin-bottom: 1rem;
+    }
+
+    /* ── Confirm Modal ───────────────────────────── */
+    .bd-confirm-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.4);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+    }
+    .bd-confirm-overlay.active { display: flex; }
+    .bd-confirm-box {
+        background: var(--color-card);
+        border-radius: 16px;
+        padding: 24px;
+        max-width: 380px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+    .bd-confirm-box h6 {
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 1.1rem;
+        margin-bottom: 8px;
+    }
+    .bd-confirm-box p {
+        font-family: var(--font-body);
+        font-size: 0.82rem;
+        color: #64748b;
+        margin-bottom: 16px;
+    }
+    .bd-confirm-box .btn-group {
+        display: flex;
+        gap: 8px;
+        justify-content: center;
+    }
+    .bd-confirm-cancel {
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        background: transparent;
+        font-family: var(--font-body);
+        font-weight: 600;
+        font-size: 0.82rem;
+        padding: 8px 20px;
+        cursor: pointer;
+        color: var(--color-text);
+    }
+    .bd-confirm-remove {
+        border: none;
+        border-radius: 8px;
+        background: var(--bd-red);
+        color: #fff;
+        font-family: var(--font-body);
+        font-weight: 600;
+        font-size: 0.82rem;
+        padding: 8px 20px;
+        cursor: pointer;
+    }
+</style>
+
+<!-- Page Header -->
+<div class="bd-page-header">
+    <a href="{% url 'pending_payments_list' %}" class="bd-back-link">
+        <i class="bi bi-chevron-left"></i> Pending Payments
+    </a>
+    <div class="bd-header-top">
+        <div class="bd-title-block">
+            <div class="bd-page-title">
+                <i class="bi bi-person-circle title-icon"></i>
+                {{ bulk_payer.customer_name }}
+                <span class="bd-count-pill">{{ card_count }} car{{ card_count|pluralize }}</span>
+            </div>
+        </div>
+        {% if request.user|has_group:"Owner" or request.user.is_superuser %}
+        <div class="dropdown">
+            <button class="bd-page-menu-btn" type="button" data-bs-toggle="dropdown">
+                <i class="bi bi-three-dots-vertical"></i>
+            </button>
+            <ul class="dropdown-menu dropdown-menu-end bd-dropdown">
+                <li>
+                    <button type="button" class="dropdown-item text-danger" onclick="showDeleteGroupConfirm()">
+                        <i class="bi bi-trash3 me-2"></i>Delete Group
+                    </button>
+                </li>
+            </ul>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Financial Summary Bar -->
+    <div class="bd-summary">
+        <div class="bd-summary-item">
+            <span class="bd-summary-label">Total Bill</span>
+            <span class="bd-summary-value">₹{{ total_bill|floatformat:0|intcomma }}</span>
+        </div>
+        <div class="bd-summary-item">
+            <span class="bd-summary-label">Received</span>
+            <span class="bd-summary-value success">₹{{ total_received|floatformat:0|intcomma }}</span>
+        </div>
+        <div class="bd-summary-item">
+            <span class="bd-summary-label">Balance</span>
+            <span class="bd-summary-value danger">₹{{ total_balance|floatformat:0|intcomma }}</span>
+        </div>
+    </div>
+
+    <!-- Pay + Add Controls -->
+    <div class="bd-controls">
+        <form method="POST" action="{% url 'bulk_payer_pay' pk=bulk_payer.pk %}" class="bd-pay-form"
+              onsubmit="return confirm('Distribute this payment across {{ card_count }} job(s) oldest-first?');">
+            {% csrf_token %}
+            <input type="number" name="lump_sum" step="0.01" class="bd-pay-input"
+                   placeholder="₹ Enter Amount" required min="1">
+            <select name="payment_method" class="bd-method-select">
+                <option value="CASH">Cash</option>
+                <option value="UPI">UPI</option>
+                <option value="CARD">Card</option>
+                <option value="TRANSFER">Bank</option>
+            </select>
+            <button type="submit" class="bd-pay-btn">
+                <i class="bi bi-wallet2"></i> Pay
+            </button>
+        </form>
+
+        <button type="button" class="bd-add-btn" id="toggleAddCard">
+            <i class="bi bi-plus-circle"></i> Add Car
+        </button>
+    </div>
+
+    <!-- Add Card Panel (hidden by default) -->
+    <div class="bd-add-panel" id="addCardPanel">
+        <form method="POST" action="{% url 'bulk_payer_add_card' pk=bulk_payer.pk %}">
+            {% csrf_token %}
+            <input type="text" name="registration_number" placeholder="Enter Registration Number (e.g., KL-07-AB-1234)" autocomplete="off" required>
+            <button type="submit"><i class="bi bi-plus"></i> Add</button>
+        </form>
+    </div>
+</div>
+
+<!-- Car Cards Grid -->
+{% if cards %}
+<div class="row g-3">
+    {% for job in cards %}
+    {% with color=job.get_car_color_hex|default:'#475569' %}
+    <div class="col-12 col-md-6 col-lg-4">
+        <div class="bd-card" style="--card-glow: {{ color }}22;">
+
+            <!-- 3-dot menu button -->
+            <div class="dropdown" style="position: absolute; top: 8px; right: 8px; z-index: 5;">
+                <button class="bd-menu-btn" type="button" data-bs-toggle="dropdown">
+                    <i class="bi bi-three-dots-vertical"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end bd-dropdown">
+                    <li>
+                        <a class="dropdown-item" href="{% url 'jobcard_detail' job.pk %}">
+                            <i class="bi bi-eye me-2"></i>View Details
+                        </a>
+                    </li>
+                    <li><hr class="dropdown-divider" style="margin: 2px 8px;"></li>
+                    <li>
+                        <button type="button" class="dropdown-item text-danger"
+                            onclick="showRemoveConfirm('{{ job.brand_name }} {{ job.model_name }}', '{{ job.registration_number }}', '{{ bulk_payer.customer_name }}', {{ job.pk }})">
+                            <i class="bi bi-x-circle me-2"></i>Remove
+                        </button>
+                    </li>
+                </ul>
+            </div>
+
+            <a href="{% url 'jobcard_detail' job.pk %}" class="bd-card-link">
+                <!-- Left stripe — car colour -->
+                <div class="bd-stripe
+                    {% if not job.car_color %}stripe-unset
+                    {% elif job.car_color == 'White' %}stripe-white
+                    {% endif %}"
+                    style="--stripe-color: {{ color }};"></div>
+
+                <div class="bd-body">
+                    <!-- Top: Visit badge + Status -->
+                    <div class="bd-card-top">
+                        <span class="bd-visit-badge">
+                            Visit {{ job.visit_number }}/{{ job.total_visits }}
+                        </span>
+                        {% if job.payment_status == 'PARTIAL' %}
+                            <span class="bd-status-badge bd-badge-partial">Partial</span>
+                        {% else %}
+                            <span class="bd-status-badge bd-badge-pending">Pending</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Vehicle name -->
+                    <div class="bd-vehicle">{{ job.brand_name }} {{ job.model_name }}</div>
+
+                    <!-- Registration -->
+                    <div class="bd-reg-row">
+                        <span class="bd-reg">{{ job.registration_number }}</span>
+                    </div>
+
+                    <!-- Date -->
+                    <div class="bd-date">
+                        <i class="bi bi-calendar3"></i>
+                        Admitted: {{ job.admitted_date|date:"d M, Y" }}
+                    </div>
+
+                    <!-- Financials -->
+                    <div class="bd-financials">
+                        <div class="bd-fin-row">
+                            <span class="bd-fin-label">Bill</span>
+                            <span class="bd-fin-value">₹{{ job.total_bill|floatformat:0|intcomma }}</span>
+                        </div>
+                        {% if job.received_amount > 0 %}
+                        <div class="bd-fin-row">
+                            <span class="bd-fin-label">Received</span>
+                            <span class="bd-fin-value success">₹{{ job.received_amount|floatformat:0|intcomma }}</span>
+                        </div>
+                        {% endif %}
+                        <div class="bd-fin-row">
+                            <span class="bd-fin-label">Balance</span>
+                            <span class="bd-fin-value danger">₹{{ job.balance_amount|floatformat:0|intcomma }}</span>
+                        </div>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+    {% endwith %}
+    {% endfor %}
+</div>
+
+{% include 'workshop/includes/pagination.html' %}
+
+{% else %}
+<div class="bd-empty">
+    <i class="bi bi-car-front-fill empty-icon"></i>
+    <h5 style="font-family: var(--font-display); font-size: 1.3rem; font-weight: 700; color: #64748b;">No pending cars</h5>
+    <p style="font-family: var(--font-body); font-size: 0.85rem; color: #94a3b8;">All bills for {{ bulk_payer.customer_name }} are settled, or no cars have been added yet.</p>
+</div>
+{% endif %}
+
+<!-- Payment History Section -->
+<div class="bd-history-section">
+    <div class="bd-history-title">
+        <i class="bi bi-clock-history"></i> Payment History
+    </div>
+    {% if payment_history %}
+        {% for h in payment_history %}
+        <div class="bd-history-item">
+            <div class="bd-history-left">
+                <span class="bd-history-amount">₹{{ h.amount|floatformat:0|intcomma }}</span>
+                <div class="bd-history-meta">
+                    <span><i class="bi bi-calendar3 me-1"></i>{{ h.created_at|date:"d M, Y • h:i A" }}</span>
+                    <span><i class="bi bi-credit-card me-1"></i>{{ h.get_payment_method_display }}</span>
+                    <span><i class="bi bi-car-front me-1"></i>{{ h.jobs_affected }} job{{ h.jobs_affected|pluralize }}</span>
+                </div>
+            </div>
+            {% if request.user|has_group:"Owner" or request.user.is_superuser %}
+            <div class="dropdown">
+                <button class="bd-page-menu-btn" type="button" data-bs-toggle="dropdown" style="width: 26px; height: 26px; font-size: 0.8rem;">
+                    <i class="bi bi-three-dots-vertical"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end bd-dropdown">
+                    <li>
+                        <button type="button" class="dropdown-item text-danger"
+                            onclick="showHistoryDeleteConfirm({{ h.pk }}, '{{ h.amount|floatformat:0 }}')">
+                            <i class="bi bi-trash3 me-2"></i>Delete & Reverse
+                        </button>
+                    </li>
+                </ul>
+            </div>
+            {% endif %}
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="bd-history-empty">
+            <i class="bi bi-clock" style="font-size: 1.5rem; opacity: 0.3; display: block; margin-bottom: 4px;"></i>
+            No payments recorded yet.
+        </div>
+    {% endif %}
+</div>
+
+<!-- Remove Card Confirmation Overlay -->
+<div class="bd-confirm-overlay" id="removeConfirmOverlay">
+    <div class="bd-confirm-box">
+        <h6><i class="bi bi-exclamation-triangle text-danger me-1"></i> Remove Car?</h6>
+        <p id="removeConfirmText">Are you sure?</p>
+        <div class="btn-group">
+            <button type="button" class="bd-confirm-cancel" onclick="hideRemoveConfirm()">Cancel</button>
+            <form method="POST" action="{% url 'bulk_payer_remove_card' pk=bulk_payer.pk %}" id="removeCardForm">
+                {% csrf_token %}
+                <input type="hidden" name="job_card_id" id="removeCardId">
+                <button type="submit" class="bd-confirm-remove">Remove</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Group Confirmation Overlay (Owner only) -->
+{% if request.user|has_group:"Owner" or request.user.is_superuser %}
+<div class="bd-confirm-overlay" id="deleteGroupOverlay">
+    <div class="bd-confirm-box">
+        <h6><i class="bi bi-trash3 text-danger me-1"></i> Delete Group?</h6>
+        <p>Move "{{ bulk_payer.customer_name }}" to trash? Job cards will NOT be deleted.</p>
+        <div class="btn-group">
+            <button type="button" class="bd-confirm-cancel" onclick="hideDeleteGroupConfirm()">Cancel</button>
+            <form method="POST" action="{% url 'bulk_payer_delete' pk=bulk_payer.pk %}">
+                {% csrf_token %}
+                <button type="submit" class="bd-confirm-remove">Move to Trash</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Delete History Confirmation Overlay (Owner only) -->
+<div class="bd-confirm-overlay" id="historyDeleteOverlay">
+    <div class="bd-confirm-box">
+        <h6><i class="bi bi-arrow-counterclockwise text-danger me-1"></i> Reverse Payment?</h6>
+        <p id="historyDeleteText">This will reverse the payment and return balances to the affected job cards.</p>
+        <div class="btn-group">
+            <button type="button" class="bd-confirm-cancel" onclick="hideHistoryDeleteConfirm()">Cancel</button>
+            <form method="POST" id="historyDeleteForm" action="">
+                {% csrf_token %}
+                <button type="submit" class="bd-confirm-remove">Delete & Reverse</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle Add Card Panel
+    const toggleBtn = document.getElementById('toggleAddCard');
+    const addPanel = document.getElementById('addCardPanel');
+    if (toggleBtn && addPanel) {
+        toggleBtn.addEventListener('click', function() {
+            addPanel.classList.toggle('active');
+            if (addPanel.classList.contains('active')) {
+                addPanel.querySelector('input').focus();
+            }
+        });
+    }
+});
+
+// Remove car from bulk
+function showRemoveConfirm(carName, regNumber, payerName, jobCardId) {
+    const overlay = document.getElementById('removeConfirmOverlay');
+    document.getElementById('removeConfirmText').textContent = `Want to remove ${carName} ${regNumber} from ${payerName}?`;
+    document.getElementById('removeCardId').value = jobCardId;
+    overlay.classList.add('active');
+}
+function hideRemoveConfirm() { document.getElementById('removeConfirmOverlay').classList.remove('active'); }
+document.getElementById('removeConfirmOverlay').addEventListener('click', function(e) { if (e.target === this) hideRemoveConfirm(); });
+
+// Delete group (owner)
+function showDeleteGroupConfirm() {
+    document.getElementById('deleteGroupOverlay')?.classList.add('active');
+}
+function hideDeleteGroupConfirm() {
+    document.getElementById('deleteGroupOverlay')?.classList.remove('active');
+}
+var dgo = document.getElementById('deleteGroupOverlay');
+if (dgo) dgo.addEventListener('click', function(e) { if (e.target === this) hideDeleteGroupConfirm(); });
+
+// Delete history entry (owner)
+function showHistoryDeleteConfirm(historyPk, amount) {
+    var overlay = document.getElementById('historyDeleteOverlay');
+    if (!overlay) return;
+    document.getElementById('historyDeleteText').textContent = `Reverse ₹${amount} payment? Balances will be restored to affected job cards.`;
+    document.getElementById('historyDeleteForm').action = '/pending-payments/bulk-payers/{{ bulk_payer.pk }}/history/' + historyPk + '/delete/';
+    overlay.classList.add('active');
+}
+function hideHistoryDeleteConfirm() {
+    document.getElementById('historyDeleteOverlay')?.classList.remove('active');
+}
+var hdo = document.getElementById('historyDeleteOverlay');
+if (hdo) hdo.addEventListener('click', function(e) { if (e.target === this) hideHistoryDeleteConfirm(); });
+</script>
+
+{% endblock %}

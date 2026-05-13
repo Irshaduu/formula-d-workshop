@@ -1,0 +1,96 @@
+{% load humanize %}
+
+<style>
+    .bp-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 12px;
+    }
+    .bp-card {
+        background: var(--color-card);
+        border: 1px solid var(--color-border);
+        border-radius: 14px;
+        padding: 16px;
+        text-decoration: none;
+        color: inherit;
+        transition: box-shadow 0.2s, transform 0.15s;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+    .bp-card:hover {
+        box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        transform: translateY(-2px);
+        text-decoration: none;
+        color: inherit;
+    }
+    .bp-name {
+        font-family: 'Barlow Condensed', var(--font-display), sans-serif;
+        font-size: 1.25rem;
+        font-weight: 800;
+        letter-spacing: -0.3px;
+        color: var(--color-text);
+        line-height: 1.1;
+    }
+    .bp-meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .bp-count {
+        font-family: 'Barlow', sans-serif;
+        font-size: 0.7rem;
+        font-weight: 600;
+        color: #64748b;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+    }
+    .bp-balance {
+        font-family: 'Barlow Condensed', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: #dc2626;
+        letter-spacing: -0.3px;
+    }
+    .bp-balance.zero { color: #22c55e; }
+    .bp-empty {
+        text-align: center;
+        padding: 2rem 1rem;
+        color: #94a3b8;
+    }
+    .bp-empty i {
+        font-size: 2.5rem;
+        opacity: 0.3;
+        display: block;
+        margin-bottom: 8px;
+    }
+</style>
+
+{% if bulk_payers %}
+<div class="bp-grid">
+    {% for payer in bulk_payers %}
+    <a href="{% url 'bulk_payer_detail' pk=payer.pk %}" class="bp-card">
+        <div class="bp-name">
+            <i class="bi bi-person-circle" style="font-size: 0.9rem; color: #2563eb; margin-right: 4px;"></i>
+            {{ payer.customer_name }}
+        </div>
+        <div class="bp-meta">
+            <span class="bp-count">
+                <i class="bi bi-car-front"></i>
+                {{ payer.card_count }} pending car{{ payer.card_count|pluralize }}
+            </span>
+            <span class="bp-balance {% if payer.total_balance <= 0 %}zero{% endif %}">
+                ₹{{ payer.total_balance|default:0|floatformat:0|intcomma }}
+            </span>
+        </div>
+    </a>
+    {% endfor %}
+</div>
+{% else %}
+<div class="bp-empty">
+    <i class="bi bi-wallet2"></i>
+    <div style="font-weight: 600; font-size: 0.85rem;">No bulk payers yet</div>
+    <div style="font-size: 0.75rem; margin-top: 4px;">Create one using the button above.</div>
+</div>
+{% endif %}

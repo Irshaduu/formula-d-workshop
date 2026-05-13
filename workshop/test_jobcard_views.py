@@ -221,3 +221,57 @@ class JobCardViewsTestCase(TestCase):
         self.job.refresh_from_db()
         self.assertEqual(float(self.job.received_amount), 500.0)
         self.assertEqual(self.job.payment_status, 'PAID')
+
+    def test_bulk_payment_cascade(self):
+        """Test the cascade algorithm for fleet/bulk payments."""
+        from decimal import Decimal
+        from workshop.models import JobCardSpareItem
+        from datetime import timedelta
+        
+        self.user.groups.add(self.office_group)
+
+        # Make self.job the oldest
+        self.job.admitted_date = date.today() - timedelta(days=2)
+        self.job.save()
+
+        # Create two more pending jobs for 'John'
+        job2 = JobCard.objects.create(
+            admitted_date=date.today() - timedelta(days=1), brand_name='Toyota', model_name='Camry',
+            registration_number='KL01A9999', customer_name='John', customer_contact='1234567890'
+        )
+        job3 = JobCard.objects.create(
+            admitted_date=date.today(), brand_name='Toyota', model_name='Yaris',
+            registration_number='KL01A8888', customer_name='John', customer_contact='1234567890'
+        )
+
+        # Add spares so they have balances
+        JobCardSpareItem.objects.create(job_card=self.job, total_price=1000, quantity=1)
+        JobCardSpareItem.objects.create(job_card=job2, total_price=2000, quantity=1)
+        JobCardSpareItem.objects.create(job_card=job3, total_price=3000, quantity=1)
+
+        # Total balance is 6000. Customer pays a lump sum of 2500
+        url = reverse('bulk_payments_process')
+        response = self.client.post(url, {
+            'customer_name': 'John',
+            'customer_contact': '1234567890',
+            'lump_sum': '2500',
+            'payment_method': 'CASH'
+        })
+        
+        self.assertRedirects(response, reverse('bulk_payments_home'))
+
+        self.job.refresh_from_db()
+        job2.refresh_from_db()
+        job3.refresh_from_db()
+
+        # Job 1 (oldest): Should be fully PAID (1000)
+        self.assertEqual(self.job.payment_status, 'PAID')
+        self.assertEqual(self.job.received_amount, Decimal('1000'))
+
+        # Job 2: Should be PARTIAL (1500 received out of 2000)
+        self.assertEqual(job2.payment_status, 'PARTIAL')
+        self.assertEqual(job2.received_amount, Decimal('1500'))
+
+        # Job 3: Should be untouched (PENDING, 0 received)
+        self.assertEqual(job3.payment_status, 'PENDING')
+        self.assertEqual(job3.received_amount, Decimal('0'))

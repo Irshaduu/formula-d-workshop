@@ -1,0 +1,79 @@
+{% extends 'workshop/base.html' %}
+{% load static %}
+
+{% block title %}Bulk Payments{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-3 py-3">
+    <!-- Header & Search -->
+    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-3 mb-4">
+        <div>
+            <h5 class="mb-0 text-primary fw-bold" style="letter-spacing: -0.5px;">
+                <i class="bi bi-wallet2"></i> Bulk / Fleet Payments
+            </h5>
+            <small class="text-muted fw-bold">Distribute lump-sum payments across multiple jobs</small>
+        </div>
+        
+        <form id="bulkSearchForm" class="d-flex flex-grow-1" style="max-width: 500px;" onsubmit="event.preventDefault();">
+            <div class="position-relative flex-grow-1">
+                <button type="button" class="btn btn-link position-absolute top-50 start-0 translate-middle-y p-0 ms-2 text-muted" style="z-index: 5; border: none;">
+                    <i class="bi bi-search"></i>
+                </button>
+                <input type="text" name="q" id="bulkSearchInput" 
+                       placeholder="Search Customer Name or Phone..." 
+                       class="form-control form-control-sm ps-4 rounded-pill border-0 shadow-sm"
+                       style="font-size: 0.85rem; height: 38px; background: var(--color-card);"
+                       autocomplete="off">
+            </div>
+        </form>
+    </div>
+
+    <!-- Results Container -->
+    <div id="bulk-results-container">
+        <!-- Default State -->
+        <div class="text-center py-5">
+            <i class="bi bi-search" style="font-size: 4rem; opacity: 0.1; color: var(--color-primary);"></i>
+            <h5 class="text-muted fw-bold mt-3">Search for a Customer</h5>
+            <p class="text-muted small">Enter a name or phone number to find their pending jobs.</p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const searchInput = document.getElementById('bulkSearchInput');
+    const container = document.getElementById('bulk-results-container');
+    let timeout = null;
+
+    searchInput.addEventListener('input', function() {
+        const query = searchInput.value.trim();
+        
+        if (timeout) clearTimeout(timeout);
+        
+        if (query.length === 0) {
+            container.innerHTML = `
+                <div class="text-center py-5">
+                    <i class="bi bi-search" style="font-size: 4rem; opacity: 0.1; color: var(--color-primary);"></i>
+                    <h5 class="text-muted fw-bold mt-3">Search for a Customer</h5>
+                    <p class="text-muted small">Enter a name or phone number to find their pending jobs.</p>
+                </div>
+            `;
+            return;
+        }
+
+        timeout = setTimeout(() => {
+            container.style.opacity = '0.5';
+            
+            fetch(`{% url 'bulk_payments_search' %}?q=${encodeURIComponent(query)}`, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(res => res.text())
+            .then(html => {
+                container.innerHTML = html;
+                container.style.opacity = '1';
+            });
+        }, 300);
+    });
+});
+</script>
+{% endblock %}

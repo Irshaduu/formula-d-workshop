@@ -125,7 +125,151 @@
         box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
     }
 
-    .pp-search-input::placeholder { color: var(--color-text-muted); }
+    /* ── Bulk Pay Button ─────────────────────────── */
+    .pp-bulk-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        background: var(--color-card);
+        border: 1px solid var(--color-border);
+        border-radius: 999px;
+        padding: 7px 14px;
+        font-family: var(--font-body);
+        font-size: 0.78rem;
+        font-weight: 700;
+        color: #2563eb;
+        cursor: pointer;
+        box-shadow: 0 1px 3px var(--color-shadow);
+        white-space: nowrap;
+        flex-shrink: 0;
+        transition: all 0.15s;
+        text-decoration: none;
+    }
+    .pp-bulk-btn:hover { border-color: #2563eb; background: rgba(37,99,235,0.04); }
+    .pp-bulk-btn.active { background: #2563eb; color: #fff; border-color: #2563eb; }
+    .pp-bulk-btn i { font-size: 0.82rem; }
+
+    /* ── Bulk Payer Panel ─────────────────────────── */
+    .pp-bulk-panel {
+        background: var(--color-card);
+        border: 1px solid var(--color-border);
+        border-radius: 14px;
+        padding: 16px;
+        margin-bottom: 1.5rem;
+        display: none;
+        animation: ppSlideIn 0.2s ease;
+    }
+    .pp-bulk-panel.active { display: block; }
+    @keyframes ppSlideIn {
+        from { opacity: 0; transform: translateY(-6px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    .pp-bulk-panel-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+    .pp-bulk-panel-title {
+        font-family: var(--font-display);
+        font-size: 1.1rem;
+        font-weight: 800;
+        color: var(--color-text);
+        display: flex;
+        align-items: center;
+        gap: 6px;
+    }
+    .pp-bulk-panel-title i { color: #2563eb; }
+
+    .pp-create-btn {
+        border: 1px dashed #2563eb;
+        border-radius: 8px;
+        background: transparent;
+        font-family: var(--font-body);
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #2563eb;
+        padding: 5px 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        transition: background 0.15s;
+    }
+    .pp-create-btn:hover { background: rgba(37,99,235,0.05); }
+
+    /* ── Create Modal ────────────────────────────── */
+    .pp-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,0.4);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+    }
+    .pp-modal-overlay.active { display: flex; }
+    .pp-modal-box {
+        background: var(--color-card);
+        border-radius: 16px;
+        padding: 24px;
+        max-width: 380px;
+        width: 90%;
+        box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+    }
+    .pp-modal-box h6 {
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 1.15rem;
+        margin-bottom: 4px;
+    }
+    .pp-modal-box p {
+        font-family: var(--font-body);
+        font-size: 0.78rem;
+        color: #64748b;
+        margin-bottom: 14px;
+    }
+    .pp-modal-input {
+        width: 100%;
+        border: 1px solid var(--color-border);
+        border-radius: 10px;
+        background: var(--color-bg);
+        font-family: var(--font-body);
+        font-size: 0.85rem;
+        font-weight: 500;
+        color: var(--color-text);
+        padding: 10px 14px;
+        outline: none;
+        margin-bottom: 14px;
+    }
+    .pp-modal-input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
+    .pp-modal-actions {
+        display: flex;
+        gap: 8px;
+        justify-content: flex-end;
+    }
+    .pp-modal-cancel {
+        border: 1px solid var(--color-border);
+        border-radius: 8px;
+        background: transparent;
+        font-family: var(--font-body);
+        font-weight: 600;
+        font-size: 0.82rem;
+        padding: 8px 18px;
+        cursor: pointer;
+        color: var(--color-text);
+    }
+    .pp-modal-submit {
+        border: none;
+        border-radius: 8px;
+        background: #2563eb;
+        color: #fff;
+        font-family: var(--font-body);
+        font-weight: 700;
+        font-size: 0.82rem;
+        padding: 8px 18px;
+        cursor: pointer;
+    }
 </style>
 
 <div class="pp-page-header">
@@ -145,20 +289,60 @@
         </div>
     </div>
 
-    <!-- Search -->
-    <div class="pp-search-wrap">
-        <form id="pendingSearchForm">
-            <i class="bi bi-search search-icon"></i>
-            <input type="text" id="pendingSearch" name="q"
-                   class="pp-search-input"
-                   placeholder="Search registration, customer, brand or model…"
-                   value="{{ q }}" autocomplete="off">
-        </form>
+    <!-- Search + Bulk Pay Button -->
+    <div style="display: flex; gap: 8px; align-items: center;">
+        <div class="pp-search-wrap">
+            <form id="pendingSearchForm">
+                <i class="bi bi-search search-icon"></i>
+                <input type="text" id="pendingSearch" name="q"
+                       class="pp-search-input"
+                       placeholder="Search registration, customer, brand or model…"
+                       value="{{ q }}" autocomplete="off">
+            </form>
+        </div>
+        <button type="button" class="pp-bulk-btn" id="toggleBulkPanel">
+            <i class="bi bi-wallet2"></i> Bulk Pay
+        </button>
+    </div>
+</div>
+
+<!-- Bulk Payer Panel (collapsible) -->
+<div class="pp-bulk-panel" id="bulkPayerPanel">
+    <div class="pp-bulk-panel-header">
+        <span class="pp-bulk-panel-title">
+            <i class="bi bi-wallet2"></i> Bulk Payers
+        </span>
+        <button type="button" class="pp-create-btn" id="openCreateModal">
+            <i class="bi bi-plus-circle"></i> Create Bulk Payer
+        </button>
+    </div>
+    <div id="bulkPayerListContainer">
+        <div style="text-align: center; padding: 1.5rem; color: #94a3b8;">
+            <div class="spinner-border spinner-border-sm" role="status"></div>
+            <span style="font-size: 0.8rem; margin-left: 6px;">Loading...</span>
+        </div>
     </div>
 </div>
 
 <div id="pendingResultsContainer">
     {% include "workshop/jobcard/pending_payments_partial.html" %}
+</div>
+
+<!-- Create Bulk Payer Modal -->
+<div class="pp-modal-overlay" id="createBulkModal">
+    <div class="pp-modal-box">
+        <h6><i class="bi bi-person-plus text-primary me-1"></i> Create Bulk Payer</h6>
+        <p>Enter the customer's name. All their pending job cards will be auto-added.</p>
+        <form method="POST" action="{% url 'bulk_payer_create' %}">
+            {% csrf_token %}
+            <input type="text" name="customer_name" class="pp-modal-input"
+                   placeholder="Customer Name (e.g., John)" required autocomplete="off" id="bulkPayerNameInput">
+            <div class="pp-modal-actions">
+                <button type="button" class="pp-modal-cancel" onclick="closeCreateModal()">Cancel</button>
+                <button type="submit" class="pp-modal-submit">Create</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <script>
@@ -198,7 +382,40 @@ document.addEventListener('DOMContentLoaded', function () {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     });
+
+    // ── Bulk Payer Panel Toggle ──
+    const toggleBtn = document.getElementById('toggleBulkPanel');
+    const panel = document.getElementById('bulkPayerPanel');
+    let panelLoaded = false;
+
+    toggleBtn.addEventListener('click', function() {
+        panel.classList.toggle('active');
+        toggleBtn.classList.toggle('active');
+
+        if (panel.classList.contains('active') && !panelLoaded) {
+            fetch('{% url "bulk_payer_list" %}', { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+                .then(res => res.text())
+                .then(html => {
+                    document.getElementById('bulkPayerListContainer').innerHTML = html;
+                    panelLoaded = true;
+                });
+        }
+    });
+
+    // ── Create Modal ──
+    document.getElementById('openCreateModal').addEventListener('click', function() {
+        document.getElementById('createBulkModal').classList.add('active');
+        document.getElementById('bulkPayerNameInput').focus();
+    });
+
+    document.getElementById('createBulkModal').addEventListener('click', function(e) {
+        if (e.target === this) closeCreateModal();
+    });
 });
+
+function closeCreateModal() {
+    document.getElementById('createBulkModal').classList.remove('active');
+}
 </script>
 
 {% endblock %}

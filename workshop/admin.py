@@ -9,7 +9,9 @@ from .models import (
     JobCardSpareItem,
     JobCardLabourItem,
     UserProfile,
-    Mechanic
+    Mechanic,
+    BulkPayer,
+    BulkPaymentHistory
 )
 
 # -------------------------
@@ -102,3 +104,19 @@ class JobCardAdmin(admin.ModelAdmin):
     date_hierarchy = 'updated_at'
 
     inlines = [JobCardConcernInline, JobCardSpareItemInline, JobCardLabourItemInline]
+
+
+@admin.register(BulkPayer)
+class BulkPayerAdmin(admin.ModelAdmin):
+    list_display = ('customer_name', 'is_trashed', 'created_at')
+    list_filter = ('is_trashed',)
+    search_fields = ('customer_name',)
+    filter_horizontal = ('job_cards',)
+
+
+@admin.register(BulkPaymentHistory)
+class BulkPaymentHistoryAdmin(admin.ModelAdmin):
+    list_display = ('bulk_payer', 'amount', 'payment_method', 'jobs_affected', 'created_at')
+    list_filter = ('payment_method',)
+    search_fields = ('bulk_payer__customer_name',)
+

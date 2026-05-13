@@ -1,0 +1,69 @@
+{% load humanize %}
+
+{% if grouped_data %}
+    <div class="row g-4">
+    {% for key, group in grouped_data.items %}
+        <div class="col-12 col-xl-6">
+            <div class="card shadow-sm border-0" style="background: var(--color-card); border-radius: 16px;">
+                <div class="card-header bg-transparent border-bottom px-4 py-3 d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="mb-0 fw-bold text-dark" style="font-size: 1.1rem; letter-spacing: -0.5px;">
+                            <i class="bi bi-person-circle text-primary me-2"></i>{{ group.customer_name }}
+                        </h6>
+                        <small class="text-muted fw-bold">{{ group.customer_contact|default:"No Phone Number" }}</small>
+                    </div>
+                    <div class="text-end">
+                        <span class="d-block text-danger fw-bold fs-5" style="letter-spacing: -0.5px;">₹{{ group.total_balance|intcomma }}</span>
+                        <small class="text-muted fw-bold">Total Outstanding</small>
+                    </div>
+                </div>
+                
+                <div class="card-body px-4 py-3" style="max-height: 250px; overflow-y: auto;">
+                    <div class="d-flex flex-column gap-2">
+                        {% for job in group.jobs %}
+                            <div class="d-flex justify-content-between align-items-center p-2 rounded" style="background: rgba(0,0,0,0.02); border: 1px dashed var(--color-border-light);">
+                                <div>
+                                    <span class="badge bg-light text-dark border me-2">{{ job.registration_number }}</span>
+                                    <span class="fw-bold" style="font-size: 0.85rem;">{{ job.brand_name }} {{ job.model_name }}</span>
+                                </div>
+                                <div class="text-end">
+                                    <span class="fw-bold text-danger">₹{{ job.balance_amount|intcomma }}</span>
+                                    <br>
+                                    <small class="text-muted fw-bold" style="font-size: 0.7rem; opacity: 0.7;">Admitted: {{ job.admitted_date|date:"d M y" }}</small>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="card-footer bg-transparent border-top px-4 py-3">
+                    <form method="POST" action="{% url 'bulk_payments_process' %}" class="d-flex gap-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="customer_name" value="{{ group.customer_name }}">
+                        <input type="hidden" name="customer_contact" value="{{ group.customer_contact|default:'' }}">
+                        
+                        <input type="number" name="lump_sum" step="0.01" class="form-control fw-bold shadow-sm" placeholder="₹ Enter Amount" required>
+                        
+                        <select name="payment_method" class="form-select shadow-sm text-muted fw-bold" style="width: auto;">
+                            <option value="CASH">Cash</option>
+                            <option value="UPI">UPI</option>
+                            <option value="CARD">Card</option>
+                            <option value="TRANSFER">Bank</option>
+                        </select>
+                        
+                        <button type="submit" class="btn btn-primary fw-bold px-4 shadow-sm" onclick="return confirm('Distribute payment across these {{ group.jobs|length }} jobs (oldest first)?')">
+                            Process
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+    </div>
+{% else %}
+    <div class="text-center py-5">
+        <i class="bi bi-person-x" style="font-size: 4rem; opacity: 0.1; color: var(--color-text-muted);"></i>
+        <h5 class="text-muted fw-bold mt-3">No Pending Balances Found</h5>
+        <p class="text-muted small">We couldn't find any pending job cards matching that exact search.</p>
+    </div>
+{% endif %}

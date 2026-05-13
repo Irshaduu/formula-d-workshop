@@ -1,75 +1,347 @@
 {% extends 'workshop/base.html' %}
 {% load custom_filters %}
 
-{% block title %}Trash - Deleted Jobs{% endblock %}
+{% block title %}Trash{% endblock %}
+
+{% block extra_css %}
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@400;600;700;800&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+{% endblock %}
 
 {% block content %}
-<!-- Header Section -->
-<div class="d-flex justify-content-between align-items-center mb-3 gap-3">
-    <h6 class="mb-0 text-danger fw-bold flex-shrink-0" style="font-size: 0.85rem;">
-        <i class="bi bi-trash3-fill"></i> Trash ({{ trash_cards.paginator.count }})
-    </h6>
-    
-    <!-- Trash Search Bar -->
-    <form id="trashSearchForm" method="get" class="flex-grow-1" style="max-width: 400px;">
-        <div class="position-relative">
-            <i class="bi bi-search position-absolute top-50 start-0 translate-middle-y ms-2 text-muted" style="font-size: 0.8rem;"></i>
-            <input type="text" name="q" id="trashSearchInput" value="{{ request.GET.q|default:'' }}" 
-                   placeholder="Search Reg, Brand, Model in Trash..." 
-                   class="form-control form-control-sm ps-4 rounded-pill border-0 shadow-sm"
-                   style="font-size: 0.85rem; height: 32px; background: var(--color-card);"
-                   autocomplete="off">
-            {% if request.GET.q %}
-            <a href="{% url 'trash_list' %}" class="position-absolute top-50 end-0 translate-middle-y me-2 text-muted text-decoration-none">
-                <i class="bi bi-x-circle-fill" style="font-size: 0.8rem;"></i>
-            </a>
-            {% endif %}
-        </div>
-    </form>
-</div>
-
-<div id="trash-list-container" class="position-relative">
-    {% include 'workshop/jobcard/trash_list_partial.html' %}
-</div>
 
 <style>
+    :root {
+        --font-display: 'Barlow Condensed', sans-serif;
+        --font-body:    'Barlow', sans-serif;
+    }
+
+    /* ── Page Header ─────────────────────────── */
+    .tr-header {
+        margin-bottom: 1.25rem;
+        margin-top: 0.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 2px solid var(--color-border);
+        position: relative;
+    }
+    .tr-header::after {
+        content: '';
+        position: absolute;
+        bottom: -2px; left: 0;
+        width: 48px; height: 2px;
+        background: #dc2626;
+    }
+    .tr-title {
+        font-family: var(--font-display);
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--color-text);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .tr-title i { color: #dc2626; }
+
+    /* ── Tabs ────────────────────────────────── */
+    .tr-tabs {
+        display: flex;
+        gap: 4px;
+        margin-bottom: 1.25rem;
+        border-bottom: 1px solid var(--color-border);
+        padding-bottom: 0;
+    }
+    .tr-tab {
+        font-family: var(--font-body);
+        font-size: 0.78rem;
+        font-weight: 700;
+        padding: 7px 16px;
+        border: none;
+        background: transparent;
+        color: #94a3b8;
+        cursor: pointer;
+        border-bottom: 2px solid transparent;
+        margin-bottom: -1px;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        text-decoration: none;
+        transition: color 0.15s;
+    }
+    .tr-tab:hover { color: var(--color-text); }
+    .tr-tab.active {
+        color: #dc2626;
+        border-bottom-color: #dc2626;
+    }
+    .tr-tab-count {
+        background: #fee2e2;
+        color: #dc2626;
+        font-size: 0.65rem;
+        font-weight: 800;
+        padding: 1px 6px;
+        border-radius: 20px;
+        min-width: 18px;
+        text-align: center;
+    }
+    .tr-tab.active .tr-tab-count { background: #dc2626; color: #fff; }
+
+    /* ── Search bar ──────────────────────────── */
+    .tr-search-wrap {
+        position: relative;
+        max-width: 420px;
+        margin-bottom: 1rem;
+    }
+    .tr-search-icon {
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #94a3b8;
+        font-size: 0.8rem;
+        pointer-events: none;
+    }
+    .tr-search-input {
+        width: 100%;
+        padding: 8px 12px 8px 32px;
+        border: 1px solid var(--color-border);
+        border-radius: 10px;
+        background: var(--color-card);
+        font-family: var(--font-body);
+        font-size: 0.83rem;
+        font-weight: 500;
+        color: var(--color-text);
+        outline: none;
+    }
+    .tr-search-input:focus { border-color: #dc2626; box-shadow: 0 0 0 3px rgba(220,38,38,0.08); }
+    .tr-search-input::placeholder { color: #94a3b8; }
+
+    /* ── Job card items (existing style preserved) ── */
     .job-card {
         background-color: var(--color-card);
         border: 1px solid var(--color-border);
-        border-radius: 16px;
-        transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        border-radius: 14px;
+        transition: all 0.25s;
         overflow: hidden;
-        opacity: 0.85; /* Slightly faded for trash look */
+        opacity: 0.85;
+        padding: 0 !important;
     }
-
-    .job-card:hover {
-        transform: translateY(-4px);
-        box-shadow: 0 8px 15px rgba(0,0,0,0.1) !important;
-        opacity: 1;
+    .job-card:hover { transform: translateY(-3px); box-shadow: 0 8px 20px rgba(0,0,0,0.1) !important; opacity: 1; }
+    .status-ribbon-trash {
+        width: 5px;
+        position: absolute; left: 0; top: 0; bottom: 0;
+        background-color: #6c757d;
+        z-index: 5;
     }
-
-    .reg-badge {
-        background: #f8f9fa;
+    .registration-plate-trash {
+        font-size: 0.73rem;
+        letter-spacing: 0.5px;
+        background: rgba(108,117,125,0.1);
         color: #6c757d;
-        border: 1px solid #dee2e6;
-        border-radius: 8px;
-        display: inline-block;
-        font-weight: 700;
-        padding: 0.4rem 0.75rem !important;
-        font-size: 0.9rem !important;
-        letter-spacing: 1.5px !important;
+        border: 1px solid rgba(108,117,125,0.2);
+        border-radius: 4px;
+        padding: 2px 8px;
+        font-weight: 800;
+        text-transform: uppercase;
+    }
+    .color-square-trash {
+        width: 14px; height: 14px;
+        border-radius: 2px; display: inline-block;
+        vertical-align: middle; border: 1px solid rgba(0,0,0,0.1);
+        margin-top: -3px; filter: grayscale(50%);
     }
 
-    .restore-btn {
-        transition: all 0.2s;
+    /* ── Bulk Payer trash items ──────────────── */
+    .bp-trash-item {
+        background: var(--color-card);
+        border: 1px solid var(--color-border);
+        border-radius: 12px;
+        padding: 14px 16px;
+        margin-bottom: 8px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        opacity: 0.9;
+        transition: opacity 0.15s;
     }
-    .restore-btn:hover {
-        transform: scale(1.05);
+    .bp-trash-item:hover { opacity: 1; }
+    .bp-trash-name {
+        font-family: var(--font-display);
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: var(--color-text);
+        display: flex;
+        align-items: center;
+        gap: 8px;
     }
+    .bp-trash-name i { color: #94a3b8; font-size: 0.9rem; }
+    .bp-trash-date {
+        font-family: var(--font-body);
+        font-size: 0.7rem;
+        color: #94a3b8;
+        margin-top: 2px;
+    }
+    .bp-trash-actions { display: flex; gap: 6px; }
+    .bp-restore-btn {
+        border: 1px solid rgba(22,163,74,0.3);
+        border-radius: 8px;
+        background: transparent;
+        font-family: var(--font-body);
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #16a34a;
+        padding: 5px 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        transition: background 0.15s;
+    }
+    .bp-restore-btn:hover { background: rgba(22,163,74,0.06); }
+    .bp-delete-btn {
+        border: 1px solid rgba(220,38,38,0.2);
+        border-radius: 8px;
+        background: transparent;
+        font-family: var(--font-body);
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: #dc2626;
+        padding: 5px 12px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        transition: background 0.15s;
+    }
+    .bp-delete-btn:hover { background: rgba(220,38,38,0.06); }
+
+    /* ── Empty state ─────────────────────────── */
+    .tr-empty {
+        text-align: center;
+        padding: 3rem 1rem;
+        color: #94a3b8;
+    }
+    .tr-empty i { font-size: 2.5rem; opacity: 0.3; display: block; margin-bottom: 8px; }
+
+    /* ── Tab panes ───────────────────────────── */
+    .tr-pane { display: none; }
+    .tr-pane.active { display: block; }
 </style>
+
+<!-- Header -->
+<div class="tr-header">
+    <div class="tr-title">
+        <i class="bi bi-trash3-fill"></i> Trash
+    </div>
+</div>
+
+<!-- Tabs -->
+<div class="tr-tabs">
+    <a href="?tab=jobcards" class="tr-tab {% if active_tab == 'jobcards' %}active{% endif %}" id="tab-jobcards">
+        <i class="bi bi-card-list"></i> Job Cards
+        <span class="tr-tab-count">{{ jobcard_trash_count }}</span>
+    </a>
+    <a href="?tab=bulkpayers" class="tr-tab {% if active_tab == 'bulkpayers' %}active{% endif %}" id="tab-bulkpayers">
+        <i class="bi bi-wallet2"></i> Bulk Payers
+        <span class="tr-tab-count">{{ bulk_payer_trash_count }}</span>
+    </a>
+    <a href="?tab=payments" class="tr-tab {% if active_tab == 'payments' %}active{% endif %}" id="tab-payments">
+        <i class="bi bi-clock-history"></i> Payment History
+        <span class="tr-tab-count">{{ payments_trash_count }}</span>
+    </a>
+</div>
+
+<!-- ── Job Cards Tab ──────────────────────────── -->
+<div class="tr-pane {% if active_tab == 'jobcards' %}active{% endif %}" id="pane-jobcards">
+    <div class="tr-search-wrap">
+        <i class="bi bi-search tr-search-icon"></i>
+        <input type="text" id="trashSearchInput" class="tr-search-input"
+               placeholder="Search reg, brand, model, customer…"
+               value="{{ q }}" autocomplete="off">
+    </div>
+
+    <div id="trash-list-container">
+        {% include 'workshop/jobcard/trash_list_partial.html' %}
+    </div>
+</div>
+
+<!-- ── Bulk Payers Tab ──────────────────────────── -->
+<div class="tr-pane {% if active_tab == 'bulkpayers' %}active{% endif %}" id="pane-bulkpayers">
+    {% if trashed_bulk_payers %}
+        {% for payer in trashed_bulk_payers %}
+        <div class="bp-trash-item">
+            <div>
+                <div class="bp-trash-name">
+                    <i class="bi bi-person-circle"></i>
+                    {{ payer.customer_name }}
+                </div>
+                <div class="bp-trash-date">
+                    <i class="bi bi-calendar3 me-1"></i>Created {{ payer.created_at|date:"d M, Y" }}
+                </div>
+            </div>
+            <div class="bp-trash-actions">
+                <form method="POST" action="{% url 'bulk_payer_restore' pk=payer.pk %}">
+                    {% csrf_token %}
+                    <button type="submit" class="bp-restore-btn">
+                        <i class="bi bi-arrow-counterclockwise"></i> Restore
+                    </button>
+                </form>
+                <form method="POST" action="{% url 'bulk_payer_permanent_delete' pk=payer.pk %}"
+                      onsubmit="return confirm('Permanently delete {{ payer.customer_name }}? This cannot be undone.');">
+                    {% csrf_token %}
+                    <button type="submit" class="bp-delete-btn">
+                        <i class="bi bi-x-lg"></i> Delete Forever
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="tr-empty">
+            <i class="bi bi-check-circle-fill" style="color: #22c55e;"></i>
+            <p style="font-family: var(--font-body); font-size: 0.85rem;">No deleted bulk payers.</p>
+        </div>
+    {% endif %}
+</div>
+
+<!-- ── Payment History Tab ──────────────────────────── -->
+<div class="tr-pane {% if active_tab == 'payments' %}active{% endif %}" id="pane-payments">
+    {% if trashed_payments %}
+        {% for history in trashed_payments %}
+        <div class="bp-trash-item">
+            <div>
+                <div class="bp-trash-name" style="color: #dc2626;">
+                    <i class="bi bi-currency-rupee"></i>
+                    {{ history.amount|floatformat:0 }}
+                    <span style="font-size: 0.85rem; color: var(--color-text-muted); font-weight: 500; margin-left: 8px;">
+                        from {{ history.bulk_payer.customer_name }}
+                    </span>
+                </div>
+                <div class="bp-trash-date">
+                    <i class="bi bi-calendar3 me-1"></i>Deleted on {{ history.created_at|date:"d M, Y • h:i A" }}
+                    <span class="ms-2"><i class="bi bi-wallet me-1"></i>{{ history.payment_method }}</span>
+                </div>
+            </div>
+            <div class="bp-trash-actions">
+                <form method="POST" action="{% url 'permanent_delete_payment_history' history_pk=history.pk %}"
+                      onsubmit="return confirm('Permanently delete this payment history record? This cannot be undone.');">
+                    {% csrf_token %}
+                    <button type="submit" class="bp-delete-btn">
+                        <i class="bi bi-x-lg"></i> Delete Forever
+                    </button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="tr-empty">
+            <i class="bi bi-check-circle-fill" style="color: #22c55e;"></i>
+            <p style="font-family: var(--font-body); font-size: 0.85rem;">No deleted payment history.</p>
+        </div>
+    {% endif %}
+</div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // ── Job card AJAX search ──
     const searchInput = document.getElementById('trashSearchInput');
     const container = document.getElementById('trash-list-container');
     let timeout = null;
@@ -77,46 +349,25 @@ document.addEventListener('DOMContentLoaded', function() {
     if (searchInput) {
         searchInput.addEventListener('input', function() {
             const query = this.value.trim();
-            
             if (timeout) clearTimeout(timeout);
-            
             timeout = setTimeout(() => {
                 const url = new URL(window.location.href);
                 url.searchParams.set('q', query);
                 url.searchParams.set('page', '1');
-                
+                url.searchParams.set('tab', 'jobcards');
                 container.style.opacity = '0.5';
-                
                 fetch(url, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
-                    .then(response => response.text())
+                    .then(r => r.text())
                     .then(html => {
-                        const parser = new DOMParser();
-                        const doc = parser.parseFromString(html, 'text/html');
-                        const newContent = doc.getElementById('trash-list-container') || doc.body;
-                        
-                        if (newContent) {
-                            container.innerHTML = newContent.innerHTML;
-                            
-                            // Update the job count in the header
-                            const newCountEl = doc.getElementById('trash-count-data');
-                            if (newCountEl) {
-                                const newCount = newCountEl.getAttribute('data-count');
-                                const countHeader = document.querySelector('h6 i.bi-trash3-fill').parentElement;
-                                if (countHeader) {
-                                    countHeader.innerHTML = `<i class="bi bi-trash3-fill"></i> Trash (${newCount})`;
-                                }
-                            }
-                        }
+                        container.innerHTML = html;
                         container.style.opacity = '1';
-                        window.history.pushState({}, '', url);
+                        window.history.replaceState({}, '', url);
                     })
-                    .catch(err => {
-                        console.error('Search failed:', err);
-                        container.style.opacity = '1';
-                    });
+                    .catch(() => { container.style.opacity = '1'; });
             }, 300);
         });
     }
 });
 </script>
+
 {% endblock %}

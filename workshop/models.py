@@ -280,6 +280,7 @@ class JobCard(models.Model):
         ('PENDING', 'Pending (Unpaid)'),
         ('PAID', 'Fully Paid'),
         ('PARTIAL', 'Partially Paid'),
+        ('BULK_PAID', 'Bulk Paid'),
     ]
     payment_status = models.CharField(max_length=20, choices=PAYMENT_STATUS_CHOICES, default='PENDING', db_index=True)
     
@@ -500,6 +501,52 @@ class JobCardLabourItem(models.Model):
 
     def __str__(self):
         return self.job_description
+
+
+class BulkPayer(models.Model):
+    """
+    Persistent Bulk Payment group for fleet/repeat customers.
+    Car dealers and close customers who accumulate bills over time
+    and pay in large lump sums (₹50K-₹1L+). The cascade payment
+    algorithm distributes payments oldest-first.
+    """
+    customer_name = models.CharField(max_length=150, unique=True, db_index=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    job_cards = models.ManyToManyField(JobCard, blank=True, related_name='bulk_payers')
+    is_trashed = models.BooleanField(default=False, db_index=True)
+
+    class Meta:
+        ordering = ['customer_name']
+
+    def __str__(self):
+        return self.customer_name
+
+
+class BulkPaymentHistory(models.Model):
+    """
+    Audit trail for every bulk payment transaction.
+    Records who paid, how much, when, and which job cards were affected.
+    Each record can be individually deleted (reversed).
+    """
+    PAYMENT_METHODS = [
+        ('CASH', 'Cash'),
+        ('UPI', 'UPI'),
+        ('CARD', 'Card'),
+        ('TRANSFER', 'Bank Transfer'),
+    ]
+    bulk_payer = models.ForeignKey(BulkPayer, on_delete=models.CASCADE, related_name='payment_history')
+    amount = models.DecimalField(max_digits=12, decimal_places=2)
+    payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS, default='CASH')
+    jobs_affected = models.PositiveIntegerField(default=0)
+    details = models.TextField(blank=True, help_text="JSON snapshot of which jobs got how much")
+    is_trashed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"₹{self.amount} → {self.bulk_payer.customer_name} ({self.created_at:%d %b %Y})"
 
 
 @receiver(user_logged_out)
