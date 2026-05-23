@@ -51,8 +51,8 @@ def home(request):
         payment_status__in=['PENDING', 'PARTIAL']
     ).count()
     
-    # 5. Pagination for Floor (50 items per page)
-    paginator = Paginator(active_jobcards, 50)
+    # 5. Pagination for Floor (45 items per page)
+    paginator = Paginator(active_jobcards, 45)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
@@ -258,7 +258,7 @@ def jobcard_list(request):
                 Q(lead_mechanic__name__icontains=word)
             )
         
-    paginator = Paginator(jobcard_list_query, 21)  # Show 21 jobs per page
+    paginator = Paginator(jobcard_list_query, 45)  # Show 45 jobs per page
     
     page_number = request.GET.get('page')
     jobcards = paginator.get_page(page_number)
@@ -388,7 +388,7 @@ def trash_list(request):
                 Q(customer_name__icontains=word)
             )
 
-    paginator = Paginator(trash_query, 21)
+    paginator = Paginator(trash_query, 45)
     page_number = request.GET.get('page')
     trash_cards = paginator.get_page(page_number)
 
@@ -500,7 +500,7 @@ def delivered_list(request):
             )
     
     # 4. Pagination
-    paginator = Paginator(delivered_jobcards, 21) 
+    paginator = Paginator(delivered_jobcards, 45)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
@@ -1007,11 +1007,26 @@ def bulk_payer_detail(request, pk):
     bulk_payer = get_object_or_404(BulkPayer, pk=pk, is_trashed=False)
     
     # Get pending/partial job cards only (PAID and BULK_PAID are hidden)
-    cards_query = bulk_payer.job_cards.filter(
+    base_cards_query = bulk_payer.job_cards.filter(
         payment_status__in=['PENDING', 'PARTIAL']
-    ).select_related('lead_mechanic')
+    )
     
-    # Million-data optimized: SQL subqueries for totals
+    # -------------------------------------------------------------------------
+    # 1. Grand totals (Calculated efficiently in SQL without Python loops)
+    # -------------------------------------------------------------------------
+    total_received_all = base_cards_query.aggregate(s=Sum('received_amount'))['s'] or Decimal('0.0')
+    total_spares = JobCardSpareItem.objects.filter(job_card__in=base_cards_query).aggregate(s=Sum('total_price'))['s'] or Decimal('0.0')
+    total_labour = JobCardLabourItem.objects.filter(job_card__in=base_cards_query).aggregate(s=Sum('amount'))['s'] or Decimal('0.0')
+    
+    total_bill_all = total_spares + total_labour
+    total_balance_all = max(Decimal('0.0'), total_bill_all - total_received_all)
+    card_count = base_cards_query.count()
+
+    # -------------------------------------------------------------------------
+    # 2. Per-row Financial Annotations
+    # -------------------------------------------------------------------------
+    cards_query = base_cards_query.select_related('lead_mechanic')
+    
     spares_subquery = JobCardSpareItem.objects.filter(
         job_card=OuterRef('pk')
     ).values('job_card').annotate(total=Sum('total_price')).values('total')
@@ -1035,42 +1050,43 @@ def bulk_payer_detail(request, pk):
         )
     ).order_by('admitted_date', 'pk')
     
-    # Visit numbering: count how many times each registration appears
-    # Group by registration and calculate visit numbers
-    cards_list = list(cards_query)
-    reg_counts = {}
-    for card in cards_list:
-        reg = card.registration_number
-        if reg not in reg_counts:
-            # Count total visits for this reg across ALL job cards (not just bulk)
-            reg_counts[reg] = JobCard.objects.filter(registration_number=reg).count()
-    
-    # Assign visit numbers (chronological position for this reg)
-    reg_visit_tracker = {}
-    all_cards_by_reg = {}
-    for card in cards_list:
-        reg = card.registration_number
-        if reg not in all_cards_by_reg:
-            all_cards_by_reg[reg] = list(
-                JobCard.objects.filter(registration_number=reg)
-                .order_by('admitted_date', 'pk')
-                .values_list('pk', flat=True)
-            )
-        try:
-            card.visit_number = all_cards_by_reg[reg].index(card.pk) + 1
-        except ValueError:
-            card.visit_number = 1
-        card.total_visits = reg_counts.get(reg, 1)
-    
-    # Pagination for the car list (21 per page, million-data ready)
-    paginator = Paginator(cards_list, 21)
+    # -------------------------------------------------------------------------
+    # 3. True Lazy Pagination (Million-data ready)
+    # -------------------------------------------------------------------------
+    paginator = Paginator(cards_query, 45)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
     
-    # Grand totals
-    total_bill_all = sum(c.total_bill or 0 for c in cards_list)
-    total_received_all = sum(c.received_amount or 0 for c in cards_list)
-    total_balance_all = max(0, total_bill_all - total_received_all)
+    # -------------------------------------------------------------------------
+    # 4. Optimized Visit Counting (Queries ONLY the 21 cars on this page)
+    # -------------------------------------------------------------------------
+    unique_regs = list(set(card.registration_number for card in page_obj))
+    
+    if unique_regs:
+        reg_counts = dict(
+            JobCard.objects.filter(registration_number__in=unique_regs)
+            .values('registration_number')
+            .annotate(total=Count('id'))
+            .values_list('registration_number', 'total')
+        )
+        
+        all_cards_for_regs = (
+            JobCard.objects.filter(registration_number__in=unique_regs)
+            .order_by('admitted_date', 'pk')
+            .values_list('registration_number', 'pk')
+        )
+        reg_visit_tracker = {}
+        for reg, pk_val in all_cards_for_regs:
+            if reg not in reg_visit_tracker:
+                reg_visit_tracker[reg] = []
+            reg_visit_tracker[reg].append(pk_val)
+            
+        for card in page_obj:
+            card.total_visits = reg_counts.get(card.registration_number, 1)
+            try:
+                card.visit_number = reg_visit_tracker[card.registration_number].index(card.pk) + 1
+            except (KeyError, ValueError):
+                card.visit_number = 1
     
     return render(request, 'workshop/jobcard/bulk_payer_detail.html', {
         'bulk_payer': bulk_payer,
@@ -1079,7 +1095,7 @@ def bulk_payer_detail(request, pk):
         'total_bill': total_bill_all,
         'total_received': total_received_all,
         'total_balance': total_balance_all,
-        'card_count': len(cards_list),
+        'card_count': card_count,
         'payment_history': bulk_payer.payment_history.filter(is_trashed=False).order_by('-created_at')
     })
 
@@ -1414,7 +1430,7 @@ def pending_payments_list(request):
     )['total'] or 0
 
     # 5. Pagination (21 items per page)
-    paginator = Paginator(pending_jobs, 21)
+    paginator = Paginator(pending_jobs, 45)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 
@@ -1463,7 +1479,7 @@ def car_profile_list(request):
             )
 
     # 4. Pagination (Pro-Active Scaling)
-    paginator = Paginator(cars_query, 21)
+    paginator = Paginator(cars_query, 45)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
 

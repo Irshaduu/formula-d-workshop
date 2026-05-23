@@ -577,6 +577,118 @@
         padding: 8px 20px;
         cursor: pointer;
     }
+
+    /* ── Premium Payment Confirm Modal ───────────────────────────── */
+    .bd-pay-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        z-index: 10000;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.25s ease;
+    }
+    .bd-pay-overlay.active { 
+        display: flex; 
+        opacity: 1;
+    }
+    .bd-pay-box {
+        background: #ffffff;
+        border-radius: 24px;
+        padding: 32px 28px;
+        max-width: 420px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        transform: scale(0.95) translateY(10px);
+        transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .bd-pay-overlay.active .bd-pay-box {
+        transform: scale(1) translateY(0);
+    }
+    .bd-pay-icon-wrapper {
+        width: 64px;
+        height: 64px;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px auto;
+        box-shadow: 0 8px 16px rgba(16, 185, 129, 0.25);
+    }
+    .bd-pay-icon-wrapper i {
+        color: white;
+        font-size: 1.8rem;
+    }
+    .bd-pay-title {
+        font-family: var(--font-display);
+        font-weight: 800;
+        font-size: 1.6rem;
+        color: #0f172a;
+        margin-bottom: 8px;
+        line-height: 1.2;
+    }
+    .bd-pay-amount {
+        color: #059669;
+        font-size: 1.8rem;
+    }
+    .bd-pay-desc {
+        font-family: var(--font-body);
+        font-size: 0.9rem;
+        color: #64748b;
+        margin-bottom: 24px;
+        line-height: 1.5;
+    }
+    .bd-pay-buttons {
+        display: flex;
+        gap: 12px;
+    }
+    .bd-pay-cancel {
+        flex: 1;
+        border: 2px solid #e2e8f0;
+        background: transparent;
+        border-radius: 12px;
+        padding: 12px 0;
+        font-family: var(--font-body);
+        font-weight: 700;
+        color: #64748b;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .bd-pay-cancel:hover {
+        background: #f8fafc;
+        border-color: #cbd5e1;
+        color: #334155;
+    }
+    .bd-pay-confirm {
+        flex: 1;
+        border: none;
+        background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        border-radius: 12px;
+        padding: 12px 0;
+        font-family: var(--font-body);
+        font-weight: 700;
+        color: #ffffff;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+    .bd-pay-confirm:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+    }
+    .bd-pay-confirm:active {
+        transform: translateY(0);
+    }
 </style>
 
 <!-- Page Header -->
@@ -624,12 +736,21 @@
         </div>
     </div>
 
-    <!-- Pay + Add Controls -->
+    <!-- Action Buttons Row -->
+    <div class="d-flex gap-2 mb-3">
+        <button type="button" class="bd-add-btn" id="toggleAddCard">
+            <i class="bi bi-plus-circle"></i> Add Car
+        </button>
+        <button class="bd-add-btn" type="button" data-bs-toggle="offcanvas" data-bs-target="#historyOffcanvas" style="color: var(--color-text);">
+            <i class="bi bi-clock-history"></i> Payment History
+        </button>
+    </div>
+
+    <!-- Pay Control (Unique Row) -->
     <div class="bd-controls">
-        <form method="POST" action="{% url 'bulk_payer_pay' pk=bulk_payer.pk %}" class="bd-pay-form"
-              onsubmit="return confirm('Distribute this payment across {{ card_count }} job(s) oldest-first?');">
+        <form id="masterPaymentForm" method="POST" action="{% url 'bulk_payer_pay' pk=bulk_payer.pk %}" class="bd-pay-form w-100">
             {% csrf_token %}
-            <input type="number" name="lump_sum" step="0.01" class="bd-pay-input"
+            <input type="number" name="lump_sum" id="lumpSumInput" step="0.01" class="bd-pay-input"
                    placeholder="₹ Enter Amount" required min="1">
             <select name="payment_method" class="bd-method-select">
                 <option value="CASH">Cash</option>
@@ -637,14 +758,10 @@
                 <option value="CARD">Card</option>
                 <option value="TRANSFER">Bank</option>
             </select>
-            <button type="submit" class="bd-pay-btn">
+            <button type="button" class="bd-pay-btn" onclick="initiatePayment()">
                 <i class="bi bi-wallet2"></i> Pay
             </button>
         </form>
-
-        <button type="button" class="bd-add-btn" id="toggleAddCard">
-            <i class="bi bi-plus-circle"></i> Add Car
-        </button>
     </div>
 
     <!-- Add Card Panel (hidden by default) -->
@@ -756,45 +873,71 @@
 </div>
 {% endif %}
 
-<!-- Payment History Section -->
-<div class="bd-history-section">
-    <div class="bd-history-title">
-        <i class="bi bi-clock-history"></i> Payment History
+<!-- Payment History Offcanvas -->
+<div class="offcanvas offcanvas-end" tabindex="-1" id="historyOffcanvas" aria-labelledby="historyOffcanvasLabel" style="border-top-left-radius: 16px; border-bottom-left-radius: 16px; width: 400px; max-width: 100%;">
+    <div class="offcanvas-header border-bottom">
+        <h5 class="offcanvas-title bd-history-title mb-0" id="historyOffcanvasLabel" style="font-family: var(--font-display); font-size: 1.3rem;">
+            <i class="bi bi-clock-history"></i> Payment History
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
     </div>
-    {% if payment_history %}
-        {% for h in payment_history %}
-        <div class="bd-history-item">
-            <div class="bd-history-left">
-                <span class="bd-history-amount">₹{{ h.amount|floatformat:0|intcomma }}</span>
-                <div class="bd-history-meta">
-                    <span><i class="bi bi-calendar3 me-1"></i>{{ h.created_at|date:"d M, Y • h:i A" }}</span>
-                    <span><i class="bi bi-credit-card me-1"></i>{{ h.get_payment_method_display }}</span>
-                    <span><i class="bi bi-car-front me-1"></i>{{ h.jobs_affected }} job{{ h.jobs_affected|pluralize }}</span>
+    <div class="offcanvas-body" style="background: var(--color-bg);">
+        {% if payment_history %}
+            {% for h in payment_history %}
+            <div class="bd-history-item" style="box-shadow: 0 2px 4px var(--color-shadow);">
+                <div class="bd-history-left">
+                    <span class="bd-history-amount">₹{{ h.amount|floatformat:0|intcomma }}</span>
+                    <div class="bd-history-meta">
+                        <span><i class="bi bi-calendar3 me-1"></i>{{ h.created_at|date:"d M, Y • h:i A" }}</span><br>
+                        <span><i class="bi bi-credit-card me-1"></i>{{ h.get_payment_method_display }}</span>
+                        <span><i class="bi bi-car-front me-1"></i>{{ h.jobs_affected }} job{{ h.jobs_affected|pluralize }}</span>
+                    </div>
                 </div>
+                {% if request.user|has_group:"Owner" or request.user.is_superuser %}
+                <div class="dropdown">
+                    <button class="bd-page-menu-btn" type="button" data-bs-toggle="dropdown" style="width: 26px; height: 26px; font-size: 0.8rem;">
+                        <i class="bi bi-three-dots-vertical"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end bd-dropdown">
+                        <li>
+                            <button type="button" class="dropdown-item text-danger"
+                                onclick="showHistoryDeleteConfirm({{ h.pk }}, '{{ h.amount|floatformat:0 }}')">
+                                <i class="bi bi-trash3 me-2"></i>Delete & Reverse
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                {% endif %}
             </div>
-            {% if request.user|has_group:"Owner" or request.user.is_superuser %}
-            <div class="dropdown">
-                <button class="bd-page-menu-btn" type="button" data-bs-toggle="dropdown" style="width: 26px; height: 26px; font-size: 0.8rem;">
-                    <i class="bi bi-three-dots-vertical"></i>
-                </button>
-                <ul class="dropdown-menu dropdown-menu-end bd-dropdown">
-                    <li>
-                        <button type="button" class="dropdown-item text-danger"
-                            onclick="showHistoryDeleteConfirm({{ h.pk }}, '{{ h.amount|floatformat:0 }}')">
-                            <i class="bi bi-trash3 me-2"></i>Delete & Reverse
-                        </button>
-                    </li>
-                </ul>
+            {% endfor %}
+        {% else %}
+            <div class="bd-history-empty" style="background: var(--color-card); border-radius: 12px; border: 1px solid var(--color-border);">
+                <i class="bi bi-clock" style="font-size: 1.5rem; opacity: 0.3; display: block; margin-bottom: 4px;"></i>
+                No payments recorded yet.
             </div>
-            {% endif %}
+        {% endif %}
+    </div>
+</div>
+
+<!-- Premium Payment Confirm Overlay -->
+<div class="bd-pay-overlay" id="payConfirmOverlay">
+    <div class="bd-pay-box">
+        <div class="bd-pay-icon-wrapper">
+            <i class="bi bi-check-circle-fill"></i>
         </div>
-        {% endfor %}
-    {% else %}
-        <div class="bd-history-empty">
-            <i class="bi bi-clock" style="font-size: 1.5rem; opacity: 0.3; display: block; margin-bottom: 4px;"></i>
-            No payments recorded yet.
+        <div class="bd-pay-title">
+            Confirm <span class="bd-pay-amount" id="payDisplayAmount">₹0</span>
         </div>
-    {% endif %}
+        <div class="bd-pay-desc">
+            This payment will be securely applied and automatically distributed across the oldest pending jobs first.
+        </div>
+        <div class="bd-pay-buttons">
+            <button type="button" class="bd-pay-cancel" onclick="cancelPayment()">Cancel</button>
+            <button type="button" class="bd-pay-confirm" onclick="executePayment()">
+                Proceed to Pay <i class="bi bi-arrow-right"></i>
+            </button>
+        </div>
+    </div>
 </div>
 
 <!-- Remove Card Confirmation Overlay -->
@@ -846,6 +989,45 @@
 {% endif %}
 
 <script>
+// Premium Payment Flow
+function initiatePayment() {
+    const input = document.getElementById('lumpSumInput');
+    const form = document.getElementById('masterPaymentForm');
+    
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+
+    const amount = parseFloat(input.value);
+    if (!amount || amount <= 0) return;
+
+    // Format with commas for Indian Rupees
+    const formattedAmount = amount.toLocaleString('en-IN', { maximumFractionDigits: 2 });
+    document.getElementById('payDisplayAmount').textContent = '₹' + formattedAmount;
+    
+    const overlay = document.getElementById('payConfirmOverlay');
+    overlay.style.display = 'flex';
+    setTimeout(() => {
+        overlay.classList.add('active');
+    }, 10);
+}
+
+function cancelPayment() {
+    const overlay = document.getElementById('payConfirmOverlay');
+    overlay.classList.remove('active');
+    setTimeout(() => {
+        overlay.style.display = 'none';
+    }, 250);
+}
+
+function executePayment() {
+    const btn = document.querySelector('.bd-pay-confirm');
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span> Processing...';
+    btn.disabled = true;
+    document.getElementById('masterPaymentForm').submit();
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     // Toggle Add Card Panel
     const toggleBtn = document.getElementById('toggleAddCard');
