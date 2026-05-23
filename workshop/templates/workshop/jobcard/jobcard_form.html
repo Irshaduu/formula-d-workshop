@@ -506,18 +506,18 @@
                         {{ spare_formset.management_form }}
 
                         <!-- Standard HTML Table -->
-                        <table class="table table-borderless align-middle mb-0" style="min-width: 800px;">
+                        <table class="table table-borderless align-middle mb-0">
                             <thead class="table-premium-header text-muted small text-uppercase">
                                 <tr class="border-bottom">
-                                    <th class="ps-3 col-part" style="min-width: 300px;">Part Name</th>
+                                    <th class="ps-3 col-part" style="min-width: 200px;">Part Name</th>
                                     <th class="text-center col-qty">Qty</th>
                                     <th class="col-status">Status</th>
                                     <th class="col-date">Ordered</th>
-                                    <th class="col-date">Received</th>
+                                    <th class="col-date {% if not request.user|has_group:'Office' and not request.user|has_group:'Owner' and not request.user.is_superuser %}pe-4{% endif %}">Received</th>
                                     {% if request.user|has_group:"Office" or request.user|has_group:"Owner" or request.user.is_superuser %}
-                                    <th class="col-shop" style="min-width: 250px;">Shop</th>
+                                    <th class="col-shop" style="min-width: 150px;">Shop</th>
                                     <th class="col-price">Shop Price</th>
-                                    <th class="col-price">Customer</th>
+                                    <th class="col-price pe-4">Customer</th>
                                     {% endif %}
                                 </tr>
                             </thead>
@@ -539,17 +539,17 @@
                                     <td class="col-date">
                                         {{ s_form.ordered_date }}
                                     </td>
-                                    <td class="col-date">
+                                    <td class="col-date {% if not request.user|has_group:'Office' and not request.user|has_group:'Owner' and not request.user.is_superuser %}pe-4{% endif %}">
                                         {{ s_form.received_date }}
                                     </td>
                                     {% if request.user|has_group:"Office" or request.user|has_group:"Owner" or request.user.is_superuser %}
-                                    <td class="col-shop" style="min-width: 250px;">
+                                    <td class="col-shop" style="min-width: 150px;">
                                         {{ s_form.shop_name }}
                                     </td>
                                     <td class="col-price">
                                         {{ s_form.unit_price }}
                                     </td>
-                                    <td class="col-price">
+                                    <td class="col-price pe-4">
                                         {{ s_form.total_price }}
                                     </td>
                                     {% endif %}
@@ -611,7 +611,7 @@
                 <td class="col-date">
                     {{ spare_formset.empty_form.ordered_date }}
                 </td>
-                <td class="col-date">
+                <td class="col-date {% if not request.user|has_group:'Office' and not request.user|has_group:'Owner' and not request.user.is_superuser %}pe-4{% endif %}">
                     {{ spare_formset.empty_form.received_date }}
                 </td>
                 {% if request.user|has_group:"Office" or request.user|has_group:"Owner" or request.user.is_superuser %}
@@ -621,7 +621,7 @@
                 <td class="col-price">
                     {{ spare_formset.empty_form.unit_price }}
                 </td>
-                <td class="col-price">
+                <td class="col-price pe-4">
                     {{ spare_formset.empty_form.total_price }}
                 </td>
                 {% endif %}

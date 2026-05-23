@@ -42,7 +42,7 @@ def home(request):
     delivered_count = JobCard.objects.filter(
         delivered=True,
         is_deleted=False,
-        updated_at__date=date.today()
+        discharged_date=date.today()
     ).count()
 
     # Count pending bills (Delivered but not fully paid, Active only)

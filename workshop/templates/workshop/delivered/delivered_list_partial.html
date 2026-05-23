@@ -241,7 +241,7 @@
     {% for jobcard in delivered_jobcards %}
     {% with color=jobcard.get_car_color_hex|default:'#475569' %}
     <div class="col-12 col-md-6 col-lg-4">
-        <div class="del-card">
+        <div class="del-card" data-detail-url="{% url 'jobcard_detail' jobcard.pk %}" style="cursor: pointer;">
 
             <!-- Restore Car Colour Stripe (Titan Standard) -->
             <div class="del-stripe

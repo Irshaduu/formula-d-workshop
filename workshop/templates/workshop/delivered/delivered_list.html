@@ -294,6 +294,21 @@ document.addEventListener('DOMContentLoaded', function () {
     searchForm.addEventListener('submit', function (e) { updateResults(searchInput.value, 1, e); });
 
     resultsContainer.addEventListener('click', function (e) {
+        // 1. Handle Card Clicks (View Details)
+        const card = e.target.closest('.del-card');
+        if (card) {
+            // Prevent click if interacting with buttons/menus inside the card
+            if (e.target.closest('.dropdown-menu') ||
+                e.target.closest('[data-bs-toggle="dropdown"]') ||
+                e.target.closest('button') ||
+                e.target.closest('form')) {
+                return;
+            }
+            const url = card.getAttribute('data-detail-url');
+            if (url) window.location.href = url;
+        }
+
+        // 2. Handle Pagination Links
         const link = e.target.closest('.page-link');
         if (link && !link.parentElement.classList.contains('disabled')) {
             e.preventDefault();

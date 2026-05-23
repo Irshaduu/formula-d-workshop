@@ -7,85 +7,70 @@ View Job Card - {{ jobcard.registration_number }}
 
 {% block extra_css %}
 <style>
-    .dossier-card {
-        background: var(--color-card, #ffffff);
-        border: 1px solid var(--color-border);
-        border-radius: 12px;
-        padding: 1.5rem;
-        margin-bottom: 1.5rem;
-        box-shadow: 0 4px 6px var(--color-shadow, rgba(0,0,0,0.05));
-    }
-    .overview-strip {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 1.5rem;
-        border-bottom: 1px solid var(--color-border-light);
-        padding-bottom: 1rem;
-        margin-bottom: 1.5rem;
-    }
-    .overview-item {
-        flex: 1 1 auto;
-        min-width: 120px;
-    }
-    .section-title {
-        font-size: 0.8rem;
+    /* Premium Typography */
+    .view-label {
+        font-size: 0.75rem;
         text-transform: uppercase;
         color: var(--color-text-muted);
-        letter-spacing: 1px;
-        margin-bottom: 0.75rem;
-        font-weight: 800;
-        border-bottom: 2px solid var(--color-primary-light);
-        padding-bottom: 4px;
-        display: inline-block;
-    }
-    .status-badge {
-        font-size: 0.65rem;
-        padding: 4px 8px;
-        border-radius: 4px;
-        font-weight: 800;
-        text-transform: uppercase;
         letter-spacing: 0.5px;
+        margin-bottom: 2px;
+        font-weight: 600;
+        display: block;
     }
-    /* Status Colors */
-    .status-pending { background: rgba(220, 53, 69, 0.1); color: #dc3545; border: 1px solid rgba(220, 53, 69, 0.2); }
-    .status-working { background: rgba(255, 193, 7, 0.1); color: #ffc107; border: 1px solid rgba(255, 193, 7, 0.2); }
-    .status-fixed { background: rgba(40, 167, 69, 0.1); color: #28a745; border: 1px solid rgba(40, 167, 69, 0.2); }
-    .status-ordered { background: rgba(52, 152, 219, 0.1); color: #3498db; border: 1px solid rgba(52, 152, 219, 0.2); }
-    .status-received { background: rgba(40, 167, 69, 0.1); color: #28a745; border: 1px solid rgba(40, 167, 69, 0.2); }
-    .status-neutral { background: rgba(108, 117, 125, 0.1); color: #adb5bd; border: 1px solid rgba(108, 117, 125, 0.2); }
-
-    .item-row {
+    .view-value {
+        font-size: 1rem;
+        font-weight: 700;
+        color: var(--color-text);
+        display: block;
+    }
+    .view-value-large {
+        font-size: 1.15rem;
+        font-weight: 800;
+        color: var(--color-text);
+        display: block;
+    }
+    
+    /* Lists and Tables */
+    .view-list-item {
+        padding: 12px 16px;
+        border-bottom: 1px dashed var(--color-border-light);
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding: 0.6rem 0;
-        border-bottom: 1px dashed var(--color-border-light);
+        gap: 16px;
     }
-    .item-row:last-child { border-bottom: none; }
-    
-    .item-text {
+    .view-list-item:last-child {
+        border-bottom: none;
+    }
+    .view-list-text {
         font-size: 0.95rem;
         font-weight: 600;
         color: var(--color-text);
     }
-    .item-subtext {
-        font-size: 0.75rem;
-        color: var(--color-text-muted);
-        display: block;
-        margin-top: 2px;
-    }
-    .metric-value {
-        font-size: 1.1rem;
-        font-weight: 700;
-        color: var(--color-text);
-    }
-    .metric-label {
+
+    /* Status Badges */
+    .status-badge {
         font-size: 0.7rem;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-weight: 800;
         text-transform: uppercase;
-        color: var(--color-text-muted);
         letter-spacing: 0.5px;
-        display: block;
-        margin-bottom: 2px;
+        white-space: nowrap;
+    }
+    .status-pending { background: rgba(220, 38, 38, 0.1); color: #dc2626; border: 1px solid rgba(220, 38, 38, 0.2); }
+    .status-working { background: rgba(245, 158, 11, 0.1); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.2); }
+    .status-fixed { background: rgba(22, 163, 74, 0.1); color: #16a34a; border: 1px solid rgba(22, 163, 74, 0.2); }
+    .status-ordered { background: rgba(37, 99, 235, 0.1); color: #2563eb; border: 1px solid rgba(37, 99, 235, 0.2); }
+    .status-neutral { background: rgba(100, 116, 139, 0.1); color: #475569; border: 1px solid rgba(100, 116, 139, 0.2); }
+
+    /* Empty States */
+    .view-empty {
+        text-align: center;
+        padding: 24px;
+        color: #94a3b8;
+        font-size: 0.9rem;
+        font-style: italic;
     }
 </style>
 {% endblock %}
@@ -135,159 +120,238 @@ View Job Card - {{ jobcard.registration_number }}
             {% endif %}
         </div>
 
-        <!-- MAIN DOSSIER CARD -->
-        <div class="dossier-card">
-            
-            <!-- Service Overview Strip -->
-            <div class="overview-strip align-items-center">
-                <div class="overview-item">
-                    <span class="metric-label">Dates</span>
-                    <span class="metric-value d-block" style="font-size: 0.95rem;">In: {{ jobcard.admitted_date|date:"d M, Y" }}</span>
-                    {% if jobcard.discharged_date %}
-                        <span class="item-subtext text-success fw-bold"><i class="bi bi-calendar-check"></i> Out: {{ jobcard.discharged_date|date:"d M, Y" }}</span>
-                    {% else %}
-                        <span class="item-subtext">Active</span>
-                    {% endif %}
-                </div>
-                <div class="overview-item">
-                    <span class="metric-label">Mechanic</span>
-                    <span class="metric-value">{{ jobcard.lead_mechanic.name|default:"Unassigned" }}</span>
-                </div>
-                <div class="overview-item">
-                    <span class="metric-label">Vehicle Info</span>
-                    <span class="metric-value d-block" style="font-size: 0.95rem;">{{ jobcard.mileage|default:"-" }} km</span>
-                    <span class="item-subtext">{{ jobcard.get_car_color_display }}</span>
-                </div>
-
-                <!-- Customer Info -->
-                <div class="overview-item ms-auto text-end" style="flex: 0 0 auto; min-width: fit-content;">
-                    {% if jobcard.customer_name or jobcard.customer_contact %}
-                        <div class="px-3 py-2 rounded border shadow-sm d-inline-block text-start align-middle" style="background-color: var(--color-surface); border-color: var(--color-border-light) !important; max-width: 250px;">
-                            <span class="d-block fw-bold text-truncate" style="font-size: 0.85rem; color: var(--color-text);"><i class="bi bi-person-fill text-primary me-1"></i>{{ jobcard.customer_name|default:"No name" }}</span>
-                            {% if jobcard.customer_contact %}
-                                <span class="d-block text-muted mt-1 text-truncate" style="font-size: 0.75rem;"><i class="bi bi-telephone me-1"></i>{{ jobcard.customer_contact }}</span>
-                            {% endif %}
+        <!-- ========================================== -->
+        <!-- SECTION 1: VEHICLE & DATES -->
+        <!-- ========================================== -->
+        <div class="card shadow-sm mb-4 border-0">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 text-primary fw-bold">Vehicle Details</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-6 col-md-4">
+                        <span class="view-label">Car Brand</span>
+                        <span class="view-value-large">{{ jobcard.brand_name }}</span>
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <span class="view-label">Car Model</span>
+                        <span class="view-value-large">{{ jobcard.model_name }}</span>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <span class="view-label">Registration Number</span>
+                        <span class="view-value-large text-primary">{{ jobcard.registration_number }}</span>
+                    </div>
+                    
+                    <div class="col-6 col-md-4">
+                        <div class="d-flex gap-3">
+                            <div style="flex: 0 0 45px;">
+                                <span class="view-label">Color</span>
+                                <div class="border shadow-sm" title="{{ jobcard.get_car_color_display }}" style="width: 100%; height: 28px; background-color: {{ jobcard.get_car_color_hex }}; border-radius: 4px; border-color: rgba(0,0,0,0.1) !important; margin-top: 2px;">
+                                </div>
+                            </div>
+                            <div class="flex-grow-1">
+                                <span class="view-label">Mileage (Km)</span>
+                                <span class="view-value-large">{{ jobcard.mileage|default:"-" }}</span>
+                            </div>
                         </div>
-                    {% else %}
-                        <!-- Tiny text if not filled -->
-                        <span class="text-muted opacity-50 fst-italic align-middle" style="font-size: 0.75rem;"><i class="bi bi-person"></i> No name</span>
-                    {% endif %}
+                    </div>
+                    <div class="col-6 col-md-4">
+                        <span class="view-label"><i class="bi bi-person-badge"></i> Mechanic (Staff)</span>
+                        <span class="view-value">{{ jobcard.lead_mechanic.name|default:"Unassigned" }}</span>
+                    </div>
+                    <div class="col-12 col-md-4">
+                        <span class="view-label">Dates</span>
+                        <span class="view-value">
+                            <i class="bi bi-box-arrow-in-right text-muted me-1"></i> {{ jobcard.admitted_date|date:"d M, Y" }}
+                            {% if jobcard.discharged_date %}
+                            <br><i class="bi bi-box-arrow-right text-success me-1 mt-1"></i> <span class="text-success">{{ jobcard.discharged_date|date:"d M, Y" }}</span>
+                            {% endif %}
+                        </span>
+                    </div>
                 </div>
             </div>
+        </div>
 
-            <!-- Detail Grid -->
-            <div class="row g-5">
-                <!-- LEFT COLUMN: Concerns & Jobs -->
-                <div class="col-md-6">
-                    
-                    <div class="mb-4">
-                        <span class="section-title">Concerns & Diagnostics ({{ jobcard.concerns.count }})</span>
-                        <div class="mt-2">
-                            {% for concern in jobcard.concerns.all %}
-                                <div class="item-row">
-                                    <span class="item-text">{{ concern.concern_text }}</span>
-                                    <span class="status-badge 
-                                        {% if concern.status == 'PENDING' %}status-pending
-                                        {% elif concern.status == 'WORKING' %}status-working
-                                        {% else %}status-fixed{% endif %}">
-                                        {{ concern.get_status_display }}
-                                    </span>
-                                </div>
-                            {% empty %}
-                                <div class="text-muted small fst-italic py-2">No concerns listed</div>
-                            {% endfor %}
-                        </div>
+        <!-- ========================================== -->
+        <!-- SECTION 2: CUSTOMER INFO -->
+        <!-- ========================================== -->
+        <div class="card shadow-sm mb-4 border-0">
+            <div class="card-body">
+                <div class="row g-4">
+                    <div class="col-12 col-md-6">
+                        <span class="view-label">Customer Name</span>
+                        <span class="view-value-large"><i class="bi bi-person-fill text-muted me-1"></i> {{ jobcard.customer_name|default:"—" }}</span>
                     </div>
+                    <div class="col-12 col-md-6">
+                        <span class="view-label">Contact Number</span>
+                        <span class="view-value-large"><i class="bi bi-telephone-fill text-muted me-1"></i> {{ jobcard.customer_contact|default:"—" }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-                    <div>
-                        <span class="section-title">Jobs / Labour ({{ jobcard.labours.count }})</span>
-                        <div class="mt-2">
-                            {% for labour in jobcard.labours.all %}
-                                <div class="item-row">
-                                    <span class="item-text">{{ labour.job_description }}</span>
+        <!-- ========================================== -->
+        <!-- SECTION 3: CUSTOMER CONCERNS -->
+        <!-- ========================================== -->
+        <div class="card shadow-sm mb-4 border-0">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 text-primary fw-bold">Customer Concerns ({{ jobcard.concerns.count }})</h6>
+            </div>
+            <div class="card-body p-0">
+                {% if jobcard.concerns.all %}
+                    <div class="list-group list-group-flush">
+                        {% for concern in jobcard.concerns.all %}
+                            <div class="view-list-item">
+                                <span class="view-list-text">{{ concern.concern_text }}</span>
+                                <span class="status-badge 
+                                    {% if concern.status == 'PENDING' %}status-pending
+                                    {% elif concern.status == 'WORKING' %}status-working
+                                    {% else %}status-fixed{% endif %}">
+                                    {{ concern.get_status_display }}
+                                </span>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="view-empty">No customer concerns listed</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- SECTION 4: JOBS / LABOUR -->
+        <!-- ========================================== -->
+        <div class="card shadow-sm mb-4 border-0">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 text-primary fw-bold">Jobs (Labour) ({{ jobcard.labours.count }})</h6>
+            </div>
+            <div class="card-body p-0">
+                {% if jobcard.labours.all %}
+                    <div class="list-group list-group-flush">
+                        {% for labour in jobcard.labours.all %}
+                            <div class="view-list-item">
+                                <span class="view-list-text">{{ labour.job_description }}</span>
+                                {% if request.user|has_group:"Office" or request.user|has_group:"Owner" or request.user.is_superuser %}
+                                    <span class="status-badge status-neutral font-monospace">₹ {{ labour.amount|default:"0.00" }}</span>
+                                {% endif %}
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="view-empty">No labour recorded</div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- ========================================== -->
+        <!-- SECTION 5: SPARE PARTS -->
+        <!-- ========================================== -->
+        <div class="card shadow-sm mb-4 border-0">
+            <div class="card-header bg-white py-3">
+                <h6 class="mb-0 text-primary fw-bold">Spare Parts Used ({{ jobcard.spares.count }})</h6>
+            </div>
+            <div class="card-body p-0">
+                {% if jobcard.spares.all %}
+                    <div class="table-responsive">
+                        <table class="table table-borderless align-middle mb-0">
+                            <thead class="text-muted small text-uppercase border-bottom">
+                                <tr>
+                                    <th class="ps-4">Part Name</th>
+                                    <th class="text-center">Qty</th>
+                                    <th>Status</th>
+                                    <th>Dates</th>
                                     {% if request.user|has_group:"Office" or request.user|has_group:"Owner" or request.user.is_superuser %}
-                                        <span class="status-badge status-neutral fw-bold font-monospace" style="font-size: 0.75rem;">₹ {{ labour.amount|default:"0.00" }}</span>
+                                    <th>Shop</th>
+                                    <th class="text-end pe-4">Price</th>
                                     {% endif %}
-                                </div>
-                            {% empty %}
-                                <div class="text-muted small fst-italic py-2">No labour recorded</div>
-                            {% endfor %}
-                        </div>
-                    </div>
-                    
-                </div>
-                
-                <!-- RIGHT COLUMN: Spares -->
-                <div class="col-md-6">
-                    
-                    <div>
-                        <span class="section-title">Spare Parts Used ({{ jobcard.spares.count }})</span>
-                        <div class="mt-2">
-                            {% for spare in jobcard.spares.all %}
-                                <div class="item-row">
-                                    <div>
-                                        <span class="item-text">{{ spare.spare_part_name }}</span>
-                                        <span class="item-subtext">
-                                            Qty: {{ spare.quantity|clean_qty|default:"-" }}
-                                            {% if spare.ordered_date %}| Ord: {{ spare.ordered_date|date:"d M" }}{% endif %}
-                                            {% if spare.received_date %}| Rec: {{ spare.received_date|date:"d M" }}{% endif %}
-                                            {% if request.user|has_group:"Office" or request.user|has_group:"Owner" or request.user.is_superuser %}
-                                                {% if spare.shop_name %}| From: {{ spare.shop_name }}{% endif %}
-                                            {% endif %}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for spare in jobcard.spares.all %}
+                                <tr class="border-bottom">
+                                    <td class="ps-4">
+                                        <span class="view-list-text">{{ spare.spare_part_name }}</span>
+                                    </td>
+                                    <td class="text-center font-monospace fw-bold">
+                                        {{ spare.quantity|clean_qty|default:"-" }}
+                                    </td>
+                                    <td>
+                                        <span class="status-badge 
+                                            {% if spare.status == 'PENDING' %}status-pending
+                                            {% elif spare.status == 'ORDERED' %}status-ordered
+                                            {% else %}status-fixed{% endif %}">
+                                            {{ spare.get_status_display }}
                                         </span>
-                                    </div>
-                                    <span class="status-badge 
-                                        {% if spare.status == 'PENDING' %}status-pending
-                                        {% elif spare.status == 'ORDERED' %}status-ordered
-                                        {% else %}status-received{% endif %}">
-                                        {{ spare.get_status_display }}
-                                    </span>
-                                </div>
-                            {% empty %}
-                                <div class="text-muted small fst-italic py-2">No spare parts recorded</div>
-                            {% endfor %}
-                        </div>
+                                    </td>
+                                    <td>
+                                        <div style="font-size: 0.8rem; line-height: 1.3;">
+                                            {% if spare.ordered_date %}
+                                                <span class="text-muted">Ord:</span> <span class="fw-bold">{{ spare.ordered_date|date:"d M" }}</span><br>
+                                            {% endif %}
+                                            {% if spare.received_date %}
+                                                <span class="text-success">Rec:</span> <span class="fw-bold">{{ spare.received_date|date:"d M" }}</span>
+                                            {% endif %}
+                                            {% if not spare.ordered_date and not spare.received_date %}-{% endif %}
+                                        </div>
+                                    </td>
+                                    {% if request.user|has_group:"Office" or request.user|has_group:"Owner" or request.user.is_superuser %}
+                                    <td>
+                                        <span class="view-label mb-0" style="text-transform: none;">{{ spare.shop_name|default:"-" }}</span>
+                                    </td>
+                                    <td class="text-end pe-4 font-monospace fw-bold">
+                                        ₹{{ spare.total_price|default:"0.00" }}
+                                    </td>
+                                    {% endif %}
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
                     </div>
-                </div>
-            </div> <!-- End Detail Grid -->
+                {% else %}
+                    <div class="view-empty">No spare parts recorded</div>
+                {% endif %}
+            </div>
+        </div>
 
-        </div> <!-- End MAIN DOSSIER CARD -->
-
+        <!-- ========================================== -->
+        <!-- SECTION 6: FINANCIAL SUMMARY -->
+        <!-- ========================================== -->
         {% if request.user|has_group:"Office" or request.user|has_group:"Owner" or request.user.is_superuser %}
-        <!-- Compact Financial Summary -->
-        <div class="dossier-card py-3" style="background: linear-gradient(to right, #ffffff, var(--color-surface));">
-            <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
-                
-                <div class="d-flex align-items-center gap-2">
-                    <span class="metric-label mb-0 me-2 border-end pe-3">Payment Status</span>
-                    {% if jobcard.payment_status == 'PAID' %}
-                        <span class="status-badge status-fixed" style="font-size: 0.8rem;"><i class="bi bi-check-circle-fill"></i> PAID</span>
-                    {% elif jobcard.payment_status == 'PARTIAL' %}
-                        <span class="status-badge status-working" style="font-size: 0.8rem;"><i class="bi bi-pie-chart-fill"></i> PARTIAL</span>
-                    {% else %}
-                        <span class="status-badge status-pending" style="font-size: 0.8rem;"><i class="bi bi-exclamation-circle-fill"></i> PENDING</span>
-                    {% endif %}
-                </div>
-                
-                <div class="d-flex align-items-center gap-4">
-                    <div class="text-end">
-                        <span class="metric-label">Total Bill</span>
-                        <span class="metric-value font-monospace" style="font-size: 1.15rem;">₹{{ jobcard.get_total_amount|floatformat:2 }}</span>
+        <div class="card shadow-sm mb-5 border-0" style="background: linear-gradient(to right, #ffffff, var(--color-surface));">
+            <div class="card-body py-4">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-4">
+                    
+                    <div class="d-flex align-items-center gap-2 border-end pe-4">
+                        <span class="view-label mb-0 me-2 border-0">Payment Status</span>
+                        {% if jobcard.payment_status == 'PAID' %}
+                            <span class="status-badge status-fixed" style="font-size: 0.8rem;"><i class="bi bi-check-circle-fill"></i> PAID</span>
+                        {% elif jobcard.payment_status == 'PARTIAL' %}
+                            <span class="status-badge status-working" style="font-size: 0.8rem;"><i class="bi bi-pie-chart-fill"></i> PARTIAL</span>
+                        {% else %}
+                            <span class="status-badge status-pending" style="font-size: 0.8rem;"><i class="bi bi-exclamation-circle-fill"></i> PENDING</span>
+                        {% endif %}
                     </div>
                     
-                    <div class="text-end">
-                        <span class="metric-label text-success">Received</span>
-                        <span class="metric-value text-success font-monospace border-start ps-3" style="font-size: 1.15rem;">₹{{ jobcard.received_amount|default:"0"|floatformat:2 }}</span>
-                    </div>
+                    <div class="d-flex align-items-center gap-5">
+                        <div class="text-end">
+                            <span class="view-label border-0">Total Bill</span>
+                            <span class="view-value-large font-monospace" style="font-size: 1.3rem;">₹{{ jobcard.get_total_amount|floatformat:2 }}</span>
+                        </div>
+                        
+                        <div class="text-end">
+                            <span class="view-label border-0 text-success">Received</span>
+                            <span class="view-value-large text-success font-monospace border-start ps-4" style="font-size: 1.3rem;">₹{{ jobcard.received_amount|default:"0"|floatformat:2 }}</span>
+                        </div>
 
-                    {% if jobcard.payment_status != 'PAID' %}
-                    <div class="text-end">
-                        <span class="metric-label text-danger">Balance</span>
-                        <span class="metric-value text-danger font-monospace border-start ps-3" style="font-size: 1.3rem;">₹{{ jobcard.get_balance_amount|floatformat:2 }}</span>
+                        {% if jobcard.payment_status != 'PAID' %}
+                        <div class="text-end">
+                            <span class="view-label border-0 text-danger">Balance</span>
+                            <span class="view-value-large text-danger font-monospace border-start ps-4" style="font-size: 1.5rem;">₹{{ jobcard.get_balance_amount|floatformat:2 }}</span>
+                        </div>
+                        {% endif %}
                     </div>
-                    {% endif %}
+                    
                 </div>
-                
             </div>
         </div>
         {% endif %}
