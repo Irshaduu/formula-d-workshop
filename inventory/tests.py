@@ -131,7 +131,7 @@ class InventoryViewTests(TestCase):
 
     def test_stock_restock_and_low_stock(self):
         # Restock list
-        response = self.client.get(reverse('inventory_restock'))
+        response = self.client.get(reverse('inventory_list'))
         self.assertContains(response, 'Brake Pad')
         
         # Update Stock
@@ -154,7 +154,7 @@ class InventoryViewTests(TestCase):
     def test_get_methods(self):
         # inventory_home redirects to restock
         response = self.client.get(reverse('inventory_home'))
-        self.assertRedirects(response, reverse('inventory_restock'))
+        self.assertRedirects(response, reverse('inventory_list'))
 
         # delete_category GET (no POST body) → safe redirect, does NOT delete
         response = self.client.get(
@@ -188,8 +188,8 @@ class InventoryViewTests(TestCase):
         self.assertRedirects(response, reverse('inventory_manage'))
         self.assertTrue(Item.objects.filter(id=self.item.id).exists())
 
-        # inventory_restock with empty search
-        response = self.client.get(reverse('inventory_restock'), {'q': ''})
+        # inventory_list with empty search
+        response = self.client.get(reverse('inventory_list'), {'q': ''})
         self.assertEqual(response.status_code, 200)
 
         # update_stock POST without next_url → redirect to restock
@@ -197,7 +197,7 @@ class InventoryViewTests(TestCase):
             reverse('inventory_update_stock', args=[self.item.id]),
             {'current_stock': 50}
         )
-        self.assertRedirects(response, reverse('inventory_restock'))
+        self.assertRedirects(response, reverse('inventory_list'))
         self.item.refresh_from_db()
         self.assertEqual(self.item.current_stock, 50)
 

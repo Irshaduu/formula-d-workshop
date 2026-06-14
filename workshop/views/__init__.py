@@ -26,7 +26,7 @@ from .bulk_payer import (
 )
 from .spare_shop import (
     spare_shop_list, spare_shop_create, spare_shop_edit, spare_shop_detail,
-    spare_shop_pay, spare_shop_pay_item, spare_shop_payment_reverse,
+    spare_shop_pay, spare_shop_payment_reverse,
     spare_shop_delete, spare_shop_restore, spare_shop_permanent_delete,
     spare_shop_payment_permanent_delete, spare_shop_print,
 )

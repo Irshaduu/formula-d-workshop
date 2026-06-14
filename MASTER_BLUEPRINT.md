@@ -31,13 +31,13 @@ graph TB
         W_TPL["Templates — 52 HTML Files"]
     end
 
-    subgraph INVENTORY["Inventory App (Warehouse)"]
-        I_MODELS["models.py — 3 Models"]
-        I_VIEWS["views.py — 13 Views"]
-        I_URLS["urls.py — 13 URL Patterns"]
-        I_SIGNALS["signals.py — 3 Signal Handlers"]
-        I_ADMIN["admin.py — 3 Registered"]
-        I_TPL["Templates — 6 HTML Files"]
+    subgraph INVENTORY["Inventory App (Warehouse + Supplies Shops)"]
+        I_MODELS["models.py — 8 Models"]
+        I_VIEWS["views.py + views_suppliers.py — 33 Views"]
+        I_URLS["urls.py — 33 URL Patterns"]
+        I_SIGNALS["signals.py — 6 Signal Handlers"]
+        I_ADMIN["admin.py — 8 Registered"]
+        I_TPL["Templates — 18 HTML Files"]
     end
 
     subgraph EXTERNAL["External Services (⚠️ Current — May Change)"]
@@ -103,13 +103,18 @@ erDiagram
 | 15 | **BulkPaymentHistory** | bulk_payer (FK), amount, method, jobs_affected, details (JSON) | Audit trail for bulk payments |
 | 16 | **SpareShopPayment** | shop (FK→SpareShop), amount, method, note, details (JSON), is_trashed | Audit trail for shop payments |
 
-### Inventory App Models (3)
+### Inventory App Models (8)
 
 | # | Model | Key Fields | Purpose |
 |---|-------|--------|---------| 
 | 1 | **Category** | name | Groups inventory items |
 | 2 | **Item** | category (FK), name, average_stock, current_stock, usage_count | Warehouse part with stock levels |
 | 3 | **ConsumptionRecord** | user (FK→User), item (FK→Item), quantity, date, timestamp | Audit trail for stock changes |
+| 4 | **SupplierShop** | name (unique), phone, total_billed_amount, total_paid_amount, is_active | Supplier / Supplies Shop master record |
+| 5 | **ShopCatalogItem** | shop (FK→SupplierShop), item (FK→Item), unique_together(shop,item) | Links a supplier to the items they stock |
+| 6 | **SupplierRestockBill** | supplier (FK→SupplierShop), bill_date, total_amount, discount_amount, note | Individual restock purchase from a supplier |
+| 7 | **SupplierRestockItem** | bill (FK→SupplierRestockBill), item (FK→Item), quantity, unit_price, total_price | Line item on a restock bill |
+| 8 | **SupplierPayment** | supplier (FK→SupplierShop), amount, payment_method, date, note, is_trashed | Payment record for supplier accounts |
 
 ---
 
@@ -162,7 +167,7 @@ Login Event → send_titan_security_alert()
 
 ---
 
-## 4. ALL URL ROUTES — COMPLETE (85 Total)
+## 4. ALL URL ROUTES — COMPLETE (113 Total)
 
 ### Workshop App (72 routes)
 
@@ -252,7 +257,7 @@ Login Event → send_titan_security_alert()
 
 *Note: `manage_terminate_session` has `@office_required` decorator but includes an internal Owner-only check.*
 
-### Inventory App (13 routes under `/inventory/`)
+### Inventory App (33 routes under `/inventory/`)
 
 | URL | View | Purpose |
 |-----|------|---------|
@@ -265,10 +270,31 @@ Login Event → send_titan_security_alert()
 | `/category/<id>/item/add/` | `add_item` | Add item to category |
 | `/item/edit/<id>/` | `edit_item` | Edit item details |
 | `/item/delete/<id>/` | `delete_item` | Delete item |
-| `/restock/` | `inventory_restock` | Stock level dashboard |
+| `/restock/` | `inventory_list` | Stock level dashboard |
 | `/restock/update/<id>/` | `update_stock` | Update stock count |
 | `/low-stock/` | `inventory_low_stock` | Items below 25% threshold |
 | `/history/` | `consumption_history` | Audit log |
+| **SUPPLIES SHOPS** | | |
+| `/suppliers/` | `supplier_shop_list` | All supplier shops dashboard |
+| `/suppliers/add/` | `supplier_shop_add` | Create new supplier |
+| `/suppliers/<id>/` | `supplier_shop_detail` | Supplier detail with bills & payments |
+| `/suppliers/<id>/edit/` | `supplier_shop_edit` | Edit supplier details |
+| `/suppliers/<id>/deactivate/` | `supplier_shop_deactivate` | Soft-deactivate supplier |
+| `/suppliers/<id>/activate/` | `supplier_shop_activate` | Re-activate supplier |
+| `/suppliers/deactivated/` | `supplier_shop_deactivated_list` | View deactivated suppliers |
+| `/suppliers/<id>/catalog/add/` | `supplier_catalog_add` | Add item to supplier catalog |
+| `/suppliers/<id>/catalog/<item_id>/remove/` | `supplier_catalog_remove` | Remove item from catalog |
+| `/suppliers/<id>/catalog/<item_id>/edit/` | `supplier_catalog_edit` | Edit catalog item name |
+| `/suppliers/<id>/restock/select/` | `supplier_restock_select` | Select items for restock bill |
+| `/suppliers/<id>/restock/create/` | `supplier_restock_create` | Create restock bill |
+| `/suppliers/<id>/restock/<bill_id>/edit/` | `supplier_restock_edit` | Edit existing restock bill |
+| `/suppliers/<id>/restock/<bill_id>/delete/` | `supplier_restock_delete` | Delete restock bill (reverses stock) |
+| `/suppliers/<id>/restock/<bill_id>/discount/` | `supplier_bill_discount` | Update bill discount |
+| `/suppliers/<id>/pay/` | `supplier_payment_create` | Record payment to supplier |
+| `/suppliers/<id>/payment/<pay_id>/delete/` | `supplier_payment_delete` | Soft-delete payment |
+| `/suppliers/<id>/bills/` | `supplier_bills_partial` | AJAX: paginated bills list |
+| `/suppliers/<id>/payments/` | `supplier_payments_partial` | AJAX: paginated payments list |
+| `/item/<item_id>/suppliers/` | `item_suppliers_view` | View all suppliers for an item |
 
 ---
 
@@ -289,13 +315,28 @@ graph LR
     JCS -->|"on save/delete"| SIG
     SIG -->|"auto-deduct/restore stock"| ITEM
     AC -->|"search Item.name"| ITEM
+
+    subgraph SUPPLIER["Supplier Restock Flow"]
+        SS["SupplierShop"]
+        RB["SupplierRestockBill"]
+        RI["SupplierRestockItem"]
+    end
+
+    SS -->|"has bills"| RB
+    RB -->|"has items"| RI
+    RI -->|"on save/delete"| SIG
 ```
 
-**Signal-Based Auto Stock Sync (4 scenarios):**
+**Signal-Based Auto Stock Sync — Workshop Consumption (4 scenarios):**
 1. **New spare added** → Deduct full qty from warehouse
 2. **Qty changed (same part)** → Deduct only the delta
 3. **Part name changed** → Restore old part stock, deduct new part stock
 4. **Spare deleted** → Restore full qty to warehouse
+
+**Signal-Based Auto Stock Sync — Supplier Restock (3 scenarios):**
+5. **New restock item created** → Increase stock by full qty
+6. **Restock qty changed** → Adjust stock by delta
+7. **Restock item/bill deleted** → Reverse stock increase
 
 ---
 
@@ -347,16 +388,29 @@ stateDiagram-v2
 | `/manage/` | `manage_dashboard.html`, `data_cleanup.html` | 2 admin screens |
 | `/includes/` | `pagination.html` | Reusable pagination component |
 
-### Inventory Templates (`inventory/templates/inventory/`) — 6 files
+### Inventory Templates (`inventory/templates/inventory/`) — 18 files
 
 | File | Purpose |
 |------|---------|
 | `home.html` | Redirector |
 | `manage.html` | Category & item CRUD |
 | `category_detail.html` | Items within category |
-| `restock.html` | Stock level management |
+| `inventory_list.html` | Stock level management |
 | `low_stock.html` | Critical stock alerts |
 | `consumption_history.html` | Usage audit log |
+| **Suppliers Directory** | |
+| `suppliers/shop_list.html` | Supplier shops dashboard |
+| `suppliers/shop_detail.html` | Supplier detail with bills, payments, catalog |
+| `suppliers/shop_add.html` | Add new supplier form |
+| `suppliers/shop_edit.html` | Edit supplier form |
+| `suppliers/deactivated_list.html` | Deactivated suppliers list |
+| `suppliers/restock_select.html` | Select items for restock bill |
+| `suppliers/restock_create.html` | Create/edit restock bill form |
+| `suppliers/restock_edit.html` | Edit existing restock bill |
+| `suppliers/catalog_add.html` | Add item to supplier catalog |
+| `suppliers/item_suppliers.html` | View all suppliers for an item |
+| `suppliers/partials/bill_list_chunk.html` | AJAX partial: paginated bill list |
+| `suppliers/partials/payment_list_chunk.html` | AJAX partial: paginated payment list |
 
 ---
 
@@ -387,7 +441,7 @@ All forms use `BootstrapFormMixin` to auto-apply Bootstrap classes.
 |-----------|------|---------|
 | `SessionTrackingMiddleware` | `middleware.py` | Logs every authenticated request to `UserSession` |
 | `create_user_groups` | `apps.py` | Auto-creates Owner/Office/Floor groups on migrate |
-| `inventory.signals` | `signals.py` | Auto stock sync on JobCardSpareItem changes (3 handlers) |
+| `inventory.signals` | `signals.py` | Auto stock sync — 6 handlers: 3 for JobCardSpareItem (workshop consumption) + 3 for SupplierRestockItem (supplier restock) |
 | `setup_groups` command | `management/commands/` | Manual group creation (legacy) |
 | Custom template filters | `templatetags/custom_filters.py` | `has_group`, `is_tomorrow`, `divide`, `multiply`, `clean_qty`, `get_range` |
 | Settings package | `settings/__init__.py` | Auto-selects dev/prod via `DJANGO_ENV` |
@@ -452,7 +506,7 @@ graph TB
 
 ---
 
-## 11. DJANGO ADMIN REGISTRATIONS (13 Total)
+## 11. DJANGO ADMIN REGISTRATIONS (18 Total)
 
 ### Workshop Admin (10)
 
@@ -470,13 +524,18 @@ graph TB
 
 *Note: SpareShop and SpareShopPayment are NOT registered in admin (managed via dedicated UI views only).*
 
-### Inventory Admin (3)
+### Inventory Admin (8)
 
 | Model | Admin Features |
 |-------|---------------|
-| `Category` | list: name |
-| `Item` | list: name, category, current_stock, average_stock, usage_count · filter: category |
+| `Category` | list: name · search: name |
+| `Item` | list: name, category, current_stock, average_stock, usage_count · filter: category · search: name |
 | `ConsumptionRecord` | list: user, item, qty, date · filter: date, user |
+| `SupplierShop` | list: name, phone, total_billed, total_paid, is_active · filter: is_active · search: name |
+| `ShopCatalogItem` | list: shop, item, created_at · filter: shop · search: shop name, item name |
+| `SupplierRestockBill` | list: id, supplier, bill_date, total_amount, discount · filter: supplier, bill_date · search: supplier name |
+| `SupplierRestockItem` | list: bill, item, quantity, total_price · filter: bill supplier · search: item name |
+| `SupplierPayment` | list: supplier, amount, method, date, is_trashed · filter: method, is_trashed, supplier · search: supplier name, note |
 
 ---
 
@@ -528,7 +587,7 @@ graph TB
 
 ---
 
-## 13. TEST SUITE (14 Test Files)
+## 13. TEST SUITE (16 Test Files)
 
 ### Workshop Tests (13 files)
 
@@ -548,12 +607,13 @@ graph TB
 | `test_management.py` | Management commands |
 | `test_financial.py` | Financial logic & calculations |
 
-### Inventory Tests (2 files)
+### Inventory Tests (3 files)
 
 | File | Coverage Area |
 |------|--------------|
-| `tests.py` | Inventory CRUD |
-| `test_signals.py` | Stock sync signals |
+| `tests.py` | Inventory CRUD + signal tests |
+| `test_signals.py` | Stock sync signals (advanced scenarios) |
+| `tests_suppliers.py` | Supplier shop models, signals, views, AJAX, edge cases (60 tests) |
 
 ---
 
@@ -602,15 +662,16 @@ WorkshopOS (Titan)/
 │   ├── static/css/, static/js/ ← App-specific assets
 │   └── test_*.py + tests.py    ← 13 test files
 │
-├── inventory/                  ← Warehouse App (13 URLs, 13 Views)
-│   ├── models.py               ← 3 Models
-│   ├── views.py                ← 13 Views
-│   ├── urls.py                 ← 13 URL patterns
-│   ├── signals.py              ← 3 stock-sync signal handlers
-│   ├── admin.py                ← 3 admin registrations
+├── inventory/                  ← Warehouse + Supplies Shops App (33 URLs, 33 Views)
+│   ├── models.py               ← 8 Models (3 core + 5 supplier)
+│   ├── views.py                ← 13 Views (core inventory)
+│   ├── views_suppliers.py      ← 20 Views (supplier shops module)
+│   ├── urls.py                 ← 33 URL patterns (13 core + 20 supplier)
+│   ├── signals.py              ← 6 signal handlers (3 workshop consumption + 3 supplier restock)
+│   ├── admin.py                ← 8 admin registrations (3 core + 5 supplier)
 │   ├── apps.py                 ← Signal registration
-│   ├── templates/inventory/    ← 6 templates
-│   └── tests.py, test_signals.py ← 2 test files
+│   ├── templates/inventory/    ← 18 templates (6 core + 10 supplier + 2 partials)
+│   └── tests.py, test_signals.py, tests_suppliers.py ← 3 test files (74 tests)
 │
 ├── static/css/                 ← Global static assets
 ├── .env                        ← Secrets & owner config
@@ -625,4 +686,4 @@ WorkshopOS (Titan)/
 
 ---
 
-> **Total**: 2 Django Apps · 19 Models · 85 URL Routes · 72+ Views · 58 Templates · 3 RBAC Tiers · 2 External APIs (⚠️ current) · 3 Signal Handlers · 14 Test Files
+> **Total**: 2 Django Apps · 24 Models · 113 URL Routes · 105+ Views · 70 Templates · 3 RBAC Tiers · 2 External APIs (⚠️ current) · 6 Signal Handlers · 16 Test Files

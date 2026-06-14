@@ -1,8 +1,8 @@
 # inventory/signals.py
 from django.db.models.signals import pre_save, post_save, post_delete
 from django.dispatch import receiver
-from workshop.models import JobCardSpareItem
-from .models import Item
+from workshop.models import JobCardSpareItem, JobCard
+from .models import Item, SupplierRestockItem
 
 @receiver(pre_save, sender=JobCardSpareItem)
 def track_old_quantity(sender, instance, **kwargs):
@@ -82,3 +82,69 @@ def restore_stock_on_delete(sender, instance, **kwargs):
         if inv_item:
             inv_item.current_stock += float(instance.quantity)
             inv_item.save()
+
+# -----------------------------------------------------------------------------
+# JobCard Soft-Delete Reversal
+# -----------------------------------------------------------------------------
+@receiver(pre_save, sender=JobCard)
+def track_jobcard_deleted_state(sender, instance, **kwargs):
+    if instance.pk:
+        try:
+            old_instance = JobCard.objects.get(pk=instance.pk)
+            instance._old_is_deleted = old_instance.is_deleted
+        except JobCard.DoesNotExist:
+            instance._old_is_deleted = False
+    else:
+        instance._old_is_deleted = False
+
+@receiver(post_save, sender=JobCard)
+def update_stock_on_jobcard_delete(sender, instance, created, **kwargs):
+    old_deleted = getattr(instance, '_old_is_deleted', False)
+    new_deleted = instance.is_deleted
+
+    if old_deleted == False and new_deleted == True:
+        # Moved to trash -> Restore stock
+        for spare in instance.spares.all():
+            if spare.spare_part_name and spare.quantity:
+                inv_item = Item.objects.filter(name__iexact=spare.spare_part_name).first()
+                if inv_item:
+                    inv_item.current_stock += float(spare.quantity)
+                    inv_item.save()
+    elif old_deleted == True and new_deleted == False:
+        # Restored from trash -> Deduct stock
+        for spare in instance.spares.all():
+            if spare.spare_part_name and spare.quantity:
+                inv_item = Item.objects.filter(name__iexact=spare.spare_part_name).first()
+                if inv_item:
+                    inv_item.current_stock -= float(spare.quantity)
+                    inv_item.save()
+
+# -----------------------------------------------------------------------------
+# Supplier Restock Signals
+# -----------------------------------------------------------------------------
+@receiver(pre_save, sender=SupplierRestockItem)
+def track_old_restock_quantity(sender, instance, **kwargs):
+    if instance.pk:
+        try:
+            old_instance = SupplierRestockItem.objects.get(pk=instance.pk)
+            instance._old_quantity = old_instance.quantity or 0
+        except SupplierRestockItem.DoesNotExist:
+            instance._old_quantity = 0
+    else:
+        instance._old_quantity = 0
+
+@receiver(post_save, sender=SupplierRestockItem)
+def update_stock_on_restock_save(sender, instance, created, **kwargs):
+    new_qty = float(instance.quantity or 0)
+    old_qty = float(getattr(instance, '_old_quantity', 0))
+    diff = new_qty - old_qty
+    
+    if diff != 0 and instance.item:
+        instance.item.current_stock += diff
+        instance.item.save()
+
+@receiver(post_delete, sender=SupplierRestockItem)
+def restore_stock_on_restock_delete(sender, instance, **kwargs):
+    if instance.item and instance.quantity:
+        instance.item.current_stock -= float(instance.quantity)
+        instance.item.save()

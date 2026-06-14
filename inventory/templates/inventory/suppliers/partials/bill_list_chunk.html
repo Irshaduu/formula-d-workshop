@@ -1,0 +1,119 @@
+{% load humanize %}
+{% for bill in bills %}
+<div class="bill-card">
+  <!-- Clickable header -->
+  <div class="bill-card-header" onclick="toggleBill({{ bill.id }})">
+    <!-- Top Row: Title & Actions -->
+    <div class="d-flex justify-content-between align-items-start w-100">
+      
+      <!-- Top Left -->
+      <div class="d-flex align-items-center gap-2 mb-0 flex-wrap">
+        <span class="fw-bold text-primary">#{{ bill.id }}</span>
+        <span class="text-muted small">{{ bill.bill_date|date:"d M Y" }}</span>
+        <span class="small text-muted">· {{ bill.items.all|length }} item{{ bill.items.all|length|pluralize }}</span>
+      </div>
+      
+      <!-- Top Right -->
+      <div class="d-flex align-items-center gap-2 gap-sm-3 flex-shrink-0 ms-2">
+        <div class="text-end">
+          <div class="fw-bold text-danger" style="font-size:0.95rem;">₹{{ bill.get_effective_amount|floatformat:"-2"|intcomma }}</div>
+          {% if bill.discount_amount > 0 %}
+            <div style="font-size:0.72rem;" class="text-success"><del class="text-muted me-1">₹{{ bill.total_amount|floatformat:"0" }}</del> -₹{{ bill.discount_amount|floatformat:"0" }} disc.</div>
+          {% endif %}
+        </div>
+        
+        <!-- 3 Dot Actions Menu (Stop propagation so it doesn't toggle the accordion) -->
+        <div class="dropdown" onclick="event.stopPropagation();">
+          <button class="btn btn-sm btn-light rounded-circle" type="button" data-bs-toggle="dropdown" aria-expanded="false" style="width:32px; height:32px; padding:0;">
+            <i class="bi bi-three-dots-vertical"></i>
+          </button>
+          <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0" style="font-size: 0.85rem;">
+            <li>
+              <a class="dropdown-item py-2" href="{% url 'edit_restock_bill' shop.id bill.id %}">
+                <i class="bi bi-pencil text-muted me-2"></i> Edit Bill
+              </a>
+            </li>
+            <li><hr class="dropdown-divider"></li>
+            <li>
+              <form method="post" action="{% url 'delete_restock_bill' shop.id bill.id %}" onsubmit="confirmSubmit(event, 'Delete Bill <strong class=\'text-danger\'>#{{ bill.id }}</strong>?<br><small>This will reverse all stock changes!</small>', this, 'danger', 'bi-trash');">
+                {% csrf_token %}
+                <button class="dropdown-item text-danger py-2" type="submit">
+                  <i class="bi bi-trash text-danger me-2"></i> Delete
+                </button>
+              </form>
+            </li>
+          </ul>
+        </div>
+        
+        <i class="bi bi-chevron-down text-muted bill-chevron-{{ bill.id }}" style="font-size:0.75rem; transition:transform 0.2s;"></i>
+      </div>
+    </div>
+    
+    <!-- Bottom Row: Badge -->
+    <div>
+      {% if bill.covered_status == 'COVERED' %}
+        <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill" style="font-size:0.7rem;"><i class="bi bi-check-circle-fill me-1"></i>Fully Covered</span>
+      {% elif bill.covered_status == 'PARTIAL' %}
+        <span class="badge bg-warning-subtle text-warning-emphasis border border-warning-subtle rounded-pill" style="font-size:0.7rem;"><i class="bi bi-pie-chart-fill me-1"></i>Partially: ₹{{ bill.covered_amount|floatformat:"0"|intcomma }}<span class="ms-1 me-1 opacity-50">|</span>Pending: ₹{{ bill.pending_amount|floatformat:"0"|intcomma }}</span>
+      {% else %}
+        <span class="badge bg-danger-subtle text-danger border border-danger-subtle rounded-pill" style="font-size:0.7rem;"><i class="bi bi-x-circle-fill me-1"></i>Unpaid</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Expandable body -->
+  <div class="bill-card-body" id="bill-body-{{ bill.id }}">
+
+    <!-- Bill Line Items -->
+    {% if bill.items.all %}
+    <div class="table-responsive mb-3">
+      <table class="table table-borderless mb-0 bill-items-table">
+        <thead>
+          <tr>
+            <th>Item</th>
+            <th class="text-end">Qty</th>
+            <th class="text-end">Total</th>
+            <th class="text-end">Per Unit</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for line in bill.items.all %}
+          <tr>
+            <td class="fw-medium">{{ line.item.name }}</td>
+            <td class="text-end text-muted">{{ line.quantity|floatformat:"-1" }}</td>
+            <td class="text-end fw-bold">₹{{ line.total_price|floatformat:"-2"|intcomma }}</td>
+            <td class="text-end text-muted">₹{{ line.per_unit_price }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% endif %}
+
+    <!-- Collapsible Action Forms -->
+    <div class="d-flex gap-2 mt-3 pt-3 border-top" style="border-color:var(--color-border-light)!important;">
+      <button class="btn btn-sm btn-outline-primary rounded-pill fw-bold" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDiscount_{{ bill.id }}" aria-expanded="false" style="font-size: 0.75rem;">
+        <i class="bi bi-tag me-1"></i> Add Discount
+      </button>
+    </div>
+
+    <!-- Discount Form (Collapsed by default) -->
+    <div class="collapse mt-2" id="collapseDiscount_{{ bill.id }}">
+      <div class="card card-body bg-light border-0 p-3 rounded-3">
+        <div class="small fw-bold mb-2 text-primary">Update Bill Discount</div>
+        <form method="post" action="{% url 'update_bill_discount' shop.id bill.id %}">
+          {% csrf_token %}
+          <div class="d-flex gap-2 align-items-center">
+            <input type="number" name="discount_amount" class="form-control form-control-sm fw-bold"
+                   placeholder="Discount ₹" min="0" step="0.01"
+                   value="{{ bill.discount_amount|floatformat:'-2' }}"
+                   style="max-width:140px;">
+            <button type="submit" class="btn btn-sm btn-primary fw-bold rounded-pill px-4">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+  </div>
+</div>
+{% endfor %}

@@ -1,4 +1,4 @@
-# 🔧 WorkshopOS: API & Core Engineering Patterns (v6.2)
+# 🔧 WorkshopOS: API & Core Engineering Patterns (v6.3)
 
 This document outlines the **"Elite" industrial patterns** used in WorkshopOS to ensure 1M+ record optimization and zero-failure security.
 
@@ -66,6 +66,16 @@ Located in `inventory/signals.py`.
   - **New Entry**: Deduct full quantity
 - **`post_delete`**: Restores full quantity to warehouse on deletion.
 - **Reliability**: Verified by `inventory/test_signals.py`.
+
+### 2. Supplier Restock Stock Sync
+Located in `inventory/signals.py` (second group of handlers).
+- **`pre_save`**: Snapshots the original quantity before modification.
+- **`post_save`**: Calculates the delta and *increases* `Item.current_stock`. Handles:
+  - **New restock item**: Increase stock by full qty
+  - **Quantity change**: Adjust stock by delta only
+- **`post_delete`**: Reverses the full stock increase when a restock item or its parent bill is deleted.
+- **Key Symmetry**: Workshop signals deduct stock; Supplier signals increase stock. Both use the same pre_save/post_save delta pattern.
+- **Reliability**: Verified by `inventory/tests_suppliers.py` (8 signal-specific tests).
 
 ---
 

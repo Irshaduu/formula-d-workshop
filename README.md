@@ -26,6 +26,7 @@ A premium, comprehensive Django-based workshop management system designed to str
 - **Stock Management** — Track parts and consumables with low-stock alerts and percentage-based color coding.
 - **Consumption Tracking** — Automatically record part usage from job cards via Django Signals (real-time delta sync).
 - **Category Organization** — Group inventory items for easier management and restocking.
+- **Supplies Shops** — Dedicated supplier management module for tracking inventory suppliers, creating restock bills, recording supplier payments, and maintaining a per-supplier catalog. Stock levels auto-increase on restock and auto-reverse on bill deletion via signals.
 
 ### Dashboard & Layout
 - **Live Report Dashboard** — High-visibility "Floor" view for mechanics and "Live Report" for office staff.
@@ -101,11 +102,14 @@ A premium, comprehensive Django-based workshop management system designed to str
 WorkshopOS (Titan)/
 ├── formulad_workshop/      # Django project configuration & split settings
 │   └── settings/           # base.py, development.py, production.py
-├── workshop/               # Core application (72 URL routes, 72+ views)
+├── workshop/               # Core application (80 URL routes, 72+ views)
 │   ├── views/              # Modular views package (12 modules)
 │   ├── templates/          # 52 HTML templates
 │   └── static/             # App-specific CSS & JS
-├── inventory/              # Inventory & stock management app (13 URL routes)
+├── inventory/              # Inventory, stock & supplies shops app (33 URL routes)
+│   ├── views.py            # 13 core inventory views
+│   ├── views_suppliers.py  # 20 supplier shop views
+│   └── templates/          # 18 HTML templates (6 core + 12 supplier)
 ├── static/                 # Global static assets
 ├── requirements.txt        # Python dependencies (Django, Pillow, python-decouple)
 ├── db.sqlite3              # SQLite database
@@ -113,7 +117,7 @@ WorkshopOS (Titan)/
 ```
 
 ## 🛡️ Titan Standard: Automated Reliability
-WorkshopOS is backed by an **industrial-grade test suite** across **14 test files** covering security, models, views, API endpoints, signals, middleware, and financial logic — all with zero-failure tolerance.
+WorkshopOS is backed by an **industrial-grade test suite** across **16 test files** covering security, models, views, API endpoints, signals, middleware, financial logic, and supplier management — all with zero-failure tolerance.
 - **100% Security Coverage**: Verified IP-lockouts, password authentication, and real-time session revocation.
 - **100% Warehouse Pulse**: Verified stock-delta signals (Creation, Update, Name Change, Deletion).
 - **100% Model Integrity**: Verified every lifecycle transition for Job Cards and User Sessions.

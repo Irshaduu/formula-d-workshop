@@ -1,0 +1,111 @@
+{% extends 'workshop/base.html' %}
+{% block title %}Suppliers for {{ item.name }}{% endblock %}
+{% block content %}
+<style>
+    .suppliers-wrapper {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px 10px;
+    }
+    .header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 30px;
+        border-bottom: 2px solid var(--color-border-light);
+        padding-bottom: 15px;
+    }
+    .header-row h2 {
+        font-weight: 800;
+        margin: 0;
+        color: var(--color-text);
+    }
+    .item-badge {
+        background: var(--color-primary-light);
+        color: var(--color-primary);
+        padding: 6px 14px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 0.95rem;
+    }
+    .supplier-card {
+        background: var(--color-card);
+        border: 1px solid var(--color-border);
+        border-radius: 12px;
+        padding: 20px;
+        margin-bottom: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        box-shadow: 0 2px 8px var(--color-shadow);
+        transition: transform 0.2s;
+    }
+    .supplier-card:hover {
+        transform: translateY(-2px);
+    }
+    .supplier-info h4 {
+        margin: 0 0 8px 0;
+        font-weight: 700;
+        font-size: 1.2rem;
+    }
+    .supplier-info p {
+        margin: 0;
+        color: var(--color-text-muted);
+        font-size: 0.9rem;
+    }
+    .btn-enter {
+        background: var(--color-primary);
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 700;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .btn-enter:hover {
+        background: var(--color-hover);
+        color: white;
+    }
+</style>
+
+<div class="suppliers-wrapper">
+    <div class="header-row">
+        <h2>Supplying Shops</h2>
+        <span class="item-badge">{{ item.name }}</span>
+    </div>
+
+    <div class="mb-4">
+        <a href="{% url 'inventory_home' %}" class="btn btn-outline-secondary rounded-pill fw-bold">
+            <i class="bi bi-arrow-left"></i> Back to Inventory
+        </a>
+    </div>
+
+    {% if catalogs %}
+        {% for catalog in catalogs %}
+        <div class="supplier-card">
+            <div class="supplier-info">
+                <h4><i class="bi bi-shop text-primary me-2"></i>{{ catalog.shop.name }}</h4>
+                <p>Added to catalog: {{ catalog.created_at|date:"d M Y" }}</p>
+                {% if catalog.shop.phone %}
+                    <p class="mt-1"><i class="bi bi-telephone me-1"></i>{{ catalog.shop.phone }}</p>
+                {% endif %}
+            </div>
+            <div>
+                <a href="{% url 'supplier_shop_detail' catalog.shop.id %}" class="btn-enter">
+                    Enter Shop <i class="bi bi-arrow-right"></i>
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="text-center py-5" style="background: var(--color-card); border-radius: 12px; border: 1px dashed var(--color-border);">
+            <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+            <h4 class="mt-3 text-muted">No Shops Found</h4>
+            <p class="text-muted">This item is not currently listed in any active shop's catalog.</p>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

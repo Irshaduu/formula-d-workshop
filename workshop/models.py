@@ -208,11 +208,48 @@ class SpareShop(models.Model):
     name = models.CharField(max_length=150, unique=True, db_index=True)
     phone = models.CharField(max_length=20, blank=True, null=True)
     address = models.CharField(max_length=300, blank=True, null=True)
+    total_purchased_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
+    total_paid_amount = models.DecimalField(max_digits=12, decimal_places=2, default=0)
     is_trashed = models.BooleanField(default=False, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         ordering = ['name']
+
+    def update_totals(self):
+        """
+        Calculates and caches the sum of all purchased parts (shop cost) vs total payments.
+        Uses pure SQL aggregation for efficiency.
+        """
+        from django.db.models import Sum, F, ExpressionWrapper, DecimalField, Value
+        from django.db.models.functions import Coalesce
+        from decimal import Decimal
+
+        purchases = self.spare_items.aggregate(
+            total=Coalesce(
+                Sum(
+                    ExpressionWrapper(
+                        Coalesce(F('unit_price'), Value(Decimal('0'), output_field=DecimalField())) * 
+                        Coalesce(F('quantity'), Value(Decimal('1'), output_field=DecimalField())),
+                        output_field=DecimalField()
+                    )
+                ),
+                Value(Decimal('0'), output_field=DecimalField()),
+                output_field=DecimalField()
+            )
+        )['total']
+
+        payments = self.payments.filter(is_trashed=False).aggregate(
+            total=Coalesce(Sum('amount'), Value(Decimal('0'), output_field=DecimalField()), output_field=DecimalField())
+        )['total']
+
+        self.total_purchased_amount = purchases
+        self.total_paid_amount = payments
+        self.save(update_fields=['total_purchased_amount', 'total_paid_amount'])
+
+    @property
+    def get_pending_balance(self):
+        return self.total_purchased_amount - self.total_paid_amount
 
     def __str__(self):
         return self.name
@@ -485,7 +522,6 @@ class JobCardSpareItem(models.Model):
     # Order tracking
     shop_name = models.CharField(max_length=100, blank=True, null=True, help_text="Shop where part was ordered (text copy for display)")
     shop = models.ForeignKey('SpareShop', on_delete=models.SET_NULL, null=True, blank=True, related_name='spare_items', help_text="Linked SpareShop profile")
-    shop_paid_amount = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text="Amount paid to this shop for this specific item")
     ordered_date = models.DateField(blank=True, null=True, db_index=True, help_text="Auto-filled when status → ORDERED")
     received_date = models.DateField(blank=True, null=True, db_index=True, help_text="Auto-filled when status → RECEIVED")
 
@@ -494,11 +530,16 @@ class JobCardSpareItem(models.Model):
             self.spare_part_name = self.spare_part_name.strip()
         super().save(*args, **kwargs)
         self.job_card.update_totals()
+        if self.shop:
+            self.shop.update_totals()
 
     def delete(self, *args, **kwargs):
         job_card = self.job_card
+        shop = self.shop
         super().delete(*args, **kwargs)
         job_card.update_totals()
+        if shop:
+            shop.update_totals()
 
     def __str__(self):
         return f"{self.spare_part_name} ({self.quantity})"
@@ -587,10 +628,19 @@ class SpareShopPayment(models.Model):
     amount = models.DecimalField(max_digits=12, decimal_places=2)
     payment_method = models.CharField(max_length=20, choices=PAYMENT_METHODS, default='CASH')
     note = models.CharField(max_length=255, blank=True, null=True, help_text="Optional description or reference")
-    items_affected = models.PositiveIntegerField(default=0)
-    details = models.TextField(blank=True, help_text="JSON snapshot of which items received how much")
     is_trashed = models.BooleanField(default=False, db_index=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+        if self.shop:
+            self.shop.update_totals()
+
+    def delete(self, *args, **kwargs):
+        shop = self.shop
+        super().delete(*args, **kwargs)
+        if shop:
+            shop.update_totals()
 
     class Meta:
         ordering = ['-created_at']

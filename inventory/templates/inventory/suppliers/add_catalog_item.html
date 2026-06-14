@@ -1,0 +1,97 @@
+{% extends 'workshop/base.html' %}
+{% block title %}Add Product - {{ shop.name }}{% endblock %}
+{% block content %}
+<style>
+    .catalog-wrapper {
+        max-width: 600px;
+        margin: 0 auto;
+        padding: 20px 10px;
+    }
+    .add-card {
+        background: var(--color-card);
+        border: 1px solid var(--color-border);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 12px var(--color-shadow);
+    }
+    .input-box {
+        background: var(--color-bg);
+        border: 1px solid var(--color-border);
+        border-radius: 12px;
+        padding: 12px 16px;
+        width: 100%;
+        margin-bottom: 20px;
+        outline: none;
+        color: var(--color-text);
+    }
+    .input-box:focus {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 3px var(--color-primary-light);
+    }
+    .warning-box {
+        background: rgba(255, 193, 7, 0.1);
+        border: 1px solid rgba(255, 193, 7, 0.4);
+        color: #856404;
+        padding: 16px;
+        border-radius: 12px;
+        margin-bottom: 20px;
+    }
+</style>
+
+<div class="catalog-wrapper">
+    <div class="d-flex align-items-center mb-4">
+        <a href="{% url 'supplier_shop_detail' shop.id %}" class="btn btn-outline-secondary rounded-circle me-3" style="width:40px; height:40px; padding:0; display:flex; align-items:center; justify-content:center;">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <h2 class="fw-bold m-0">Add Product</h2>
+    </div>
+
+
+    <div class="add-card">
+        {% if requires_confirmation %}
+            <h5 class="fw-bold mb-3 text-warning"><i class="bi bi-exclamation-triangle"></i> Item Already Exists</h5>
+            <div class="warning-box">
+                <strong>"{{ existing_item.name }}"</strong> is already present in the central database under the category <strong>"{{ existing_item.category.name }}"</strong>.
+                <br><br>
+                Do you want to link this existing item to {{ shop.name }}'s catalog?
+            </div>
+            
+            <form method="post" action="">
+                {% csrf_token %}
+                <input type="hidden" name="confirm_existing" value="1">
+                <input type="hidden" name="item_name" value="{{ item_name }}">
+                <input type="hidden" name="category_name" value="{{ category_name }}">
+                
+                <div class="d-flex gap-2">
+                    <a href="{% url 'add_shop_catalog_item' shop.id %}" class="btn btn-outline-secondary w-50 fw-bold rounded-pill py-3">Cancel</a>
+                    <button type="submit" class="btn btn-primary w-50 fw-bold rounded-pill py-3 shadow-sm">
+                        Confirm & Add
+                    </button>
+                </div>
+            </form>
+        {% else %}
+            <h5 class="fw-bold mb-3 text-primary">New Product</h5>
+            <p class="text-muted small mb-4">Add a new product to this shop's catalog. If you type the name of a product that exists elsewhere, we'll link it to prevent duplicates.</p>
+            
+            <form method="post" action="">
+                {% csrf_token %}
+                
+                <label class="fw-bold text-muted small mb-2">Category (Select or Type New)</label>
+                <input type="text" name="category_name" class="input-box" list="category_list" placeholder="e.g. Engine Oil" required autocomplete="off">
+                <datalist id="category_list">
+                    {% for cat in categories %}
+                        <option value="{{ cat.name }}">
+                    {% endfor %}
+                </datalist>
+
+                <label class="fw-bold text-muted small mb-2">Item Name</label>
+                <input type="text" name="item_name" class="input-box" placeholder="e.g. Liqui Moly 5W30" required autocomplete="off">
+                
+                <button type="submit" class="btn btn-primary w-100 fw-bold rounded-pill py-3 mt-2 shadow-sm">
+                    Add Product
+                </button>
+            </form>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

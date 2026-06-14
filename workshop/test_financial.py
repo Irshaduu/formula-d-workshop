@@ -66,7 +66,6 @@ class FinancialIntegrationTests(TestCase):
             unit_price=Decimal('500'),
             quantity=Decimal('3'),
             shop=self.shop,
-            shop_paid_amount=Decimal('0'),
         )
 
         resp = self.client.get(reverse('spare_shop_detail', args=[self.shop.pk]))
@@ -75,28 +74,27 @@ class FinancialIntegrationTests(TestCase):
         self.assertEqual(resp.context['total_purchases'], Decimal('1500'))
         self.assertEqual(resp.context['total_balance'], Decimal('1500'))
 
-    def test_spare_shop_pay_item_full(self):
-        """Pay Now button should pay full item cost (unit_price × quantity)."""
+    def test_spare_shop_bulk_pay_and_waterfall(self):
+        """Lump sum should generate a payment record and update shop totals."""
         jc = self._create_jobcard()
         item = JobCardSpareItem.objects.create(
             job_card=jc,
             spare_part_name='Oil Filter',
             unit_price=Decimal('200'),
             quantity=Decimal('4'),
-            total_price=Decimal('1000'),  # Customer price (irrelevant for shop payment)
+            total_price=Decimal('1000'),
             shop=self.shop,
-            shop_paid_amount=Decimal('0'),
         )
 
         resp = self.client.post(
-            reverse('spare_shop_pay_item', kwargs={'pk': self.shop.pk, 'item_pk': item.pk}),
-            {'payment_method': 'CASH'},
+            reverse('spare_shop_pay', args=[self.shop.pk]),
+            {'lump_sum': '800', 'payment_method': 'CASH'},
         )
         self.assertEqual(resp.status_code, 302)
 
-        item.refresh_from_db()
-        # Should be fully paid: 200 × 4 = 800
-        self.assertEqual(item.shop_paid_amount, Decimal('800'))
+        self.shop.refresh_from_db()
+        self.assertEqual(self.shop.total_paid_amount, Decimal('800'))
+        self.assertEqual(self.shop.total_purchased_amount, Decimal('800'))
 
         # Verify payment record
         payment = SpareShopPayment.objects.filter(shop=self.shop).first()
@@ -104,57 +102,25 @@ class FinancialIntegrationTests(TestCase):
         self.assertEqual(payment.amount, Decimal('800'))
 
     # -------------------------------------------------------------------------
-    # Spare Shop: Cascade Payment
-    # -------------------------------------------------------------------------
-    def test_spare_shop_cascade_payment(self):
-        """Lump sum should distribute oldest-first across unpaid items."""
-        jc1 = self._create_jobcard('KL01AA0001', admitted_date=date.today() - timedelta(days=10))
-        jc2 = self._create_jobcard('KL01AA0002', admitted_date=date.today() - timedelta(days=5))
-
-        # Item 1: 100 × 2 = 200 balance
-        JobCardSpareItem.objects.create(
-            job_card=jc1, spare_part_name='Part A',
-            unit_price=Decimal('100'), quantity=Decimal('2'),
-            shop=self.shop, shop_paid_amount=Decimal('0'),
-        )
-        # Item 2: 300 × 1 = 300 balance
-        JobCardSpareItem.objects.create(
-            job_card=jc2, spare_part_name='Part B',
-            unit_price=Decimal('300'), quantity=Decimal('1'),
-            shop=self.shop, shop_paid_amount=Decimal('0'),
-        )
-
-        # Pay 350 — should fully pay item 1 (200) and partially pay item 2 (150)
-        resp = self.client.post(
-            reverse('spare_shop_pay', args=[self.shop.pk]),
-            {'lump_sum': '350', 'payment_method': 'UPI'},
-        )
-        self.assertEqual(resp.status_code, 302)
-
-        items = list(JobCardSpareItem.objects.filter(shop=self.shop).order_by('job_card__admitted_date'))
-        self.assertEqual(items[0].shop_paid_amount, Decimal('200'))  # Fully paid
-        self.assertEqual(items[1].shop_paid_amount, Decimal('150'))  # Partial
-
-    # -------------------------------------------------------------------------
     # Spare Shop: Payment Reversal
     # -------------------------------------------------------------------------
     def test_spare_shop_payment_reversal(self):
-        """Reversing a payment should subtract exact amounts from items."""
+        """Reversing a payment should subtract from shop.total_paid_amount."""
         jc = self._create_jobcard()
         item = JobCardSpareItem.objects.create(
             job_card=jc, spare_part_name='Spark Plug',
             unit_price=Decimal('150'), quantity=Decimal('2'),
-            total_price=Decimal('400'),  # Customer price
-            shop=self.shop, shop_paid_amount=Decimal('0'),
+            total_price=Decimal('400'),
+            shop=self.shop,
         )
 
         # Pay it
         self.client.post(
-            reverse('spare_shop_pay_item', kwargs={'pk': self.shop.pk, 'item_pk': item.pk}),
-            {'payment_method': 'CASH'},
+            reverse('spare_shop_pay', args=[self.shop.pk]),
+            {'lump_sum': '300', 'payment_method': 'CASH'},
         )
-        item.refresh_from_db()
-        self.assertEqual(item.shop_paid_amount, Decimal('300'))
+        self.shop.refresh_from_db()
+        self.assertEqual(self.shop.total_paid_amount, Decimal('300'))
 
         # Reverse it (need owner)
         self.client.login(username='Sahad', password='pass')
@@ -164,8 +130,8 @@ class FinancialIntegrationTests(TestCase):
         )
         self.assertEqual(resp.status_code, 302)
 
-        item.refresh_from_db()
-        self.assertEqual(item.shop_paid_amount, Decimal('0'))
+        self.shop.refresh_from_db()
+        self.assertEqual(self.shop.total_paid_amount, Decimal('0'))
 
         payment.refresh_from_db()
         self.assertTrue(payment.is_trashed)
@@ -183,7 +149,6 @@ class FinancialIntegrationTests(TestCase):
             job_card=jc1, spare_part_name='Engine Oil',
             unit_price=Decimal('500'), quantity=Decimal('2'),
             total_price=Decimal('1000'),  # Customer price (used for billing)
-            shop_paid_amount=Decimal('0'),
         )
         JobCardLabourItem.objects.create(
             job_card=jc1, job_description='Oil Change',
@@ -195,7 +160,6 @@ class FinancialIntegrationTests(TestCase):
             job_card=jc2, spare_part_name='Air Filter',
             unit_price=Decimal('400'), quantity=Decimal('2'),
             total_price=Decimal('800'),  # Customer price
-            shop_paid_amount=Decimal('0'),
         )
         JobCardLabourItem.objects.create(
             job_card=jc2, job_description='Filter Replace',
@@ -237,7 +201,6 @@ class FinancialIntegrationTests(TestCase):
             job_card=jc, spare_part_name='Brake Disc',
             unit_price=Decimal('2000'), quantity=Decimal('2'),
             total_price=Decimal('5000'),  # Customer price (with markup)
-            shop_paid_amount=Decimal('0'),
         )
         JobCardLabourItem.objects.create(
             job_card=jc, job_description='Brake Work',

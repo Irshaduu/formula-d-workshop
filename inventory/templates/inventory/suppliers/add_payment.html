@@ -1,0 +1,51 @@
+{% extends 'workshop/base.html' %}
+{% load humanize %}
+{% block title %}Add Payment - {{ shop.name }}{% endblock %}
+{% block content %}
+<div class="container mt-5" style="max-width: 600px;">
+    <div class="d-flex align-items-center mb-4">
+        <a href="{% url 'supplier_shop_detail' shop.id %}" class="btn btn-outline-secondary rounded-circle me-3" style="width:40px; height:40px; padding:0; display:flex; align-items:center; justify-content:center;">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <h2 class="fw-bold m-0">Record Payment</h2>
+    </div>
+
+    <div class="card shadow-sm border-0" style="border-radius: 16px;">
+        <div class="card-body p-4 p-md-5">
+            <div class="mb-4 text-center">
+                <p class="text-muted text-uppercase fw-bold mb-1" style="letter-spacing: 1px;">Current Pending Balance</p>
+                <h1 class="fw-bold text-danger">₹ {{ shop.get_pending_balance|floatformat:"-2"|intcomma }}</h1>
+            </div>
+
+            <form method="post" action="">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Payment Amount (₹) *</label>
+                    <input type="number" name="amount" class="form-control form-control-lg bg-light border-0" step="0.01" min="0.01" required placeholder="0.00">
+                </div>
+                
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Payment Method *</label>
+                    <select name="payment_method" class="form-select form-select-lg bg-light border-0" required>
+                        <option value="CASH">Cash</option>
+                        <option value="UPI">UPI / GPay</option>
+                        <option value="TRANSFER">Bank Transfer</option>
+                        <option value="CARD">Card</option>
+                    </select>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Notes</label>
+                    <input type="text" name="note" class="form-control form-control-lg bg-light border-0" placeholder="Add note">
+                </div>
+                
+                <div class="mt-5">
+                    <button type="submit" class="btn btn-success btn-lg w-100 fw-bold rounded-pill shadow-sm py-3">
+                        <i class="bi bi-check-circle me-2"></i> Confirm Payment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

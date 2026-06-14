@@ -147,6 +147,8 @@
         font-size: 0.95rem;
         text-align: center;
         outline: none;
+        height: 38px;
+        box-sizing: border-box;
     }
     
     .controls input[type="number"]:focus {
@@ -160,38 +162,43 @@
         margin: 0;
     }
 
-    /* ---------- SAVE BUTTON ---------- */
-    .btn-save {
+    /* ---------- VIEW BUTTON ---------- */
+    a.btn-view {
         display: inline-flex;
         align-items: center;
+        justify-content: center;
         gap: 6px;
-        padding: 8px 12px;
+        padding: 0 14px;
         border-radius: 8px;
         border: 1px solid var(--color-border);
         background: var(--color-card);
-        color: var(--color-text);
-        font-size: 0.9rem;
+        color: var(--color-text) !important;
+        font-size: 0.95rem;
         font-weight: 600;
         cursor: pointer;
+        text-decoration: none;
         transition: all 0.2s;
+        height: 38px;
+        box-sizing: border-box;
     }
 
-    .btn-save:hover {
-        background: var(--color-primary);
-        color: white;
-        border-color: var(--color-primary);
+    a.btn-view:hover {
+        background: var(--color-primary) !important;
+        color: white !important;
+        border-color: var(--color-primary) !important;
     }
 
-    .btn-save svg {
-        width: 14px;
-        height: 14px;
+    a.btn-view svg {
+        width: 16px;
+        height: 16px;
         opacity: 0.9;
+        stroke: currentColor;
     }
 </style>
 
 <div class="inventory-wrapper mt-3">
     <div class="top-row">
-        <h2>Restock</h2>
+        <h2>Inventory</h2>
         <div class="search-container">
             <form method="get" action="">
                 <input id="restockSearch" name="q" class="tiny-search" type="text" placeholder="Search items or category…" value="{{ q|default:'' }}">
@@ -203,6 +210,8 @@
                 <i class="bi bi-list" style="font-size: 1.25rem; line-height: 1;"></i>
             </button>
             <ul class="dropdown-menu dropdown-menu-end shadow" style="border-radius: 12px; margin-top: 8px; min-width: 160px; z-index: 1050;">
+                <li><a class="dropdown-item fw-bold py-2 text-primary" href="{% url 'supplier_shop_list' %}"><i class="bi bi-shop me-2"></i> Supplies Shops</a></li>
+                <li><hr class="dropdown-divider"></li>
                 <li><a class="dropdown-item fw-bold text-danger py-2" href="{% url 'inventory_low_stock' %}"><i class="bi bi-exclamation-triangle me-2"></i> Low Stock</a></li>
                 <li><a class="dropdown-item fw-bold py-2" href="{% url 'inventory_history' %}"><i class="bi bi-clock-history me-2"></i> Stock History</a></li>
                 <li><a class="dropdown-item fw-bold py-2" href="{% url 'inventory_manage' %}"><i class="bi bi-gear me-2"></i> Manage Database</a></li>
@@ -223,10 +232,8 @@
         <h3 class="category-title">{{ category.name }}</h3>
 
         {% for item in category.items.all %}
-        <form method="post" action="{% url 'inventory_update_stock' item.id %}" class="item-card" data-default-display="flex"
+        <div class="item-card" data-default-display="flex"
             style="background: linear-gradient(90deg, var(--color-primary-light) {{ item.stock_percentage|floatformat:0 }}%, var(--color-card) {{ item.stock_percentage|floatformat:0 }}%);">
-            {% csrf_token %}
-            <input type="hidden" name="next" value="{{ request.path }}">
             <div class="item-info">
                 <div class="item-name" onclick="this.classList.toggle('expanded')">
                     <span class="searchable-text text-dark">{{ item.name }}</span>
@@ -240,18 +247,17 @@
                 </div>
             </div>
             <div class="controls">
-                <input type="number" name="current_stock" value="{{ item.current_stock|floatformat:"-1" }}" inputmode="decimal" step="0.5"
-                    style="border-color: {{ item.stock_status_color }};">
-                <button type="submit" class="btn-save">
+                <input type="number" value="{{ item.current_stock|floatformat:"-1" }}" readonly disabled
+                    style="border-color: {{ item.stock_status_color }}; cursor: not-allowed; opacity: 0.9;">
+                <a href="{% url 'inventory_item_suppliers' item.id %}" class="btn-view">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                        <path d="M17 21v-8H7v8" />
-                        <path d="M7 3v6h8" />
+                        <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                        <circle cx="12" cy="12" r="3" />
                     </svg>
-                    Save
-                </button>
+                    View
+                </a>
             </div>
-        </form>
+        </div>
         {% endfor %}
     </div>
     {% empty %}

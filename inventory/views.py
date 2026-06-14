@@ -8,7 +8,7 @@ from django.core.paginator import Paginator
 
 @staff_required
 def inventory_home(request):
-    return redirect('inventory_restock')
+    return redirect('inventory_list')
 
 @staff_required
 def inventory_manage(request):
@@ -105,7 +105,7 @@ def delete_item(request, item_id):
     return redirect('inventory_category_detail', category_id=cat_id)
 
 @staff_required
-def inventory_restock(request):
+def inventory_list(request):
     q = request.GET.get('q', '').strip()
     categories_query = Category.objects.prefetch_related('items').all().order_by('name')
     
@@ -117,7 +117,7 @@ def inventory_restock(request):
     paginator = Paginator(categories_query, 10)
     page_number = request.GET.get('page')
     page_obj = paginator.get_page(page_number)
-    return render(request, 'inventory/restock.html', {'categories': page_obj, 'page_obj': page_obj, 'q': q})
+    return render(request, 'inventory/inventory_list.html', {'categories': page_obj, 'page_obj': page_obj, 'q': q})
 
 @staff_required
 def update_stock(request, item_id):
@@ -132,7 +132,7 @@ def update_stock(request, item_id):
     next_url = request.POST.get('next') or request.GET.get('next')
     if next_url:
         return redirect(next_url)
-    return redirect('inventory_restock')
+    return redirect('inventory_list')
 
 @staff_required
 def inventory_low_stock(request):

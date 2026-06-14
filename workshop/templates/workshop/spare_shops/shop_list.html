@@ -96,11 +96,11 @@
       <div class="d-flex gap-2">
         <div class="stat-pill">
           <div class="label">Purchased</div>
-          <div class="value">₹{{ shop.total_purchases|floatformat:0 }}</div>
+          <div class="value">₹{{ shop.total_purchased_amount|floatformat:0 }}</div>
         </div>
         <div class="stat-pill">
           <div class="label">Paid</div>
-          <div class="value" style="color: var(--color-success);">₹{{ shop.total_paid|floatformat:0 }}</div>
+          <div class="value" style="color: var(--color-success);">₹{{ shop.total_paid_amount|floatformat:0 }}</div>
         </div>
         <div class="stat-pill">
           <div class="label">Items</div>

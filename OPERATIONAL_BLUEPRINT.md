@@ -224,6 +224,63 @@ Health = (Current / Average) x 100%
 
 ---
 
+## 5B. SUPPLIES SHOPS (INVENTORY SUPPLIERS)
+
+```
+SUPPLIES SHOP (Inventory Supplier)
+   ├── Name, Phone, Active/Inactive Status
+   ├── Catalog (linked inventory items this supplier stocks)
+   │
+   ├── Restock Bills:
+   │     Each bill records a purchase from this supplier
+   │     Bill → Line Items (inventory Item + qty + unit price)
+   │     Stock auto-increases on bill creation (via signals)
+   │     Stock auto-reverses on bill deletion
+   │     Optional discount per bill
+   │
+   ├── Financial Ledger:
+   │     Total Billed = SUM(bill total_amount - discount_amount)
+   │     Total Paid = SUM(payments where is_trashed=False)
+   │     Pending Balance = Total Billed - Total Paid
+   │
+   ├── Payment Options:
+   │     Quick payment form (amount + method + note)
+   │     Payments soft-deletable (Owner can reverse)
+   │
+   ├── Bill Status Tracking:
+   │     Each bill shows Covered / Partial / Unpaid status
+   │     Running waterfall: oldest bills covered first
+   │
+   └── AJAX Pagination:
+         Bills and Payments tabs load via AJAX partials
+         Independent search + date filtering
+```
+
+### How Supplies Shops Connect to Inventory
+
+```
+SUPPLIER ACTION                      WAREHOUSE EFFECT
+----------------------------------------------
+Create restock bill (5x Oil Filter)  →   Oil Filter: 10 to 15  (auto +5)
+Edit bill qty to 8                   →   Oil Filter: 15 to 18  (auto +3 delta)
+Delete bill entirely                 →   Oil Filter: 18 to 10  (auto -8 reverse)
+```
+
+### Supplies Shops vs Spare Shops
+
+```
+                    SUPPLIES SHOPS              SPARE SHOPS
+                    (Inventory App)             (Workshop App)
+Purpose:            Buy parts INTO warehouse    Buy parts FOR specific jobs
+Linked To:          Inventory Items (FK)        Job Card Spare Items (FK)
+Stock Effect:       Increases stock             N/A (tracked separately)
+Bill Structure:     Restock Bills + Line Items  Per-job spare items
+Payment System:     Quick payments + soft-delete Cascade waterfall + JSON snapshot
+Access:             Office+                     Office+
+```
+
+---
+
 ## 6. AUTOCOMPLETE — SMART LEARNING SYSTEM
 
 ```
@@ -441,7 +498,7 @@ MANAGEMENT DASHBOARD
 
 ---
 
-## 13. COMPLETE CONNECTION SUMMARY
+## 14. COMPLETE CONNECTION SUMMARY
 
 ```
                          CUSTOMER
@@ -460,12 +517,12 @@ MANAGEMENT DASHBOARD
               (tracking) (parts)   (work)
                             |
                        auto-sync
-                            v
-                       INVENTORY          SPARE SHOPS
-                      (Warehouse)         (Suppliers)
-                      - Stock levels      - Purchase Ledger
-                      - Low alerts        - Payment History
-                      - Usage history     - Balance Tracking
+                            |
+                       INVENTORY          SPARE SHOPS        SUPPLIES SHOPS
+                       - Stock levels      (Workshop App)     (Inventory App)
+                       - Low alerts        - Purchase Ledger  - Restock Bills
+                       - Usage history     - Payment History  - Supplier Payments
+                                           - Balance Tracking - Catalog Management
 
   STAFF ACCOUNTS  --------->  SECURITY SYSTEM
   - Owner (2)                - IP Lockout
@@ -488,4 +545,4 @@ MANAGEMENT DASHBOARD
 
 ---
 
-> **In one sentence**: Customer arrives → Job card created → Concerns/Spares/Labour tracked → Inventory auto-syncs → Car delivered → Invoice generated → Payment collected → Everything searchable forever through Car Profiles.
+> **In one sentence**: Customer arrives → Job card created → Concerns/Spares/Labour tracked → Inventory auto-syncs (both consumption and supplier restocking) → Car delivered → Invoice generated → Payment collected → Everything searchable forever through Car Profiles.

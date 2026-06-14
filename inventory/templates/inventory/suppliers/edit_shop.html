@@ -1,0 +1,88 @@
+{% extends 'workshop/base.html' %}
+{% block title %}Edit {{ shop.name }}{% endblock %}
+{% block content %}
+<div class="container mt-5" style="max-width: 600px;">
+    <div class="card shadow-sm border-0" style="border-radius: 16px;">
+        <div class="card-body p-4 p-md-5">
+            <h2 class="fw-bold mb-4" style="color: var(--color-primary);">Edit Shop Details</h2>
+            <form method="post" action="">
+                {% csrf_token %}
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Shop Name *</label>
+                    <input type="text" name="name" class="form-control form-control-lg bg-light border-0" required value="{{ shop.name }}">
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Phone Number</label>
+                    <input type="text" name="phone" class="form-control form-control-lg bg-light border-0" value="{{ shop.phone|default:'' }}">
+                </div>
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Address</label>
+                    <textarea name="address" class="form-control form-control-lg bg-light border-0" rows="3">{{ shop.address|default:'' }}</textarea>
+                </div>
+                <div class="d-flex gap-2 pt-2">
+                    <a href="{% url 'supplier_shop_detail' shop.id %}" class="btn btn-outline-secondary btn-lg fw-bold rounded-pill px-4">Cancel</a>
+                    <button type="submit" class="btn btn-primary btn-lg fw-bold rounded-pill px-5 flex-grow-1">Save Changes</button>
+                </div>
+            </form>
+
+            <hr class="my-5">
+
+            <div class="border border-danger rounded-4 p-4 text-center bg-danger bg-opacity-10">
+                <h5 class="text-danger fw-bold"><i class="bi bi-exclamation-triangle"></i> Deactivate Shop</h5>
+                <p class="text-muted small">This will hide the shop from the active list, but all its mathematical history will be preserved.</p>
+                <form method="post" action="{% url 'deactivate_supplier_shop' shop.id %}" onsubmit="confirmSubmit(event, 'Are you sure you want to deactivate <strong class=\'text-danger\'>{{ shop.name|escapejs }}</strong>?', this, 'danger', 'bi-pause-circle');">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-outline-danger fw-bold rounded-pill px-4">Deactivate Shop</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- GENERIC CONFIRMATION MODAL                                   -->
+<!-- ============================================================ -->
+<div class="modal fade" id="confirmActionModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 340px;">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+      <div class="modal-body text-center p-4">
+        <i id="confirmActionIcon" class="bi bi-exclamation-triangle-fill text-warning mb-3" style="font-size: 3rem;"></i>
+        <h5 class="fw-bold mb-2">Are you sure?</h5>
+        <p class="text-muted small mb-4" id="confirmActionMsg">This action cannot be undone.</p>
+        <div class="d-flex gap-2 justify-content-center">
+          <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary fw-bold rounded-pill px-4" id="confirmActionBtn">Confirm</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  let formToSubmit = null;
+  let confirmActionModalInstance = null;
+
+  function confirmSubmit(event, message, formElement, theme='warning', icon='bi-exclamation-triangle-fill') {
+    if (event) event.preventDefault();
+    if (!confirmActionModalInstance) {
+      confirmActionModalInstance = new bootstrap.Modal(document.getElementById('confirmActionModal'));
+    }
+    document.getElementById('confirmActionMsg').innerHTML = message;
+    document.getElementById('confirmActionIcon').className = `bi ${icon} text-${theme} mb-3`;
+    document.getElementById('confirmActionBtn').className = `btn btn-${theme} fw-bold rounded-pill px-4`;
+    formToSubmit = formElement;
+    confirmActionModalInstance.show();
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    const confirmBtn = document.getElementById('confirmActionBtn');
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', function() {
+        if (formToSubmit) {
+          formToSubmit.submit();
+        }
+      });
+    }
+  });
+</script>
+{% endblock %}

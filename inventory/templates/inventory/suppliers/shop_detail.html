@@ -1,0 +1,657 @@
+{% extends 'workshop/base.html' %}
+{% load humanize %}
+{% block title %}{{ shop.name }} — Supplies Shop{% endblock %}
+{% block content %}
+<style>
+  /* Make all placeholders smaller and softer */
+  ::placeholder {
+    font-size: 0.85rem !important;
+    opacity: 0.5 !important;
+    font-weight: 400 !important;
+  }
+  
+  /* ── BADGES ── */
+  .detail-header {
+    background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+    border-radius: 16px; padding: 1.25rem 1.5rem;
+    margin-bottom: 1.25rem; color: #fff;
+  }
+  .stat-box {
+    text-align: center; padding: 0.8rem 1rem;
+    border-radius: 10px; background: rgba(255,255,255,0.07);
+    display: flex; flex-direction: column; justify-content: center;
+  }
+  .stat-box .s-label { font-size: 0.65rem; color: rgba(255,255,255,0.55); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+  .stat-box .s-val   { font-size: 1.1rem; font-weight: 700; word-break: break-word; }
+  .balance-big { font-size: 1.3rem; font-weight: 800; color: #f87171; }
+  .balance-ok  { color: #4ade80 !important; }
+
+  /* ── FILTER BUTTON ── */
+  .shop-filter-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: var(--color-card); border: 1px solid var(--color-border);
+    border-radius: 999px; padding: 5px 12px; font-size: 0.78rem;
+    font-weight: 600; color: var(--color-text); cursor: pointer;
+    box-shadow: 0 1px 3px var(--color-shadow); white-space: nowrap;
+    transition: border-color 0.15s;
+  }
+  .shop-filter-btn:hover { border-color: var(--color-primary); }
+  .shop-dropdown-menu {
+    border-radius: 12px; border: 1px solid var(--color-border);
+    box-shadow: 0 8px 32px rgba(0,0,0,0.12); padding: 6px;
+    min-width: 175px; margin-top: 6px !important;
+  }
+  .shop-dropdown-menu .dropdown-item {
+    border-radius: 8px; font-size: 0.8rem; font-weight: 500;
+    padding: 7px 12px; color: var(--color-text); transition: background 0.1s;
+  }
+  .shop-dropdown-menu .dropdown-item:hover,
+  .shop-dropdown-menu .dropdown-item.active {
+    background: rgba(37,99,235,0.07); color: var(--color-primary);
+  }
+
+  /* ── CATALOG GRID ── */
+  .catalog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+    gap: 10px;
+  }
+  .catalog-card {
+    background: var(--color-card); border: 1px solid var(--color-border);
+    border-radius: 12px; padding: 12px 14px;
+    display: flex; justify-content: space-between; align-items: center;
+    transition: box-shadow 0.15s;
+  }
+  .catalog-card:hover { box-shadow: 0 4px 12px var(--color-shadow); }
+  .catalog-card-name { font-weight: 700; font-size: 0.95rem; }
+  .catalog-card-cat {
+    font-size: 0.75rem; color: var(--color-text-muted);
+    background: var(--color-bg); padding: 1px 8px;
+    border-radius: 999px; margin-top: 3px; display: inline-block;
+  }
+
+  /* ── SECTION HEADER ── */
+  .sect-hdr {
+    display: flex; justify-content: space-between; align-items: center;
+    border-bottom: 2px solid var(--color-border-light);
+    padding-bottom: 8px; margin-bottom: 14px; margin-top: 28px;
+  }
+  .sect-hdr h5 { font-weight: 800; margin: 0; font-size: 1.05rem; }
+
+  /* ── BILL CARDS ── */
+  .bill-card {
+    background: var(--color-card); border: 1px solid var(--color-border);
+    border-radius: 14px; margin-bottom: 10px;
+    box-shadow: 0 2px 6px var(--color-shadow);
+  }
+  .bill-card-header {
+    display: flex; flex-direction: column; align-items: stretch; gap: 8px;
+    padding: 12px 16px; cursor: pointer;
+    transition: background 0.15s;
+    border-radius: 13px;
+  }
+  .bill-card-header:hover { background: var(--color-hover); }
+  .bill-card-body {
+    border-top: 1px solid var(--color-border-light);
+    padding: 14px 16px; display: none;
+  }
+  .bill-card-body.open { display: block; }
+
+  .bill-items-table th {
+    font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.04em;
+    color: var(--color-text-muted); padding: 6px 10px;
+    background: var(--color-bg); border-bottom: 1px solid var(--color-border-light);
+  }
+  .bill-items-table td { padding: 8px 10px; font-size: 0.85rem; vertical-align: middle; }
+
+  .pay-method-badge {
+    font-size: 0.7rem; font-weight: 700; padding: 2px 8px;
+    border-radius: 999px; text-transform: uppercase; letter-spacing: 0.04em;
+    background: var(--color-bg); border: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+  }
+
+  /* ── PAYMENT OFFCANVAS ROWS ── */
+  .pay-row {
+    border-bottom: 1px solid var(--color-border-light);
+    padding: 12px 16px; display: flex; justify-content: space-between; align-items: center;
+  }
+  .pay-row:last-child { border-bottom: none; }
+</style>
+
+<!-- ── BACK + FILTER ROW ── -->
+<div class="mb-3 d-flex justify-content-between align-items-center">
+  <a href="{% url 'supplier_shop_list' %}" class="text-muted text-decoration-none small">
+    <i class="bi bi-arrow-left me-1"></i> All Shops
+  </a>
+
+  <div class="d-flex align-items-center gap-2">
+    {% if not shop.is_active %}<span class="badge bg-danger rounded-pill">Deactivated</span>{% endif %}
+
+    <!-- Time Range Filter -->
+    <div class="dropdown">
+      <button id="filterDropdownBtn" class="shop-filter-btn" type="button" data-bs-toggle="dropdown">
+        <i class="bi bi-funnel" style="font-size:0.72rem; color:var(--color-text-muted);"></i>
+        <span>
+          {% if filter_type == 'month' %}1 Month
+          {% elif filter_type == 'year' %}1 Year
+          {% elif filter_type == 'custom' %}{% if start_date and end_date %}{{ start_date }} – {{ end_date }}{% else %}Custom{% endif %}
+          {% else %}All Time{% endif %}
+        </span>
+        <i class="bi bi-chevron-down" style="font-size:0.6rem; opacity:0.5;"></i>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end shop-dropdown-menu">
+        <li><a class="dropdown-item {% if filter_type == 'all' or not filter_type %}active{% endif %}" href="?filter=all">All Time</a></li>
+        <li><a class="dropdown-item {% if filter_type == 'month' %}active{% endif %}" href="?filter=month">1 Month</a></li>
+        <li><a class="dropdown-item {% if filter_type == 'year' %}active{% endif %}"  href="?filter=year">1 Year</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a id="customRangeToggle" class="dropdown-item {% if filter_type == 'custom' %}active{% endif %}" href="#">Custom Range</a></li>
+        <li id="customDatePicker" style="display:{% if filter_type == 'custom' %}block{% else %}none{% endif %};" onclick="event.stopPropagation()">
+          <div class="px-2 pt-2 pb-1">
+            <form id="customDateForm" method="get" class="d-flex flex-column gap-2">
+              <input type="hidden" name="filter" value="custom">
+              <label class="small text-muted mb-0" style="font-size:0.7rem;">Start</label>
+              <input type="date" name="start_date" class="form-control form-control-sm rounded-3" value="{{ start_date }}" required>
+              <label class="small text-muted mb-0" style="font-size:0.7rem;">End</label>
+              <input type="date" name="end_date" class="form-control form-control-sm rounded-3" value="{{ end_date }}" required>
+              <button type="submit" class="btn btn-primary btn-sm rounded-pill mt-1 fw-bold">Apply</button>
+            </form>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+
+
+<!-- ── HEADER CARD ── -->
+<div class="detail-header mb-3">
+  <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+    <div>
+      <div class="fw-bold" style="font-size:1.25rem;">{{ shop.name }}</div>
+      {% if shop.phone %}<div style="color:rgba(255,255,255,0.6); font-size:0.82rem;"><i class="bi bi-telephone me-1"></i>{{ shop.phone }}</div>{% endif %}
+      {% if shop.address %}<div style="color:rgba(255,255,255,0.6); font-size:0.82rem;"><i class="bi bi-geo-alt me-1"></i>{{ shop.address }}</div>{% endif %}
+    </div>
+
+    <div class="d-flex align-items-center gap-2 flex-wrap">
+      <!-- Restock Bills Button -->
+      <button class="btn btn-sm btn-outline-warning rounded-pill px-3" data-bs-toggle="offcanvas" data-bs-target="#billsOffcanvas" style="font-size:0.8rem;">
+        <i class="bi bi-receipt me-1"></i> Restock Bills ({{ bills_count }})
+      </button>
+      <!-- Payment History Button -->
+      <button class="btn btn-sm btn-outline-info rounded-pill px-3" data-bs-toggle="offcanvas" data-bs-target="#payHistoryOffcanvas" style="font-size:0.8rem;">
+        <i class="bi bi-clock-history me-1"></i> Payments ({{ payments_count }})
+      </button>
+      <!-- Three-dots menu -->
+      <div class="dropdown">
+        <button class="btn btn-sm btn-outline-light rounded-circle border-0" type="button" data-bs-toggle="dropdown"
+                style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;background:rgba(255,255,255,0.1);">
+          <i class="bi bi-three-dots-vertical"></i>
+        </button>
+        <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius:12px; font-size:0.85rem;">
+          <li><button class="dropdown-item py-2" data-bs-toggle="modal" data-bs-target="#editShopModal"><i class="bi bi-pencil me-2 text-primary"></i>Edit Shop</button></li>
+          <li><hr class="dropdown-divider"></li>
+          {% if shop.is_active %}
+          <li>
+            <form method="post" action="{% url 'deactivate_supplier_shop' shop.id %}" onsubmit="confirmSubmit(event, 'Deactivate <strong class=\'text-danger\'>{{ shop.name|escapejs }}</strong>?', this, 'danger', 'bi-pause-circle');">
+              {% csrf_token %}
+              <button type="submit" class="dropdown-item py-2 text-danger fw-bold"><i class="bi bi-slash-circle me-2"></i>Deactivate Shop</button>
+            </form>
+          </li>
+          {% else %}
+          <li>
+            <form method="post" action="{% url 'activate_supplier_shop' shop.id %}" onsubmit="confirmSubmit(event, 'Reactivate <strong class=\'text-success\'>{{ shop.name|escapejs }}</strong>?', this, 'success', 'bi-play-circle');">
+              {% csrf_token %}
+              <button type="submit" class="dropdown-item py-2 text-success fw-bold"><i class="bi bi-check-circle me-2"></i>Reactivate Shop</button>
+            </form>
+          </li>
+          {% endif %}
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stat Boxes -->
+  <div class="row g-2">
+    <div class="col-6 col-md-3">
+      <div class="stat-box h-100">
+        <div class="s-label">Total Billed</div>
+        <div class="s-val">₹{{ shop.total_billed_amount|floatformat:0|intcomma }}</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-box h-100">
+        <div class="s-label">Total Paid</div>
+        <div class="s-val" style="color:#4ade80;">₹{{ shop.total_paid_amount|floatformat:0|intcomma }}</div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-box h-100">
+        <div class="s-label">Pending Balance</div>
+        <div class="s-val balance-big {% if shop.get_pending_balance <= 0 %}balance-ok{% endif %}">
+          ₹{{ shop.get_pending_balance|floatformat:0|intcomma }}
+        </div>
+      </div>
+    </div>
+    <div class="col-6 col-md-3">
+      <div class="stat-box h-100">
+        <div class="s-label">Products</div>
+        <div class="s-val">{{ catalog|length }}</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── QUICK PAYMENT ── -->
+{% if shop.get_pending_balance > 0 %}
+<div class="card border-0 shadow-sm mb-3" style="border-radius:14px; border-left:4px solid var(--color-primary) !important;">
+  <div class="card-body p-3">
+    <h6 class="fw-bold mb-3"><i class="bi bi-cash-stack me-2 text-primary"></i>Record Payment</h6>
+    <div class="d-flex gap-2 flex-wrap align-items-end">
+      <div style="flex:2; min-width:130px;">
+        <label class="form-label small text-muted mb-1">Amount (₹)</label>
+        <input type="number" id="quickPayAmount" class="form-control fw-bold" placeholder="Enter amount" min="1" step="0.01" style="font-size:1.1rem;">
+      </div>
+      <div style="flex:1; min-width:120px;">
+        <label class="form-label small text-muted mb-1">Method</label>
+        <select id="quickPayMethod" class="form-select">
+          <option value="CASH">💵 Cash</option>
+          <option value="UPI">📱 UPI</option>
+          <option value="CARD">💳 Card</option>
+          <option value="TRANSFER">🏦 Transfer</option>
+        </select>
+      </div>
+      <div style="flex:2; min-width:150px;">
+        <label class="form-label small text-muted mb-1">Note (Optional)</label>
+        <input type="text" id="quickPayNote" class="form-control" placeholder="Add note">
+      </div>
+      <div>
+        <button class="btn btn-primary fw-bold rounded-pill px-4" onclick="submitQuickPayment()">
+          <i class="bi bi-send-fill me-1"></i>Pay
+        </button>
+      </div>
+    </div>
+    <div class="mt-2"><small class="text-muted"><i class="bi bi-info-circle me-1"></i>Outstanding: ₹{{ shop.get_pending_balance|floatformat:0|intcomma }}</small></div>
+  </div>
+</div>
+<form id="quickPayForm" method="post" action="{% url 'add_shop_payment' shop.id %}" style="display:none;">
+  {% csrf_token %}
+  <input type="hidden" name="amount" id="hfAmount">
+  <input type="hidden" name="payment_method" id="hfMethod">
+  <input type="hidden" name="note" id="hfNote">
+</form>
+{% else %}
+<div class="alert alert-success border-0 mb-3" style="border-radius:12px;">
+  <i class="bi bi-check-circle-fill me-2"></i><strong>All Clear!</strong> No outstanding balance for {{ shop.name }}.
+</div>
+{% endif %}
+
+<!-- ── SHOP CATALOG & ACTIONS ── -->
+<div class="sect-hdr flex-wrap gap-3">
+  <div class="d-flex align-items-center gap-2">
+    <h5><i class="bi bi-grid me-2 text-muted" style="font-size:0.95rem;"></i>Shop Catalog</h5>
+    <a href="{% url 'add_shop_catalog_item' shop.id %}" class="btn btn-outline-primary fw-bold rounded-pill" style="padding: 2px 10px; font-size: 0.75rem; border-width: 1.5px; height: 24px; display: flex; align-items: center;">
+      <i class="bi bi-plus-lg" style="font-size: 0.7rem; margin-right: 3px;"></i>Add Product
+    </a>
+  </div>
+  
+  <a href="{% url 'shop_restock_select' shop.id %}" class="btn btn-primary fw-bold rounded-pill px-4 shadow-sm">
+    <i class="bi bi-box-seam me-2"></i>New Stock Entry
+  </a>
+</div>
+
+{% if catalog %}
+<div class="catalog-grid mb-4">
+  {% for cat_item in catalog %}
+  <div class="catalog-card">
+    <div>
+      <div class="catalog-card-name">{{ cat_item.item.name }}</div>
+      <span class="catalog-card-cat">{{ cat_item.item.category.name }}</span>
+    </div>
+    <!-- 3-dot menu per catalog card -->
+    <div class="dropdown">
+      <button class="btn btn-sm btn-light rounded-circle" style="width:30px;height:30px;padding:0;" type="button" data-bs-toggle="dropdown">
+        <i class="bi bi-three-dots-vertical" style="font-size:0.78rem;"></i>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="border-radius:10px; font-size:0.82rem; min-width:140px;">
+        <li>
+          <button class="dropdown-item py-2"
+                  onclick="openEditItemModal({{ cat_item.id }}, '{{ cat_item.item.name|escapejs }}')">
+            <i class="bi bi-pencil me-2 text-primary"></i>Edit Name
+          </button>
+        </li>
+        <li><hr class="dropdown-divider"></li>
+        <li>
+          <form method="post" action="{% url 'remove_shop_catalog_item' shop.id cat_item.id %}"
+                onsubmit="confirmSubmit(event, 'Remove <strong class=\'text-danger\'>{{ cat_item.item.name|escapejs }}</strong> from catalog?', this, 'danger', 'bi-trash');">
+            {% csrf_token %}
+            <button type="submit" class="dropdown-item py-2 text-danger fw-bold">
+              <i class="bi bi-trash3 me-2"></i>Remove
+            </button>
+          </form>
+        </li>
+      </ul>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<div class="text-center py-4 text-muted rounded-3 border mb-4">
+  <i class="bi bi-box" style="font-size:2rem; opacity:0.4;"></i>
+  <p class="mt-2 fw-bold mb-1">No products in catalog yet.</p>
+  <a href="{% url 'add_shop_catalog_item' shop.id %}" class="btn btn-sm btn-outline-primary rounded-pill px-4 mt-1">+ Add First Product</a>
+</div>
+{% endif %}
+
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- RESTOCK BILLS OFFCANVAS                            -->
+<!-- ══════════════════════════════════════════════════ -->
+<div class="offcanvas offcanvas-end shadow" tabindex="-1" id="billsOffcanvas" style="width:480px; border-left:none;">
+  <div class="offcanvas-header border-bottom" style="background: var(--color-card);">
+    <h6 class="offcanvas-title fw-bold"><i class="bi bi-receipt me-2 text-warning"></i>Restock Bills — {{ shop.name }}</h6>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body p-3">
+    {% if bills %}
+      <div id="billsListContainer">
+        {% include 'inventory/suppliers/partials/bill_list_chunk.html' with bills=bills shop=shop %}
+      </div>
+      
+      <!-- Load More Bills Button -->
+      {% if bills|length == 50 %}
+      <div class="text-center mt-3" id="loadMoreBillsContainer">
+        <button class="btn btn-outline-secondary btn-sm rounded-pill fw-bold px-4" onclick="loadMoreBills({{ shop.id }})" id="loadMoreBillsBtn">
+          <i class="bi bi-arrow-down-circle me-1"></i> Load Older History
+        </button>
+      </div>
+      {% endif %}
+    {% else %}
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-receipt" style="font-size:2.5rem; opacity:0.3;"></i>
+        <p class="mt-2 small">No restock bills {% if filter_type != 'all' %}in this period{% endif %}.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- PAYMENT HISTORY OFFCANVAS                          -->
+<!-- ══════════════════════════════════════════════════ -->
+<div class="offcanvas offcanvas-end shadow" tabindex="-1" id="payHistoryOffcanvas" style="width:400px; border-left:none;">
+  <div class="offcanvas-header border-bottom" style="background:var(--color-card);">
+    <h6 class="offcanvas-title fw-bold"><i class="bi bi-clock-history me-2 text-primary"></i>Payment History — {{ shop.name }}</h6>
+    <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+  </div>
+  <div class="offcanvas-body p-0">
+    {% if recent_payments %}
+      <div id="paymentsListContainer">
+        {% include 'inventory/suppliers/partials/payment_list_chunk.html' with recent_payments=recent_payments shop=shop %}
+      </div>
+      
+      <!-- Load More Payments Button -->
+      {% if recent_payments|length == 30 %}
+      <div class="text-center my-3" id="loadMorePaymentsContainer">
+        <button class="btn btn-outline-secondary btn-sm rounded-pill fw-bold px-4" onclick="loadMorePayments({{ shop.id }})" id="loadMorePaymentsBtn">
+          <i class="bi bi-arrow-down-circle me-1"></i> Load Older History
+        </button>
+      </div>
+      {% endif %}
+    {% else %}
+      <div class="text-center py-5 text-muted">
+        <i class="bi bi-receipt" style="font-size:2rem; opacity:0.3;"></i>
+        <p class="mt-2 small">No payments{% if filter_type != 'all' %} in this period{% endif %}.</p>
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- EDIT CATALOG ITEM NAME MODAL                       -->
+<!-- ══════════════════════════════════════════════════ -->
+<div class="modal fade" id="editItemModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:340px;">
+    <div class="modal-content border-0 shadow-lg" style="border-radius:20px;">
+      <div class="modal-header border-0 pb-0">
+        <h6 class="modal-title fw-bold"><i class="bi bi-pencil me-2 text-primary"></i>Edit Product Name</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form id="editItemForm" method="post" action="">
+        {% csrf_token %}
+        <div class="modal-body">
+          <label class="form-label small text-muted fw-bold">Product Name *</label>
+          <input type="text" name="item_name" id="editItemName" class="form-control" required>
+          <small class="text-muted">This will update the product name across the entire system.</small>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary fw-bold rounded-pill px-4">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
+<!-- ══════════════════════════════════════════════════ -->
+<!-- EDIT SHOP MODAL                                    -->
+<!-- ══════════════════════════════════════════════════ -->
+<div class="modal fade" id="editShopModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width:360px;">
+    <div class="modal-content border-0 shadow-lg" style="border-radius:20px;">
+      <div class="modal-header border-0 pb-0">
+        <h6 class="modal-title fw-bold"><i class="bi bi-pencil me-2 text-primary"></i>Edit Shop</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <form method="post" action="{% url 'edit_supplier_shop' shop.id %}">
+        {% csrf_token %}
+        <div class="modal-body">
+          <div class="mb-3">
+            <label class="form-label small text-muted fw-bold">Shop Name *</label>
+            <input type="text" name="name" class="form-control" value="{{ shop.name }}" required>
+          </div>
+          <div class="mb-3">
+            <label class="form-label small text-muted">Phone</label>
+            <input type="text" name="phone" class="form-control" value="{{ shop.phone|default:'' }}">
+          </div>
+          <div class="mb-2">
+            <label class="form-label small text-muted">Address</label>
+            <input type="text" name="address" class="form-control" value="{{ shop.address|default:'' }}">
+          </div>
+        </div>
+        <div class="modal-footer border-0 pt-0">
+          <button type="button" class="btn btn-outline-secondary rounded-pill" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary fw-bold rounded-pill px-4">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================ -->
+<!-- GENERIC CONFIRMATION MODAL                                   -->
+<!-- ============================================================ -->
+<div class="modal fade" id="confirmActionModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 340px;">
+    <div class="modal-content border-0 shadow-lg" style="border-radius: 20px;">
+      <div class="modal-body text-center p-4">
+        <i id="confirmActionIcon" class="bi bi-exclamation-triangle-fill text-warning mb-3" style="font-size: 3rem;"></i>
+        <h5 class="fw-bold mb-2">Are you sure?</h5>
+        <p class="text-muted small mb-4" id="confirmActionMsg">This action cannot be undone.</p>
+        <div class="d-flex gap-2 justify-content-center">
+          <button type="button" class="btn btn-outline-secondary rounded-pill px-4" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-primary fw-bold rounded-pill px-4" id="confirmActionBtn">Confirm</button>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Global form confirmation logic
+  let formToSubmit = null;
+  let confirmActionModalInstance = null;
+
+  function confirmSubmit(event, message, formElement, theme='warning', icon='bi-exclamation-triangle-fill') {
+    if (event) event.preventDefault();
+    if (!confirmActionModalInstance) {
+      confirmActionModalInstance = new bootstrap.Modal(document.getElementById('confirmActionModal'));
+    }
+    document.getElementById('confirmActionMsg').innerHTML = message;
+    document.getElementById('confirmActionIcon').className = `bi ${icon} text-${theme} mb-3`;
+    document.getElementById('confirmActionBtn').className = `btn btn-${theme} fw-bold rounded-pill px-4`;
+    formToSubmit = formElement;
+    confirmActionModalInstance.show();
+  }
+
+  document.addEventListener('DOMContentLoaded', function () {
+    // Wire the Confirm Action modal button
+    const confirmBtn = document.getElementById('confirmActionBtn');
+    if (confirmBtn) {
+      confirmBtn.addEventListener('click', function() {
+        if (formToSubmit) {
+          formToSubmit.submit();
+        }
+      });
+    }
+  });
+
+  // Toggle bill card open/close
+  function toggleBill(billId) {
+    const body = document.getElementById('bill-body-' + billId);
+    const chevron = document.querySelector('.bill-chevron-' + billId);
+    const header = body.previousElementSibling;
+    if (body.classList.contains('open')) {
+      body.classList.remove('open');
+      chevron.style.transform = 'rotate(0deg)';
+      if (header) {
+        header.style.borderBottomLeftRadius = '13px';
+        header.style.borderBottomRightRadius = '13px';
+      }
+    } else {
+      // Close all others first
+      document.querySelectorAll('.bill-card-body.open').forEach(el => {
+        el.classList.remove('open');
+        const prevHeader = el.previousElementSibling;
+        if (prevHeader) {
+          prevHeader.style.borderBottomLeftRadius = '13px';
+          prevHeader.style.borderBottomRightRadius = '13px';
+        }
+      });
+      document.querySelectorAll('[class*="bill-chevron-"]').forEach(el => el.style.transform = 'rotate(0deg)');
+      body.classList.add('open');
+      chevron.style.transform = 'rotate(180deg)';
+      if (header) {
+        header.style.borderBottomLeftRadius = '0';
+        header.style.borderBottomRightRadius = '0';
+      }
+    }
+  }
+
+  // Open the edit catalog item modal
+  function openEditItemModal(catalogItemId, currentName) {
+    const baseUrl = '{% url "edit_catalog_item" shop.id 0 %}'.replace('/0/', '/' + catalogItemId + '/');
+    document.getElementById('editItemForm').action = baseUrl;
+    document.getElementById('editItemName').value = currentName;
+    new bootstrap.Modal(document.getElementById('editItemModal')).show();
+  }
+
+  // Quick payment submit
+  function submitQuickPayment() {
+    const amount = document.getElementById('quickPayAmount').value;
+    if (!amount || parseFloat(amount) <= 0) { alert('Please enter a valid amount.'); return; }
+    document.getElementById('hfAmount').value = amount;
+    document.getElementById('hfMethod').value = document.getElementById('quickPayMethod').value;
+    document.getElementById('hfNote').value = document.getElementById('quickPayNote').value;
+    
+    // Call the global confirmation modal instead of direct submit
+    confirmSubmit(window.event, `Pay <strong class='text-success'>₹${amount}</strong> to {{ shop.name|escapejs }}?`, document.getElementById('quickPayForm'), 'success', 'bi-cash-stack');
+  }
+
+  // Custom date range toggle
+  document.addEventListener('DOMContentLoaded', function () {
+    const customToggle = document.getElementById('customRangeToggle');
+    if (customToggle) {
+      customToggle.addEventListener('click', function(e) {
+        e.preventDefault(); e.stopPropagation();
+        const picker = document.getElementById('customDatePicker');
+        if (picker) picker.style.display = picker.style.display === 'none' ? 'block' : 'none';
+      });
+    }
+
+    // Auto-open bills offcanvas if requested from redirect
+    const urlParams = new URLSearchParams(window.location.search);
+    if (urlParams.has('open_bills')) {
+      const el = document.getElementById('billsOffcanvas');
+      if (el) new bootstrap.Offcanvas(el).show();
+    }
+  });
+
+  // AJAX Pagination for Bills
+  let currentBillsPage = 1;
+  function loadMoreBills(shopId) {
+    const btn = document.getElementById('loadMoreBillsBtn');
+    const container = document.getElementById('loadMoreBillsContainer');
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Loading...';
+    btn.disabled = true;
+    
+    currentBillsPage++;
+    
+    // Maintain filter parameter if exists
+    const urlParams = new URLSearchParams(window.location.search);
+    const filter = urlParams.get('filter') || 'all';
+    
+    fetch(`/inventory/shops/${shopId}/bills/ajax/?page=${currentBillsPage}&filter=${filter}`)
+      .then(response => response.text())
+      .then(html => {
+        if (html.trim() === '') {
+          // No more bills
+          container.innerHTML = '<span class="text-muted small">No older bills.</span>';
+        } else {
+          document.getElementById('billsListContainer').insertAdjacentHTML('beforeend', html);
+          btn.innerHTML = '<i class="bi bi-arrow-down-circle me-1"></i> Load Older History';
+          btn.disabled = false;
+        }
+      })
+      .catch(error => {
+        console.error('Error loading bills:', error);
+        btn.innerHTML = 'Error. Try Again.';
+        btn.disabled = false;
+        currentBillsPage--;
+      });
+  }
+
+  // AJAX Pagination for Payments
+  let currentPaymentsPage = 1;
+  function loadMorePayments(shopId) {
+    const btn = document.getElementById('loadMorePaymentsBtn');
+    const container = document.getElementById('loadMorePaymentsContainer');
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span> Loading...';
+    btn.disabled = true;
+    
+    currentPaymentsPage++;
+    
+    fetch(`/inventory/shops/${shopId}/payments/ajax/?page=${currentPaymentsPage}`)
+      .then(response => response.text())
+      .then(html => {
+        if (html.trim() === '') {
+          container.innerHTML = '<span class="text-muted small">No older payments.</span>';
+        } else {
+          document.getElementById('paymentsListContainer').insertAdjacentHTML('beforeend', html);
+          btn.innerHTML = '<i class="bi bi-arrow-down-circle me-1"></i> Load Older History';
+          btn.disabled = false;
+        }
+      })
+      .catch(error => {
+        console.error('Error loading payments:', error);
+        btn.innerHTML = 'Error. Try Again.';
+        btn.disabled = false;
+        currentPaymentsPage--;
+      });
+  }
+</script>
+
+{% endblock %}

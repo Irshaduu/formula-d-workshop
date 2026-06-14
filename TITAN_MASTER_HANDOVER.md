@@ -37,8 +37,9 @@
 - **The HQ Kill Switch**: From the management dashboard, Owners have full visibility over active staff sessions (40-day window). The `manage_terminate_session` function allows for surgical, remote destruction of unauthorized Django sessions.
 
 ### 4. The Warehouse Pulse (Stock Delta Engine)
-- **Mechanism**: Uses Django Signals (`inventory/signals.py`) to orchestrate seamless Workshop-to-Warehouse synchronization.
-- **The Logic**: It calculates exact stock deltas during job card updates. It accurately handles complex scenarios including Part Replacements (restoring old stock, deducting new), Quantity Adjustments, and full Deletions.
+- **Mechanism**: Uses Django Signals (`inventory/signals.py`) to orchestrate seamless stock synchronization from **two directions**.
+- **Workshop Consumption (3 signals)**: Calculates exact stock deltas during job card updates. Handles Part Replacements (restoring old stock, deducting new), Quantity Adjustments, and full Deletions.
+- **Supplier Restocking (3 signals)**: Automatically increases stock when restock bills are created, adjusts by delta on edits, and reverses on deletion. Uses the same pre_save snapshot + post_save delta pattern for consistency.
 
 ---
 
@@ -64,7 +65,7 @@ WorkshopOS is optimized for immense scale, ensuring sub-50ms data retrieval even
   ```bash
   .\venv\Scripts\python.exe manage.py test workshop inventory
   ```
-- **Test Coverage**: 14 test files across workshop (13) and inventory (2).
+- **Test Coverage**: 16 test files across workshop (13) and inventory (3).
 
 ---
 

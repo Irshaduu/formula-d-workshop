@@ -219,7 +219,6 @@ class SpareShopPaymentTests(TestCase):
             spare_part_name='Brake Pads',
             quantity=1,
             unit_price=2500,
-            shop_paid_amount=0
         )
         self.item2 = JobCardSpareItem.objects.create(
             job_card=self.job,
@@ -227,7 +226,6 @@ class SpareShopPaymentTests(TestCase):
             spare_part_name='Engine Oil',
             quantity=1,
             unit_price=1000,
-            shop_paid_amount=0
         )
 
         self.office_group, _ = Group.objects.get_or_create(name='Office')
@@ -246,18 +244,15 @@ class SpareShopPaymentTests(TestCase):
         })
         self.assertEqual(response.status_code, 302)  # Redirects back to detail
 
-        # Check that items were paid (item1 needs 2500, so it gets 2500. item2 gets 500)
-        self.item1.refresh_from_db()
-        self.item2.refresh_from_db()
-        self.assertEqual(self.item1.shop_paid_amount, 2500)
-        self.assertEqual(self.item2.shop_paid_amount, 500)
+        # Check that the shop totals were updated correctly
+        self.shop.refresh_from_db()
+        self.assertEqual(self.shop.total_paid_amount, 3000)
 
         # Verify the payment record and the new note field
         payment = SpareShopPayment.objects.get(shop=self.shop)
         self.assertEqual(payment.amount, 3000)
         self.assertEqual(payment.payment_method, 'UPI')
         self.assertEqual(payment.note, 'Handed to Mohammed directly')
-        self.assertEqual(payment.items_affected, 2)
 
     def test_shop_detail_date_filters(self):
         """Verify that the date filtering logic successfully renders without errors."""

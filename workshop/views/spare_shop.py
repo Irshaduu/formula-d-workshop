@@ -23,19 +23,9 @@ def spare_shop_list(request):
     shops = (
         SpareShop.objects.filter(is_trashed=False)
         .annotate(
-            total_purchases=Coalesce(
-                Sum(ExpressionWrapper(F('spare_items__unit_price') * Coalesce(F('spare_items__quantity'), Value(1, output_field=DecimalField())), output_field=DecimalField())),
-                Value(0, output_field=DecimalField())
-            ),
-            total_paid=Coalesce(
-                Sum('spare_items__shop_paid_amount'),
-                Value(0, output_field=DecimalField())
-            ),
             item_count=Count('spare_items', distinct=True),
-        )
-        .annotate(
             total_balance=ExpressionWrapper(
-                F('total_purchases') - F('total_paid'),
+                F('total_purchased_amount') - F('total_paid_amount'),
                 output_field=DecimalField()
             )
         )
@@ -151,33 +141,63 @@ def spare_shop_detail(request, pk):
                 created_at__date__lte=end_date_str
             )
 
-    # Grand totals (pure SQL)
-    totals = items_qs.aggregate(
-        total_purchases=Coalesce(Sum(ExpressionWrapper(F('unit_price') * Coalesce(F('quantity'), Value(Decimal('1'), output_field=DecimalField())), output_field=DecimalField())), Value(Decimal('0'), output_field=DecimalField()), output_field=DecimalField()),
-        total_paid=Coalesce(Sum('shop_paid_amount'), Value(Decimal('0')), output_field=DecimalField()),
-    )
-    total_purchases = totals['total_purchases']
-    total_paid = totals['total_paid']
-    total_balance = max(Decimal('0'), total_purchases - total_paid)
-    item_count = items_qs.count()
+    from django.db.models import OuterRef, Subquery, Q
+    older_items_sum_sq = JobCardSpareItem.objects.filter(
+        shop=OuterRef('shop')
+    ).filter(
+        Q(job_card__admitted_date__lt=OuterRef('job_card__admitted_date')) | 
+        Q(job_card__admitted_date=OuterRef('job_card__admitted_date'), pk__lte=OuterRef('pk'))
+    ).values('shop').annotate(
+        total=Sum(
+            ExpressionWrapper(
+                Coalesce(F('unit_price'), Value(Decimal('0'), output_field=DecimalField())) * 
+                Coalesce(F('quantity'), Value(Decimal('1'), output_field=DecimalField())),
+                output_field=DecimalField()
+            )
+        )
+    ).values('total')
 
-    # Annotate per-item balance for the template
     items_qs = items_qs.annotate(
-        item_balance=ExpressionWrapper(
-            (Coalesce(F('unit_price'), Value(Decimal('0'), output_field=DecimalField())) * Coalesce(F('quantity'), Value(Decimal('1'), output_field=DecimalField()))) - F('shop_paid_amount'),
+        absolute_running_sum=Coalesce(Subquery(older_items_sum_sq), Decimal('0'), output_field=DecimalField()),
+        item_cost=ExpressionWrapper(
+            Coalesce(F('unit_price'), Value(Decimal('0'), output_field=DecimalField())) * 
+            Coalesce(F('quantity'), Value(Decimal('1'), output_field=DecimalField())),
             output_field=DecimalField()
         )
     )
 
+    total_purchases = shop.total_purchased_amount
+    total_paid = shop.total_paid_amount
+    total_balance = max(Decimal('0'), total_purchases - total_paid)
+    item_count = items_qs.count()
+
     paginator = Paginator(items_qs, 45)
     page_obj = paginator.get_page(request.GET.get('page'))
+    
+    # ── Absolute Ledger Waterfall Calculation ──
+    page_items = list(page_obj)
+    for item in page_items:
+        item_cost = item.item_cost
+        older_sum = item.absolute_running_sum - item_cost
+        bulk_pool = total_paid - older_sum
+        
+        if bulk_pool >= item_cost:
+            item.covered_status = 'COVERED'
+            item.pending_amount = Decimal('0')
+        elif bulk_pool <= Decimal('0'):
+            item.covered_status = 'UNPAID'
+            item.pending_amount = item_cost
+        else:
+            item.covered_status = 'PARTIAL'
+            item.pending_amount = item_cost - bulk_pool
+            item.covered_amount = bulk_pool
 
     pay_paginator = Paginator(payment_qs, 15)
     pay_page_obj = pay_paginator.get_page(request.GET.get('pay_page'))
 
     return render(request, 'workshop/spare_shops/shop_detail.html', {
         'shop': shop,
-        'items': page_obj,
+        'items': page_items,
         'page_obj': page_obj,
         'total_purchases': total_purchases,
         'total_paid': total_paid,
@@ -193,11 +213,11 @@ def spare_shop_detail(request, pk):
 
 
 @office_required
+@transaction.atomic
 def spare_shop_pay(request, pk):
     """
-    POST: Process a lump-sum payment to a shop using the Cascade Algorithm.
-    Distributes the amount across unpaid items oldest-first.
-    Thread-safe via select_for_update. Creates a SpareShopPayment audit record.
+    POST: Process a lump-sum payment to a shop.
+    Creates a SpareShopPayment audit record and updates shop totals.
     """
     if request.method != 'POST':
         return redirect('spare_shop_detail', pk=pk)
@@ -215,127 +235,22 @@ def spare_shop_pay(request, pk):
         messages.error(request, "Invalid payment amount.")
         return redirect('spare_shop_detail', pk=pk)
 
-    with transaction.atomic():
-        pending_items = (
-            JobCardSpareItem.objects
-            .select_for_update()
-            .filter(shop=shop)
-            .exclude(unit_price__isnull=True)
-            .annotate(
-                item_balance=ExpressionWrapper(
-                    (F('unit_price') * Coalesce(F('quantity'), Value(Decimal('1'), output_field=DecimalField()))) - F('shop_paid_amount'),
-                    output_field=DecimalField()
-                )
-            )
-            .filter(item_balance__gt=0)
-            .order_by('job_card__admitted_date', 'pk')
-        )
+    SpareShopPayment.objects.create(
+        shop=shop,
+        amount=lump_sum,
+        payment_method=payment_method,
+        note=note or None,
+    )
 
-        total_outstanding = pending_items.aggregate(
-            total=Coalesce(
-                Sum(ExpressionWrapper((F('unit_price') * Coalesce(F('quantity'), Value(Decimal('1'), output_field=DecimalField()))) - F('shop_paid_amount'), output_field=DecimalField())),
-                Value(Decimal('0'), output_field=DecimalField())
-            )
-        )['total']
-
-        if lump_sum > total_outstanding:
-            messages.error(request, f"Amount (₹{lump_sum:,.0f}) exceeds total balance of ₹{total_outstanding:,.0f}.")
-            return redirect('spare_shop_detail', pk=pk)
-
-        remaining = lump_sum
-        items_updated = 0
-        history_details = []
-
-        for item in pending_items:
-            if remaining <= 0:
-                break
-            balance = (item.unit_price * (item.quantity or Decimal('1'))) - item.shop_paid_amount
-            if balance <= 0:
-                continue
-
-            if remaining >= balance:
-                paid_amount = balance
-                item.shop_paid_amount += balance
-                remaining -= balance
-            else:
-                paid_amount = remaining
-                item.shop_paid_amount += remaining
-                remaining = Decimal('0')
-
-            item.save(update_fields=['shop_paid_amount'])
-            items_updated += 1
-            history_details.append({
-                'item_id': item.pk,
-                'job_id': item.job_card_id,
-                'part': item.spare_part_name or '—',
-                'paid': str(paid_amount),
-            })
-
-        SpareShopPayment.objects.create(
-            shop=shop,
-            amount=lump_sum,
-            payment_method=payment_method,
-            note=note or None,
-            items_affected=items_updated,
-            details=json.dumps(history_details),
-        )
-
-    messages.success(request, f"₹{lump_sum:,.0f} distributed across {items_updated} item(s) for {shop.name}.")
-    return redirect('spare_shop_detail', pk=pk)
-
-
-@office_required
-def spare_shop_pay_item(request, pk, item_pk):
-    """
-    POST: Pay a single spare item immediately (Pay Now button).
-    Pays the full remaining balance for that specific item.
-    Creates a SpareShopPayment audit record.
-    """
-    if request.method != 'POST':
-        return redirect('spare_shop_detail', pk=pk)
-
-    shop = get_object_or_404(SpareShop, pk=pk, is_trashed=False)
-    item = get_object_or_404(JobCardSpareItem, pk=item_pk, shop=shop)
-    payment_method = request.POST.get('payment_method', 'CASH')
-    note = request.POST.get('note', '').strip()
-
-    unit_price = item.unit_price or Decimal('0')
-    qty = item.quantity or Decimal('1')
-    total_cost = unit_price * qty
-    already_paid = item.shop_paid_amount or Decimal('0')
-    pay_now = total_cost - already_paid
-
-    if pay_now <= 0:
-        messages.info(request, "This item is already fully paid.")
-        return redirect('spare_shop_detail', pk=pk)
-
-    with transaction.atomic():
-        item.shop_paid_amount = total_cost
-        item.save(update_fields=['shop_paid_amount'])
-
-        SpareShopPayment.objects.create(
-            shop=shop,
-            amount=pay_now,
-            payment_method=payment_method,
-            note=note or None,
-            items_affected=1,
-            details=json.dumps([{
-                'item_id': item.pk,
-                'job_id': item.job_card_id,
-                'part': item.spare_part_name or '—',
-                'paid': str(pay_now),
-            }]),
-        )
-
-    messages.success(request, f"₹{pay_now:,.0f} paid for '{item.spare_part_name or 'item'}' to {shop.name}.")
+    messages.success(request, f"₹{lump_sum:,.0f} payment recorded for {shop.name}.")
     return redirect('spare_shop_detail', pk=pk)
 
 
 @owner_required
+@transaction.atomic
 def spare_shop_payment_reverse(request, shop_pk, payment_pk):
     """
-    POST: Reverse a SpareShopPayment and subtract amounts from affected items.
-    Uses the stored JSON snapshot to roll back precisely. Owner only.
+    POST: Reverse a SpareShopPayment (Soft Delete). Owner only.
     """
     if request.method != 'POST':
         return redirect('spare_shop_detail', pk=shop_pk)
@@ -343,23 +258,8 @@ def spare_shop_payment_reverse(request, shop_pk, payment_pk):
     shop = get_object_or_404(SpareShop, pk=shop_pk)
     payment = get_object_or_404(SpareShopPayment, pk=payment_pk, shop=shop, is_trashed=False)
 
-    with transaction.atomic():
-        try:
-            details = json.loads(payment.details)
-        except (json.JSONDecodeError, TypeError):
-            details = []
-
-        for entry in details:
-            try:
-                item = JobCardSpareItem.objects.select_for_update().get(pk=entry['item_id'])
-                reversed_amount = Decimal(str(entry['paid']))
-                item.shop_paid_amount = max(Decimal('0'), item.shop_paid_amount - reversed_amount)
-                item.save(update_fields=['shop_paid_amount'])
-            except (JobCardSpareItem.DoesNotExist, KeyError):
-                continue
-
-        payment.is_trashed = True
-        payment.save()
+    payment.is_trashed = True
+    payment.save()
 
     messages.success(request, f"Payment of ₹{payment.amount:,.0f} reversed and moved to Trash.")
     return redirect('spare_shop_detail', pk=shop_pk)
@@ -458,13 +358,15 @@ def spare_shop_print(request, pk):
                 created_at__date__lte=end_date_str
             )
 
-    # Grand totals (pure SQL) — uses shop_paid_amount to match detail view exactly
-    totals = items_qs.aggregate(
-        total_purchases=Coalesce(Sum(ExpressionWrapper(F('unit_price') * Coalesce(F('quantity'), Value(Decimal('1'), output_field=DecimalField())), output_field=DecimalField())), Value(Decimal('0'), output_field=DecimalField()), output_field=DecimalField()),
-        total_paid=Coalesce(Sum('shop_paid_amount'), Value(Decimal('0')), output_field=DecimalField()),
-    )
-    total_purchases = totals['total_purchases']
-    total_paid = totals['total_paid']
+    # Grand totals (pure SQL)
+    total_purchases = items_qs.aggregate(
+        total_purchases=Coalesce(Sum(ExpressionWrapper(F('unit_price') * Coalesce(F('quantity'), Value(Decimal('1'), output_field=DecimalField())), output_field=DecimalField())), Value(Decimal('0'), output_field=DecimalField()), output_field=DecimalField())
+    )['total_purchases']
+    
+    total_paid = payment_qs.aggregate(
+        total_paid=Coalesce(Sum('amount'), Value(Decimal('0')), output_field=DecimalField())
+    )['total_paid']
+    
     total_balance = max(Decimal('0'), total_purchases - total_paid)
 
     start_date_obj = None

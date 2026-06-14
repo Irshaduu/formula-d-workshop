@@ -1,0 +1,111 @@
+{% extends 'workshop/base.html' %}
+{% block title %}New Stock - {{ shop.name }}{% endblock %}
+{% block content %}
+<style>
+    .restock-wrapper {
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px 10px;
+    }
+    .select-card {
+        background: var(--color-card);
+        border: 1px solid var(--color-border);
+        border-radius: 16px;
+        padding: 24px;
+        box-shadow: 0 4px 12px var(--color-shadow);
+    }
+    .check-item {
+        border: 1px solid var(--color-border);
+        border-radius: 12px;
+        padding: 16px;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    .check-item:hover {
+        background: var(--color-hover);
+    }
+    .check-item.checked {
+        border-color: var(--color-primary);
+        background: var(--color-primary-light);
+    }
+    .check-item input[type="checkbox"] {
+        width: 20px;
+        height: 20px;
+        accent-color: var(--color-primary);
+        cursor: pointer;
+    }
+    .item-content {
+        flex: 1;
+    }
+    .item-name {
+        font-weight: 700;
+        font-size: 1.1rem;
+        margin-bottom: 2px;
+        color: var(--color-text);
+    }
+    .item-cat {
+        font-size: 0.85rem;
+        color: var(--color-text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+</style>
+
+<div class="restock-wrapper">
+    <div class="d-flex align-items-center mb-4">
+        <a href="{% url 'supplier_shop_detail' shop.id %}" class="btn btn-outline-secondary rounded-circle me-3" style="width:40px; height:40px; padding:0; display:flex; align-items:center; justify-content:center;">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <h2 class="fw-bold m-0">Select Arrived Stocks</h2>
+    </div>
+
+
+    <div class="select-card">
+        <h5 class="fw-bold mb-4 text-primary"><i class="bi bi-ui-checks-grid me-2"></i> What arrived from {{ shop.name }}?</h5>
+        
+        <form method="post" action="">
+            {% csrf_token %}
+            
+            {% if catalog %}
+                <div class="row">
+                {% for cat_item in catalog %}
+                    <div class="col-md-6">
+                        <label class="check-item">
+                            <input type="checkbox" name="selected_items" value="{{ cat_item.item.id }}" onchange="this.closest('.check-item').classList.toggle('checked', this.checked); updateCount();">
+                            <div class="item-content">
+                                <div class="item-name">{{ cat_item.item.name }}</div>
+                                <div class="item-cat">{{ cat_item.item.category.name }}</div>
+                            </div>
+                        </label>
+                    </div>
+                {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-4 text-muted">
+                    <i class="bi bi-box" style="font-size: 2rem;"></i>
+                    <p class="mt-2">No products in catalog. Add products first.</p>
+                </div>
+            {% endif %}
+            
+            <div class="mt-4 pt-3 border-top d-flex justify-content-between align-items-center">
+                <div class="fw-bold text-muted"><span id="selectedCount">0</span> items selected</div>
+                <button type="submit" class="btn btn-primary fw-bold rounded-pill px-5" id="nextBtn" disabled>
+                    Next: Create Bill <i class="bi bi-arrow-right ms-1"></i>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function updateCount() {
+        const count = document.querySelectorAll('input[name="selected_items"]:checked').length;
+        document.getElementById('selectedCount').textContent = count;
+        document.getElementById('nextBtn').disabled = count === 0;
+    }
+</script>
+{% endblock %}

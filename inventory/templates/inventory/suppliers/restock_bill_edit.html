@@ -1,0 +1,239 @@
+{% extends 'workshop/base.html' %}
+{% block title %}Edit Bill #{{ bill.id }} - {{ shop.name }}{% endblock %}
+{% block content %}
+<style>
+    .bill-wrapper { max-width: 900px; margin: 0 auto; padding: 20px 10px; }
+    .bill-card {
+        background: var(--color-card); border: 1px solid var(--color-border);
+        border-radius: 16px; padding: 24px; box-shadow: 0 4px 12px var(--color-shadow);
+        margin-bottom: 24px;
+    }
+    .bill-row {
+        display: flex; align-items: center; gap: 16px; padding: 16px 0;
+        border-bottom: 1px solid var(--color-border-light);
+    }
+    .bill-row:last-child { border-bottom: none; }
+    .item-info { flex: 2; }
+    .item-name { font-weight: 700; font-size: 1.1rem; margin-bottom: 2px; }
+    .item-cat { font-size: 0.85rem; color: var(--color-text-muted); }
+    .input-group-custom { flex: 1; min-width: 120px; }
+    .input-group-custom label {
+        font-size: 0.8rem; font-weight: 700; color: var(--color-text-muted);
+        text-transform: uppercase; margin-bottom: 4px; display: block;
+    }
+    .input-group-custom input {
+        width: 100%; padding: 10px 12px; border-radius: 8px;
+        border: 1px solid var(--color-border); background: var(--color-bg);
+        font-weight: 700; outline: none; transition: border 0.2s;
+    }
+    .input-group-custom input:focus { border-color: var(--color-primary); background: var(--color-card); }
+    .unit-price { flex: 1; text-align: right; min-width: 100px; }
+    .unit-price-label { font-size: 0.8rem; color: var(--color-text-muted); font-weight: 700; }
+    .unit-price-val { font-weight: 800; color: var(--color-primary); font-size: 1.1rem; }
+    
+    .totals-section {
+        background: var(--color-bg); border-radius: 12px; padding: 20px;
+        margin-top: 24px; border: 1px solid var(--color-border);
+    }
+    .total-row {
+        display: flex; justify-content: space-between; align-items: center;
+        margin-bottom: 12px; font-size: 1.1rem; font-weight: 700;
+    }
+    .grand-total {
+        font-size: 1.6rem; color: var(--color-danger); font-weight: 800;
+        border-top: 2px solid var(--color-border); padding-top: 12px; margin-top: 12px;
+    }
+    .delete-hint { font-size: 0.75rem; color: var(--color-danger); margin-top: 4px; display: block; }
+    
+    @media (max-width: 768px) {
+        .bill-row { flex-direction: column; align-items: flex-start; gap: 12px; }
+        .input-group-custom { width: 100%; }
+        .unit-price { text-align: left; }
+    }
+</style>
+
+<div class="bill-wrapper">
+    <div class="d-flex align-items-center mb-4">
+        <a href="{% url 'supplier_shop_detail' shop.id %}" class="btn btn-outline-secondary rounded-circle me-3" style="width:40px; height:40px; padding:0; display:flex; align-items:center; justify-content:center;">
+            <i class="bi bi-arrow-left"></i>
+        </a>
+        <div>
+            <h2 class="fw-bold m-0">Edit Bill #{{ bill.id }}</h2>
+            <div class="text-muted small">{{ shop.name }}</div>
+        </div>
+    </div>
+
+    <form method="post" action="" id="billForm">
+        {% csrf_token %}
+        
+        <!-- ── BILL SETTINGS ── -->
+        <div class="bill-card">
+            <h6 class="fw-bold text-muted mb-3 text-uppercase" style="letter-spacing: 0.05em;">Bill Details</h6>
+            <div class="row">
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold text-muted">Bill Date</label>
+                    <input type="date" name="bill_date" class="form-control fw-bold" value="{{ bill.bill_date|date:'Y-m-d' }}" required>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── EXISTING ITEMS ── -->
+        <div class="bill-card">
+            <h5 class="fw-bold mb-1 text-primary"><i class="bi bi-box-seam me-2"></i> Existing Items on Bill</h5>
+            <p class="small text-muted mb-4">Set quantity to 0 to remove an item from the bill.</p>
+            
+            {% for restock_item in existing_items %}
+            <div class="bill-row">
+                <div class="item-info">
+                    <div class="item-name">{{ restock_item.item.name }}</div>
+                    <div class="item-cat">{{ restock_item.item.category.name }}</div>
+                </div>
+                
+                <div class="input-group-custom">
+                    <label>Quantity</label>
+                    <input type="number" name="qty_{{ restock_item.id }}" class="qty-input" data-id="old_{{ restock_item.id }}" step="0.5" min="0" value="{{ restock_item.quantity|floatformat:'-1' }}" required>
+                </div>
+                
+                <div class="input-group-custom">
+                    <label>Total Price (₹)</label>
+                    <input type="number" name="price_{{ restock_item.id }}" class="price-input" data-id="old_{{ restock_item.id }}" step="0.01" min="0" value="{{ restock_item.total_price|floatformat:'-2' }}" required>
+                </div>
+                
+                <div class="unit-price">
+                    <div class="unit-price-label">Per Unit</div>
+                    <div class="unit-price-val" id="unit_old_{{ restock_item.id }}">₹{{ restock_item.per_unit_price }}</div>
+                </div>
+            </div>
+            {% endfor %}
+            
+            <div class="totals-section">
+                <div class="total-row">
+                    <span>Subtotal</span>
+                    <span id="subtotalVal">₹0.00</span>
+                </div>
+                <div class="total-row align-items-center">
+                    <span>Discount applied on Bill</span>
+                    <div style="width: 150px;">
+                        <input type="number" name="discount_amount" id="discountInput" class="form-control text-end text-success fw-bold" step="0.01" min="0" value="{{ bill.discount_amount|floatformat:'-2' }}">
+                    </div>
+                </div>
+                <div class="total-row grand-total">
+                    <span>Grand Total</span>
+                    <span id="grandTotalVal">₹0.00</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── ADD NEW ITEMS ── -->
+        {% if available_catalog_items %}
+        <div class="bill-card">
+            <h5 class="fw-bold mb-1 text-success"><i class="bi bi-plus-circle me-2"></i> Add New Items</h5>
+            <p class="small text-muted mb-4">Optionally add missing products from the shop's catalog to this bill.</p>
+            
+            {% for cat_item in available_catalog_items %}
+            <div class="bill-row">
+                <div class="item-info">
+                    <div class="item-name">{{ cat_item.item.name }}</div>
+                    <div class="item-cat">{{ cat_item.item.category.name }}</div>
+                </div>
+                
+                <!-- Checkbox to include -->
+                <div class="me-3">
+                    <div class="form-check form-switch">
+                        <input class="form-check-input new-item-toggle" type="checkbox" name="new_items" value="{{ cat_item.item.id }}" data-id="new_{{ cat_item.item.id }}">
+                    </div>
+                </div>
+
+                <div class="input-group-custom">
+                    <label>Quantity</label>
+                    <input type="number" name="new_qty_{{ cat_item.item.id }}" class="qty-input new-qty" data-id="new_{{ cat_item.item.id }}" step="0.5" min="0" placeholder="0" disabled>
+                </div>
+                
+                <div class="input-group-custom">
+                    <label>Total Price (₹)</label>
+                    <input type="number" name="new_price_{{ cat_item.item.id }}" class="price-input new-price" data-id="new_{{ cat_item.item.id }}" step="0.01" min="0" placeholder="0.00" disabled>
+                </div>
+                
+                <div class="unit-price">
+                    <div class="unit-price-label">Per Unit</div>
+                    <div class="unit-price-val" id="unit_new_{{ cat_item.item.id }}">₹0.00</div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% endif %}
+        
+        <div class="mb-5 text-end">
+            <button type="submit" class="btn btn-primary btn-lg fw-bold rounded-pill px-5 shadow">
+                Save Changes & Update Stock <i class="bi bi-check2-circle ms-1"></i>
+            </button>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.getElementById('billForm');
+        const qtyInputs = document.querySelectorAll('.qty-input');
+        const priceInputs = document.querySelectorAll('.price-input');
+        const discountInput = document.getElementById('discountInput');
+        const subtotalEl = document.getElementById('subtotalVal');
+        const grandTotalEl = document.getElementById('grandTotalVal');
+        const newToggles = document.querySelectorAll('.new-item-toggle');
+        
+        // Handle new item toggles
+        newToggles.forEach(toggle => {
+            toggle.addEventListener('change', function() {
+                const id = this.dataset.id;
+                const qtyInput = document.querySelector(`.new-qty[data-id="${id}"]`);
+                const priceInput = document.querySelector(`.new-price[data-id="${id}"]`);
+                
+                qtyInput.disabled = !this.checked;
+                priceInput.disabled = !this.checked;
+                
+                if (!this.checked) {
+                    qtyInput.value = '';
+                    priceInput.value = '';
+                } else {
+                    qtyInput.required = true;
+                    priceInput.required = true;
+                }
+                calculate();
+            });
+        });
+
+        function calculate() {
+            let subtotal = 0;
+            
+            qtyInputs.forEach(qtyInput => {
+                if (qtyInput.disabled) return;
+                
+                const id = qtyInput.dataset.id;
+                const priceInput = document.querySelector(`.price-input[data-id="${id}"]`);
+                const unitEl = document.getElementById(`unit_${id}`);
+                
+                const qty = parseFloat(qtyInput.value) || 0;
+                const price = parseFloat(priceInput.value) || 0;
+                
+                subtotal += price;
+                
+                if (qty > 0) {
+                    const unitPrice = price / qty;
+                    unitEl.textContent = `₹${unitPrice.toFixed(2)}`;
+                } else {
+                    unitEl.textContent = `₹0.00`;
+                }
+            });
+            
+            const discount = parseFloat(discountInput.value) || 0;
+            const grandTotal = Math.max(0, subtotal - discount);
+            
+            subtotalEl.textContent = `₹${subtotal.toFixed(2)}`;
+            grandTotalEl.textContent = `₹${grandTotal.toFixed(2)}`;
+        }
+        
+        form.addEventListener('input', calculate);
+        calculate(); // Run once on load
+    });
+</script>
+{% endblock %}

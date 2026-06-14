@@ -41,6 +41,8 @@
 30. [Smart Redirect with Context Preservation](#30-smart-redirect-with-context-preservation)
 31. [Composite Database Indexes for Dashboard Speed](#31-composite-database-indexes-for-dashboard-speed)
 32. [N+1 Query Resolution (Page-Scoped Lookups)](#32-n1-query-resolution-page-scoped-lookups)
+33. [Supplier Restock Stock Signals](#33-supplier-restock-stock-signals)
+34. [Supplier Waterfall Bill Status](#34-supplier-waterfall-bill-status)
 
 ---
 
@@ -1039,5 +1041,70 @@ for card in page_obj:
 
 ---
 
-> **END OF BLUEPRINT.** This document covers every technical pattern in the Titan system (v6.2). To use in a new project, tell your AI agent: *"Read TECH_INFO.md section [number] and implement it here."*  
+## 33. Supplier Restock Stock Signals
+**What It Does:** When a restock bill is created from a supplier, the warehouse stock automatically increases. Editing or deleting the bill adjusts stock accordingly — the exact mirror of how workshop consumption deducts stock.
+
+**Backend (Django Signals):**
+```python
+# inventory/signals.py
+
+@receiver(pre_save, sender=SupplierRestockItem)
+def track_old_restock_quantity(sender, instance, **kwargs):
+    """Snapshots the old quantity before update (same pattern as workshop signals)."""
+    if instance.pk:
+        try:
+            old_instance = SupplierRestockItem.objects.get(pk=instance.pk)
+            instance._old_quantity = old_instance.quantity or 0
+        except SupplierRestockItem.DoesNotExist:
+            instance._old_quantity = 0
+    else:
+        instance._old_quantity = 0
+
+@receiver(post_save, sender=SupplierRestockItem)
+def update_stock_on_restock_save(sender, instance, created, **kwargs):
+    """Increases stock by the delta (full qty on create, difference on edit)."""
+    new_qty = float(instance.quantity or 0)
+    old_qty = float(getattr(instance, '_old_quantity', 0))
+    diff = new_qty - old_qty
+
+    if diff != 0 and instance.item:
+        instance.item.current_stock += diff
+        instance.item.save()
+
+@receiver(post_delete, sender=SupplierRestockItem)
+def restore_stock_on_restock_delete(sender, instance, **kwargs):
+    """Reverses the full stock increase when a restock item is deleted."""
+    if instance.item and instance.quantity:
+        instance.item.current_stock -= float(instance.quantity)
+        instance.item.save()
+```
+
+**Key Symmetry:** Workshop signals *decrease* stock on create and *restore* on delete. Supplier signals *increase* stock on create and *reverse* on delete. Both use the same pre_save snapshot + post_save delta pattern.
+
+---
+
+## 34. Supplier Waterfall Bill Status
+**What It Does:** Each supplier restock bill shows its payment status (Covered / Partial / Unpaid) using a running waterfall. Total payments are distributed across bills oldest-first, and each bill's status is determined by how much of the running sum covers its effective amount.
+
+**Backend (Python in view):**
+```python
+def _annotate_bill_status(bills, total_paid):
+    """Absolute running-sum waterfall over bills (oldest first)."""
+    running = Decimal('0')
+    for bill in bills:
+        effective = bill.total_amount - (bill.discount_amount or 0)
+        running += effective
+        if total_paid >= running:
+            bill.pay_status = 'covered'
+        elif total_paid > running - effective:
+            bill.pay_status = 'partial'
+        else:
+            bill.pay_status = 'unpaid'
+```
+
+**Why running-sum instead of cascade allocation?** Unlike the Bulk Payer / Spare Shop cascade which modifies `received_amount` on each item, the supplier system keeps bills immutable. Payment status is calculated on-the-fly from `total_paid` vs cumulative bill totals. This avoids needing JSON snapshots for supplier payment reversal — simply soft-delete the payment and recalculate.
+
+---
+
+> **END OF BLUEPRINT.** This document covers every technical pattern in the Titan system (v6.3). To use in a new project, tell your AI agent: *"Read TECH_INFO.md section [number] and implement it here."*  
 > **Note:** Sections 23-24 (SMS/Telegram notifications) document the current system which may be replaced with a new notification architecture.

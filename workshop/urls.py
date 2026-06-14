@@ -51,7 +51,6 @@ urlpatterns = [
     path('spare-shops/<int:pk>/', views.spare_shop_detail, name='spare_shop_detail'),
     path('spare-shops/<int:pk>/edit/', views.spare_shop_edit, name='spare_shop_edit'),
     path('spare-shops/<int:pk>/pay/', views.spare_shop_pay, name='spare_shop_pay'),
-    path('spare-shops/<int:pk>/pay-item/<int:item_pk>/', views.spare_shop_pay_item, name='spare_shop_pay_item'),
     path('spare-shops/<int:shop_pk>/payment/<int:payment_pk>/reverse/', views.spare_shop_payment_reverse, name='spare_shop_payment_reverse'),
     path('spare-shops/<int:pk>/delete/', views.spare_shop_delete, name='spare_shop_delete'),
     path('spare-shops/<int:pk>/restore/', views.spare_shop_restore, name='spare_shop_restore'),
