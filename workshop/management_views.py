@@ -7,7 +7,7 @@ from django.contrib.auth.models import User, Group
 from django.contrib.sessions.models import Session
 from django.db import models
 from .decorators import owner_required, office_required
-from .models import Mechanic, UserSession, CashbookEntry
+from .models import Mechanic, UserSession
 
 
 @office_required
@@ -56,125 +56,6 @@ def manage_dashboard(request):
         'staff_sessions': staff_sessions,
         'current_session_key': request.session.session_key,
     })
-
-@office_required
-def cashbook_view(request):
-    """
-    Dedicated view for the General Expenses & Income Ledger.
-    """
-    is_ajax = request.headers.get('x-requested-with') == 'XMLHttpRequest'
-    filter_type = request.GET.get('filter')
-
-    if not is_ajax and not filter_type:
-        filter_type = 'today'
-    elif not filter_type:
-        filter_type = 'today'
-        
-    today = timezone.now().date()
-    qs = CashbookEntry.objects.all()
-    
-    if filter_type == 'today':
-        qs = qs.filter(date=today)
-    elif filter_type == 'this_week':
-        start_of_week = today - timedelta(days=today.weekday())
-        qs = qs.filter(date__gte=start_of_week)
-    elif filter_type == 'this_month':
-        qs = qs.filter(date__year=today.year, date__month=today.month)
-    elif filter_type == 'this_year':
-        qs = qs.filter(date__year=today.year)
-        
-    income = qs.filter(entry_type='INCOME').aggregate(t=models.Sum('amount'))['t'] or 0
-    expense = qs.filter(entry_type='EXPENSE').aggregate(t=models.Sum('amount'))['t'] or 0
-    cashbook_totals = {
-        'income': income,
-        'expense': expense,
-        'net': income - expense
-    }
-    
-    expenses = qs.filter(entry_type='EXPENSE').order_by('-date', '-created_at')[:300]
-    incomes  = qs.filter(entry_type='INCOME').order_by('-date', '-created_at')[:300]
-    
-    if is_ajax:
-        return render(request, 'workshop/manage/cashbook_partial.html', {
-            'expenses': expenses,
-            'incomes': incomes,
-            'cashbook_totals': cashbook_totals,
-            'filter_type': filter_type
-        })
-
-    return render(request, 'workshop/manage/cashbook.html', {
-        'expenses': expenses,
-        'incomes': incomes,
-        'cashbook_totals': cashbook_totals,
-        'filter_type': filter_type
-    })
-
-
-@office_required
-def add_cashbook_entry(request):
-    if request.method == 'POST':
-        entry_type = request.POST.get('entry_type', '').upper()
-        if entry_type not in ['INCOME', 'EXPENSE']:
-            messages.error(request, "Invalid entry type.")
-            return redirect('cashbook')
-        category = request.POST.get('category', '').strip()
-        amount = request.POST.get('amount', '').strip()
-        payment_method = request.POST.get('payment_method', 'CASH')
-        description = request.POST.get('description', '').strip()
-        
-        if category and amount:
-            try:
-                float_amount = float(amount)
-                if float_amount > 0:
-                    CashbookEntry.objects.create(
-                        entry_type=entry_type,
-                        category=category,
-                        amount=float_amount,
-                        payment_method=payment_method,
-                        description=description,
-                        created_by=request.user
-                    )
-                    messages.success(request, f"Successfully added {entry_type.lower()} entry.")
-                else:
-                    messages.error(request, "Amount must be greater than zero.")
-            except ValueError:
-                messages.error(request, "Invalid amount provided.")
-        else:
-            messages.error(request, "Name and Amount are required.")
-    return redirect('cashbook')
-
-@office_required
-def delete_cashbook_entry(request, pk):
-    if request.method == 'POST':
-        entry = get_object_or_404(CashbookEntry, pk=pk)
-        entry.delete()
-        messages.success(request, "Entry deleted.")
-    return redirect('cashbook')
-
-
-@office_required
-def edit_cashbook_entry(request, pk):
-    if request.method == 'POST':
-        entry = get_object_or_404(CashbookEntry, pk=pk)
-        category = request.POST.get('category', '').strip()
-        amount   = request.POST.get('amount', '').strip()
-        payment_method = request.POST.get('payment_method', 'CASH')
-        if category and amount:
-            try:
-                float_amount = float(amount)
-                if float_amount > 0:
-                    entry.category = category
-                    entry.amount   = float_amount
-                    entry.payment_method = payment_method
-                    entry.save()
-                    messages.success(request, f"Entry updated.")
-                else:
-                    messages.error(request, "Amount must be greater than zero.")
-            except ValueError:
-                messages.error(request, "Invalid amount provided.")
-        else:
-            messages.error(request, "Name and Amount are required.")
-    return redirect('cashbook')
 
 
 @office_required

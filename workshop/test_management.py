@@ -135,3 +135,72 @@ class ManagementViewTests(TestCase):
         # Verify both are gone
         self.assertFalse(UserSession.objects.filter(pk=user_session.pk).exists())
         self.assertFalse(Session.objects.filter(session_key=session.session_key).exists())
+
+    def test_session_revocation_already_gone(self):
+        """Cover the Session.DoesNotExist branch (line 350-351) — session key already deleted"""
+        # Create a UserSession whose Django session has already been deleted
+        user_session = UserSession.objects.create(
+            user=self.staff,
+            session_key='nonexistent-key-xyz',
+            ip_address='127.0.0.1'
+        )
+        url = reverse('manage_terminate_session', args=[user_session.pk])
+        response = self.client.post(url)
+        self.assertRedirects(response, reverse('manage_dashboard') + '?section=security')
+        self.assertFalse(UserSession.objects.filter(pk=user_session.pk).exists())
+
+    def test_create_user_weak_password(self):
+        """Cover validate_password ValidationError branch (lines 208-210) — password passes length but fails strength"""
+        url = reverse('manage_create_user')
+        # 'password1' is 9 chars (passes length check) but is a common password
+        response = self.client.post(url, {
+            'username': 'weakpwduser', 'password': 'password1', 'role': 'Floor'
+        })
+        self.assertFalse(User.objects.filter(username='weakpwduser').exists())
+
+    def test_reset_password_for_owner_blocked(self):
+        """Cover the Owner-protection branch in reset_password (lines 231-232)"""
+        owner2 = User.objects.create_user(username='owner2', password='password')
+        owner2.groups.add(self.owner_group)
+        url = reverse('manage_reset_password', args=[owner2.id])
+        response = self.client.post(url, {'new_password': 'NewPassword123!'})
+        self.assertRedirects(response, reverse('manage_dashboard') + '?section=accounts')
+        # Password should NOT have changed
+        owner2.refresh_from_db()
+        self.assertFalse(owner2.check_password('NewPassword123!'))
+
+    def test_reset_password_weak_password(self):
+        """Cover validate_password ValidationError branch in reset_password (lines 244-246)"""
+        url = reverse('manage_reset_password', args=[self.staff.id])
+        response = self.client.post(url, {'new_password': 'password1'})
+        self.assertRedirects(response, reverse('manage_dashboard') + '?section=accounts')
+        # Password should NOT have changed
+        self.assertFalse(self.client.login(username='staff_user', password='password1'))
+
+    def test_delete_owner_blocked(self):
+        """Cover the Owner-protection branch in delete_user (lines 264-265)"""
+        owner2 = User.objects.create_user(username='owner2', password='password')
+        owner2.groups.add(self.owner_group)
+        url = reverse('manage_delete_user', args=[owner2.id])
+        response = self.client.post(url)
+        self.assertRedirects(response, reverse('manage_dashboard') + '?section=accounts')
+        self.assertTrue(User.objects.filter(id=owner2.id).exists())  # Still exists
+
+    def test_create_mechanic_duplicate(self):
+        """Cover duplicate mechanic branch in create_mechanic (lines 287-288)"""
+        Mechanic.objects.create(name='Ali')
+        url = reverse('manage_create_mechanic')
+        response = self.client.post(url, {'name': 'Ali'})
+        self.assertRedirects(response, reverse('manage_dashboard') + '?section=accounts')
+        self.assertEqual(Mechanic.objects.filter(name='Ali').count(), 1)  # Not duplicated
+
+    def test_edit_mechanic_duplicate_name(self):
+        """Cover duplicate-name branch in edit_mechanic (lines 325-326)"""
+        mech1 = Mechanic.objects.create(name='Ahmed')
+        mech2 = Mechanic.objects.create(name='Bilal')
+        url = reverse('manage_edit_mechanic', args=[mech2.id])
+        # Try to rename mech2 to the same name as mech1
+        response = self.client.post(url, {'name': 'Ahmed'})
+        self.assertRedirects(response, reverse('manage_dashboard') + '?section=accounts')
+        mech2.refresh_from_db()
+        self.assertEqual(mech2.name, 'Bilal')  # Name unchanged

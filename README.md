@@ -23,6 +23,7 @@ A premium, comprehensive Django-based workshop management system designed to str
 - **Bulk Payer Management** — Dedicated module for managing repeating/fleet customers with cascading bulk payments chronologically (oldest-first).
 - **Pending Bills Dashboard** — Centralized view of all unpaid/partially-paid jobs across the system.
 - **Payment Reversal** — Every bulk payment records a JSON snapshot enabling precise, surgical reversal by the Owner.
+- **General Ledger (Cashbook)** — Standalone income & expense tracking module for recording daily workshop overhead (rent, electricity, scrap sales, etc.) with date-range filters and net balance totals. Office and Owner only.
 
 ### Inventory System
 - **Stock Management** — Track parts and consumables with low-stock alerts and percentage-based color coding.
@@ -104,9 +105,10 @@ A premium, comprehensive Django-based workshop management system designed to str
 WorkshopOS (Titan)/
 ├── formulad_workshop/      # Django project configuration & split settings
 │   └── settings/           # base.py, development.py, production.py
-├── workshop/               # Core application (80 URL routes, 72+ views)
+├── workshop/               # Core application (80 URL routes, 80+ views)
 │   ├── views/              # Modular views package (12 modules)
-│   ├── templates/          # 52 HTML templates
+│   ├── cashbook_views.py   # Standalone Cashbook ledger (4 views)
+│   ├── templates/          # 54 HTML templates
 │   └── static/             # App-specific CSS & JS
 ├── inventory/              # Inventory, stock & supplies shops app (33 URL routes)
 │   ├── views.py            # 13 core inventory views
@@ -119,7 +121,7 @@ WorkshopOS (Titan)/
 ```
 
 ## 🛡️ Titan Standard: Automated Reliability
-WorkshopOS is backed by an **automated test suite** across **17+ test files** covering security, models, views, API endpoints, signals, middleware, financial logic, supplier management, and spare shop operations.
+WorkshopOS is backed by an **automated test suite** across **18+ test files** covering security, models, views, API endpoints, signals, middleware, financial logic, cashbook operations, supplier management, and spare shop operations.
 - **Security Coverage**: Verified IP-lockouts, OTP authentication, and real-time session revocation.
 - **Warehouse Pulse**: Verified stock-delta signals (Creation, Update, Name Change, Deletion).
 - **Model Integrity**: Verified lifecycle transitions for Job Cards, User Sessions, Spare Shops, and Unassigned Spares.
@@ -143,6 +145,6 @@ Designed for scale with practical, measured optimizations:
 
 ---
 
-**Version**: 6.3  
+**Version**: 6.9  
 **Last Updated**: June 2026  
 **Status**: 🛡️ SECURITY HARDENED | 🔧 IN ACTIVE DEVELOPMENT

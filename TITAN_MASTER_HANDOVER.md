@@ -1,9 +1,9 @@
-# 🏛️ TITAN MASTER HANDOVER: WorkshopOS (v6.3)
+# 🏛️ TITAN MASTER HANDOVER: WorkshopOS (v6.9)
 
 > [!IMPORTANT]
 > **Status**: 🛡️ SECURITY HARDENED | 🔧 IN ACTIVE DEVELOPMENT  
 > **Last Updated**: June 2026  
-> **Version**: 6.3  
+> **Version**: 6.9  
 
 ---
 
@@ -11,7 +11,7 @@
 
 **WorkshopOS** is an industrial-grade application meticulously engineered for a single premium automotive workshop. 
 
-- **The Standard**: Functional integrity across all mission-critical operations. The system is backed by a comprehensive test suite spanning **17+ test files** covering security, views, signals, financial logic, and spare shop operations.
+- **The Standard**: Functional integrity across all mission-critical operations. The system is backed by a comprehensive test suite spanning **18+ test files** covering security, views, signals, financial logic, cashbook operations, and spare shop management.
 
 ---
 
@@ -65,7 +65,7 @@ WorkshopOS is optimized for immense scale, ensuring sub-50ms data retrieval even
   ```bash
   .\venv\Scripts\python.exe manage.py test workshop inventory
   ```
-- **Test Coverage**: 17+ test files across workshop (14+) and inventory (3).
+- **Test Coverage**: 18+ test files across workshop (15+) and inventory (3).
 
 ---
 

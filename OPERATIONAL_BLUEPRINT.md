@@ -72,6 +72,8 @@ graph TD
    - Add/Edit/Toggle mechanics
    - Run Data Cleanup (rename, merge, delete duplicates)
    - Manage Inventory categories and items
+   - Record and review Cashbook entries (income & expenses ledger)
+
 
  FLOOR (Mechanics / Floor Manager)
    - View Dashboard (active cars on floor)

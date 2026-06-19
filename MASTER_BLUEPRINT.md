@@ -19,7 +19,8 @@ graph TB
         W_MODELS["models.py — 16 Models"]
         W_VIEWS["views/ — 12 Module Package"]
         W_AUTH["auth_views.py — 6 Auth Views"]
-        W_MGMT["management_views.py — 8 Views"]
+        W_MGMT["management_views.py — 5 Management Views"]
+        W_CASH["cashbook_views.py — 4 Cashbook Views"]
         W_CLEAN["cleanup_views.py — 5 Views"]
         W_URLS["urls.py — 72 URL Patterns"]
         W_FORMS["forms.py — 6 Forms + 3 Formsets"]
@@ -252,6 +253,10 @@ Login Event → send_titan_security_alert()
 | | `/manage/mechanics/<id>/toggle/` | `manage_toggle_mechanic` | Office |
 | | `/manage/mechanics/<id>/edit/` | `manage_edit_mechanic` | Office |
 | | `/manage/sessions/<id>/terminate/` | `manage_terminate_session` | Office* |
+| **CASHBOOK** | `/cashbook/` | `cashbook_view` | Office | `cashbook_views.py` |
+| | `/cashbook/add/` | `add_cashbook_entry` | Office | `cashbook_views.py` |
+| | `/cashbook/<id>/delete/` | `delete_cashbook_entry` | Office | `cashbook_views.py` |
+| | `/cashbook/<id>/edit/` | `edit_cashbook_entry` | Office | `cashbook_views.py` |
 | **CLEANUP** | `/manage/cleanup/` | `data_cleanup_view` | Office |
 | | `/manage/cleanup/spare/<id>/delete/` | `cleanup_delete_spare` | Office |
 | | `/manage/cleanup/spare/<id>/rename/` | `cleanup_rename_spare` | Office |
@@ -389,6 +394,7 @@ stateDiagram-v2
 | `/invoice/` | `invoice_template.html` | Professional invoice |
 | `/spare_shops/` | `shop_list.html`, `shop_detail.html`, `shop_print.html`, `unassigned_hub.html` | 4 spare shop screens |
 | `/manage/` | `manage_dashboard.html`, `data_cleanup.html` | 2 admin screens |
+| `/cashbook/` | `cashbook.html`, `cashbook_partial.html` | 2 cashbook screens (standalone) |
 | `/includes/` | `pagination.html` | Reusable pagination component |
 
 ### Inventory Templates (`inventory/templates/inventory/`) — 18 files
@@ -590,9 +596,9 @@ graph TB
 
 ---
 
-## 13. TEST SUITE (16 Test Files)
+## 13. TEST SUITE (17 Test Files)
 
-### Workshop Tests (13 files)
+### Workshop Tests (14 files)
 
 | File | Coverage Area |
 |------|--------------|
@@ -608,6 +614,7 @@ graph TB
 | `test_filters.py` | Custom filter tests |
 | `test_middleware.py` | Session tracking |
 | `test_management.py` | Management commands |
+| `test_cashbook.py` | Cashbook ledger — 100% coverage |
 | `test_financial.py` | Financial logic & calculations |
 
 ### Inventory Tests (3 files)
@@ -649,7 +656,8 @@ WorkshopOS (Titan)/
 │   │   ├── master_lists.py     ← 17 master list views
 │   │   └── autocomplete.py     ← 4 autocomplete API views
 │   ├── auth_views.py           ← 4 Auth Views + helpers
-│   ├── management_views.py     ← 8 Management Views
+│   ├── management_views.py     ← 5 Management Views (accounts, mechanics, security)
+│   ├── cashbook_views.py       ← 4 Cashbook Views (standalone ledger)
 │   ├── cleanup_views.py        ← 5 Cleanup Views
 │   ├── urls.py                 ← 72 URL patterns
 │   ├── forms.py                ← 6 Forms + 3 Formsets
@@ -663,7 +671,7 @@ WorkshopOS (Titan)/
 │   │   └── setup_groups.py     ← Group setup command (legacy)
 │   ├── templates/workshop/     ← 52 HTML files across 10 directories
 │   ├── static/css/, static/js/ ← App-specific assets
-│   └── test_*.py + tests.py    ← 13 test files
+│   └── test_*.py + tests.py    ← 14 test files
 │
 ├── inventory/                  ← Warehouse + Supplies Shops App (33 URLs, 33 Views)
 │   ├── models.py               ← 8 Models (3 core + 5 supplier)
@@ -689,4 +697,4 @@ WorkshopOS (Titan)/
 
 ---
 
-> **Total**: 2 Django Apps · 24 Models · 113 URL Routes · 105+ Views · 70 Templates · 3 RBAC Tiers · 2 External APIs (⚠️ current) · 6 Signal Handlers · 16 Test Files
+> **Total**: 2 Django Apps · 24 Models · 117 URL Routes · 110+ Views · 72 Templates · 3 RBAC Tiers · 2 External APIs (⚠️ current) · 6 Signal Handlers · 17 Test Files
