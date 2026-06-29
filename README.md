@@ -7,6 +7,7 @@ A premium, comprehensive Django-based workshop management system designed to str
 ### Role-Based Access Control (RBAC)
 - **Three-Tier Permissions** — Dedicated access levels for **Owner**, **Office**, and **Floor (Mechanic)** roles.
 - **Secure Admin Hub** — Password-protected Owner login with direct access and real-time security alerts.
+- **Owner Analysis & Reports** — A high-performance, mobile-first analytics dashboard exclusive to Owners, featuring hero KPIs and asynchronous data zones.
 - **Role-specific UI** — Dynamic navigation and information visibility based on user groups.
 
 ### Job Card Management
@@ -145,6 +146,6 @@ Designed for scale with practical, measured optimizations:
 
 ---
 
-**Version**: 6.9  
+**Version**: 7.0  
 **Last Updated**: June 2026  
 **Status**: 🛡️ SECURITY HARDENED | 🔧 IN ACTIVE DEVELOPMENT
